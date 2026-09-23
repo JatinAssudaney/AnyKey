@@ -4,7 +4,7 @@ import { chromium, test as base, type BrowserContext, type Page, type Worker } f
 export { expect } from '@playwright/test';
 export { FIXTURE_ORIGIN } from './constants.ts';
 
-const EXTENSION_PATH = path.resolve(import.meta.dirname, '../.output/chrome-mv3');
+const EXTENSION_PATH = path.resolve(import.meta.dirname, '../dist/chrome-mv3');
 
 interface WorkerFixtures {
   extensionContext: BrowserContext;

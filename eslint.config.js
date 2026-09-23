@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores(['.output/', '.wxt/', 'playwright-report/', 'test-results/']),
+  globalIgnores(['dist/', '.wxt/', 'playwright-report/', 'test-results/']),
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,

@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 import { FIXTURE_ORIGIN } from './e2e/constants.ts';
 
-// Run with `pnpm test:e2e`, which builds .output/chrome-mv3 first.
+// Run with `pnpm test:e2e`, which builds dist/chrome-mv3 first.
 export default defineConfig({
   testDir: './e2e',
   // All tests in a worker share one Chromium profile with the extension loaded.

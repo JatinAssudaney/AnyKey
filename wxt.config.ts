@@ -5,6 +5,8 @@ import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from './src/core/app';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: 'src',
+  // WXT's default, .output, is hidden in Finder and the "Load unpacked" picker on macOS.
+  outDir: 'dist',
   // Explicit imports everywhere: easier to read, lint and grep than auto-imports.
   imports: false,
   modules: ['@wxt-dev/module-react', '@wxt-dev/auto-icons'],
@@ -18,7 +20,7 @@ export default defineConfig({
     description: APP_DESCRIPTION,
     permissions: ['storage'],
   },
-  // Branded Chrome no longer loads unpacked extensions from the command line, so load .output/ by hand.
+  // Branded Chrome no longer loads unpacked extensions from the command line, so load dist/ by hand.
   webExt: { disabled: true },
   vite: () => ({
     plugins: [tailwindcss()],

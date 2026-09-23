@@ -6,5 +6,5 @@
     "types": ["node"]
   },
   // e2e/ has its own tsconfig: its code runs in Node and inside the extension's service worker.
-  "exclude": ["node_modules", ".output", "e2e"]
+  "exclude": ["node_modules", "dist", "e2e"]
 }

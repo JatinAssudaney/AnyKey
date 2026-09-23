@@ -8,11 +8,11 @@ Requires Node 22.12+ and pnpm.
 
 ```sh
 pnpm install
-pnpm build          # production build in .output/chrome-mv3
-pnpm dev            # watch build in .output/chrome-mv3-dev
+pnpm build          # production build in dist/chrome-mv3
+pnpm dev            # watch build in dist/chrome-mv3-dev
 ```
 
-Load the build in Chrome: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `.output/chrome-mv3` (or `.output/chrome-mv3-dev` while `pnpm dev` runs). After a rebuild, click the reload icon on the AnyKey card and reload any open tabs.
+Load the build in Chrome: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `dist/chrome-mv3` (or `dist/chrome-mv3-dev` while `pnpm dev` runs). After a rebuild, click the reload icon on the AnyKey card and reload any open tabs.
 
 ## Checks
 

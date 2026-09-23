@@ -30,7 +30,7 @@ Imports flow one way: entrypoints, then dom / storage / components, then core. C
 - TypeScript stays on 6.0: typescript-eslint requires `<6.1`. ESLint 10 is paired with `eslint-plugin-jsx-a11y-x`, a maintained fork (the original plugin stops at ESLint 9, which is end of life).
 - Vitest stays on 4.1: WXT's test plugin is untested on Vitest 5.
 - WXT 0.21 removed the `wxt/testing` barrel. Import `WxtVitest` from `wxt/testing/vitest-plugin` and `fakeBrowser` from `wxt/testing/fake-browser`. fakeBrowser's `storage.sync.getBytesInUse` throws, so stub it.
-- Branded Chrome 137+ ignores `--load-extension`, so `pnpm dev` launches no browser: load `.output/chrome-mv3-dev` (dev) or `.output/chrome-mv3` (build) unpacked by hand. E2E uses Playwright's bundled Chromium (first run: `pnpm exec playwright install chromium`).
+- Branded Chrome 137+ ignores `--load-extension`, so `pnpm dev` launches no browser: load `dist/chrome-mv3-dev` (dev) or `dist/chrome-mv3` (build) unpacked by hand. E2E uses Playwright's bundled Chromium (first run: `pnpm exec playwright install chromium`).
 - Background message listeners answer with `sendResponse` + `return true`; promise-returning listeners need Chrome 148+ and break under fakeBrowser.
 
 ## Milestone loop
