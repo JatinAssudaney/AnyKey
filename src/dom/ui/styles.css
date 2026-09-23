@@ -1,0 +1,182 @@
+/*
+ * AnyKey's in-page UI. Loaded as text into a closed shadow root, after WXT's `:host { all: initial }` reset, so
+ * nothing is inherited from the page. Sizes are px because rem follows the page's root font size. Avoid @property
+ * and @font-face: WXT moves those into the page's document.
+ */
+
+.ak-surface {
+  --ak-bg: #ffffff;
+  --ak-fg: #1c1917;
+  --ak-muted: #57534e;
+  --ak-border: #e7e5e4;
+  --ak-key-bg: #f5f5f4;
+  --ak-key-border: #d6d3d1;
+  --ak-accent: #c2410c;
+  color-scheme: light;
+  box-sizing: border-box;
+  color: var(--ak-fg);
+  background: var(--ak-bg);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ak-surface {
+    --ak-bg: #1c1917;
+    --ak-fg: #f5f5f4;
+    --ak-muted: #a8a29e;
+    --ak-border: #44403c;
+    --ak-key-bg: #292524;
+    --ak-key-border: #57534e;
+    --ak-accent: #fb923c;
+    color-scheme: dark;
+  }
+}
+
+.ak-surface *,
+.ak-surface *::before,
+.ak-surface *::after {
+  box-sizing: border-box;
+}
+
+/* Cheatsheet */
+
+.ak-cheatsheet {
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(680px, calc(100vh - 32px));
+  padding: 0;
+  border: 1px solid var(--ak-border);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+  overflow: hidden;
+}
+
+.ak-cheatsheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.ak-cheatsheet::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+.ak-cheatsheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--ak-border);
+}
+
+.ak-cheatsheet h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ak-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ak-muted);
+  background: transparent;
+  font: 20px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.ak-close:hover {
+  color: var(--ak-fg);
+  background: var(--ak-key-bg);
+}
+
+.ak-close:focus-visible {
+  outline: 2px solid var(--ak-accent);
+  outline-offset: 2px;
+}
+
+.ak-cheatsheet-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  column-gap: 32px;
+  padding: 4px 20px 20px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* The list takes focus on open only so arrow keys and Page Down scroll it; it isn't a control, so no ring. */
+.ak-cheatsheet-body:focus {
+  outline: none;
+}
+
+.ak-group h3 {
+  margin: 16px 0 6px;
+  color: var(--ak-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ak-group table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ak-group td {
+  padding: 5px 0;
+  vertical-align: middle;
+}
+
+.ak-group td.ak-keys {
+  width: 112px;
+  padding-right: 16px;
+  white-space: nowrap;
+}
+
+.ak-surface kbd {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 6px;
+  border: 1px solid var(--ak-key-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  color: var(--ak-fg);
+  background: var(--ak-key-bg);
+  font: 12px/18px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-align: center;
+}
+
+.ak-plus,
+.ak-then {
+  margin: 0 4px;
+  color: var(--ak-muted);
+  font-size: 12px;
+}
+
+.ak-cheatsheet-footer {
+  padding: 10px 20px;
+  border-top: 1px solid var(--ak-border);
+  color: var(--ak-muted);
+  font-size: 12px;
+}
+
+/* Toast */
+
+.ak-toast {
+  inset: auto 0 24px;
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 10px 14px;
+  border: 1px solid var(--ak-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}

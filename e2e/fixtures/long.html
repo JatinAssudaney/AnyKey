@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Long fixture</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px system-ui, sans-serif;
+      }
+      main {
+        height: 5000px;
+        padding: 16px;
+      }
+      label,
+      #editor {
+        display: block;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Long fixture</h1>
+      <label>Text <input id="text" /></label>
+      <label>Notes <textarea id="notes"></textarea></label>
+      <div id="editor" contenteditable="true">Editable</div>
+      <label><input id="check" type="checkbox" /> Check</label>
+      <closed-field></closed-field>
+    </main>
+    <script>
+      // Stands in for a site's own keyboard handlers.
+      window.pageKeys = [];
+      for (const type of ['keydown', 'keyup']) {
+        document.addEventListener(type, (event) => {
+          window.pageKeys.push(`${type}:${event.key}`);
+        });
+      }
+
+      // A text field inside a closed shadow root: events from it are retargeted to the host.
+      customElements.define(
+        'closed-field',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const input = document.createElement('input');
+            input.setAttribute('aria-label', 'Closed field');
+            this.attachShadow({ mode: 'closed' }).append(input);
+            window.focusClosedInput = () => input.focus();
+            window.closedInputValue = () => input.value;
+          }
+        },
+      );
+    </script>
+  </body>
+</html>

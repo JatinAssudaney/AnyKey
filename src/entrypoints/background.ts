@@ -1,5 +1,7 @@
 import { defineBackground } from 'wxt/utils/define-background';
+import { listenForMessages } from '../background/router';
 
 export default defineBackground(() => {
-  // Tab actions (M2), the storage writer (M3) and preset installation (M6) register here.
+  // Listeners register synchronously so a restarted service worker catches the message that woke it.
+  listenForMessages();
 });

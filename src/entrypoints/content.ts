@@ -1,4 +1,5 @@
 import { defineContentScript } from 'wxt/utils/define-content-script';
+import { startAnyKey } from '../dom/app';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -6,7 +7,9 @@ export default defineContentScript({
   runAt: 'document_start',
   // v1 handles the top frame only.
   allFrames: false,
-  main() {
-    // The key engine is wired up here in M2.
+  // Otherwise WXT posts a "content script started" message to the page itself on every load.
+  noScriptStartedPostMessage: true,
+  main(ctx) {
+    startAnyKey(ctx);
   },
 });

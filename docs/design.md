@@ -7,7 +7,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | | Scope | Status |
 |---|---|---|
 | M1 | Scaffold: WXT + React + TS + Tailwind, lint, tests, E2E harness, icons, docs | done |
-| M2 | Key engine, global scroll/history/tab shortcuts, cheatsheet | planned |
+| M2 | Key engine, global scroll/history/tab shortcuts, cheatsheet | done |
 | M3 | Storage layer, options editor with key recorder, import/export | planned |
 | M4 | Element picker, per-site shortcuts from the popup | planned |
 | M5 | Hint mode | planned |
@@ -65,7 +65,7 @@ type Settings = {
 };
 ```
 
-Default global shortcuts: `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` hints, `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
+Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` hints (added with hint mode in M5), `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
 
 ## Storage (M3)
 
@@ -96,30 +96,42 @@ Pure `resolve()` in `src/core/resolve.ts` computes the shortcuts for one URL and
 2. Defaults, with `global.overrides` applied.
 3. For each preset whose `matches` include the URL: a reserved key with `yield: true` (and a matching `match`, if set) turns off defaults still on their default keys; user-rekeyed defaults and user shortcuts are never yielded. `site:<host>.globals` can re-enable or disable a default on that host. Preset shortcuts are added with `preset:<id>` overrides applied.
 4. User global shortcuts, then user site shortcuts whose `match` includes the URL (from every site doc, so a scope edited to another host still works).
-5. Precedence: user site > user global > preset > default. For identical key sequences the higher one wins and the rest are shadowed. A higher-precedence single key also shadows lower-precedence sequences that start with it. Two winners at the same rank produce a duplicate warning.
+5. Precedence: user site > user global > preset > default. For identical key sequences the higher one wins and the rest are shadowed; within a rank the first wins, and M3's conflict checks warn about the duplicate. A higher-precedence sequence also shadows lower-precedence sequences that start with it (a user's `g` shadows a preset's `g e`); same-rank prefixes stay active and wait for the timeout. Sequences are compared as match tokens, after `mod` resolves for the platform.
 
-The content script caches the result by `location.href`; when the URL changes it re-resolves and clears the key buffer.
+Step 5 and the defaults layer are built (M2). With M3 the content script caches the result by `location.href`; when the URL changes it re-resolves and clears the key buffer.
 
-## Key engine (M2)
+## Key engine
+
+`src/dom/engine.ts` feeds keydowns to the pure matcher in `src/core/sequence.ts`.
 
 - Listen on `window`, capture phase, registered at `document_start` so it runs before page listeners.
-- Consume a key (`preventDefault` + `stopImmediatePropagation`) only when it matches. Swallow the matching `keyup`, tracked by `event.code`; clear the tracking on window blur.
-- Pure prefixes pass through to the page (GitHub's native `g i` keeps working). A key that is both a full shortcut and a prefix is consumed and fires on timeout (`sequenceTimeoutMs`) or when the next key breaks the sequence; the breaking key is then re-fed alone.
-- Repeats never advance a sequence. Only single-chord scroll shortcuts fire on repeat, scrolling instantly.
-- Ignore: IME composition (`isComposing || keyCode === 229`), modifier-only keys, and editable focus unless `allowInInputs`. Editable means `composedPath()[0]` or the deep active element is a text-type input, textarea, select, contenteditable, `role=textbox|searchbox|combobox`, or the document is in `designMode`.
-- Canonical keys: Caps Lock without Shift lowercases letters; key mode drops Shift for printable characters (`G`, `?`) but keeps an explicit `shift+` alongside Ctrl/Alt/Meta (`ctrl+shift+k`); macOS Option combos take the letter from `event.code`; `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
-- Each handler first checks `ctx.isInvalid`: after an extension update the old content script keeps running with dead APIs and must let every key through.
-- A mode stack routes keys: normal shortcuts, hint mode, picker mode, and focus inside AnyKey's UI.
-- Element targets resolve at press time: selector, then fallbacks, then text or aria-label among interactive elements (restricted by `tag` when set), preferring visible matches and piercing open and closed shadow roots. When nothing matches, show a toast.
+- Each handler first checks `ctx.isInvalid`: after an extension update or reload the old content script keeps running with dead APIs and must let every key through. Untrusted (script-dispatched) events are ignored, so a page can't fire shortcuts such as `x`.
+- Consume a key (`preventDefault` + `stopImmediatePropagation`) only when it completes a shortcut, or continues a sequence whose earlier keys were consumed. Swallow the matching `keyup`, tracked by `event.code`; clear the tracking on window blur.
+- Pure prefixes pass through to the page (GitHub's native `g i` keeps working). A key that is both a full shortcut and a prefix is consumed and fires on timeout (`sequenceTimeoutMs`) or when the next key breaks the sequence; the keys after that full match are then replayed as a fresh start. A key that breaks a pure prefix is replayed alone (`g` then `j` scrolls).
+- Repeats never advance a sequence. A repeat of a key the page received stays with the page; a repeat of a consumed key is swallowed, and fires again only for single-chord scroll shortcuts, which then scroll instantly.
+- Ignore: IME composition (`isComposing || keyCode === 229`), modifier and lock keys (Shift on the way to `G` must not break a sequence), and editable focus unless `allowInInputs`. Editable means `composedPath()[0]` or the deep active element (through closed shadow roots, via `chrome.dom`) is a text-type input, textarea, select, contenteditable, `role=textbox|searchbox|combobox`, or the document is in `designMode`.
+- Canonical keys (`parseKeys` for notation, `keyToken` for events; both must agree):
+  - Without Ctrl/Alt/Meta, letter case follows Shift, so Caps Lock never changes a shortcut. `G` and `shift+g` are the same chord.
+  - With Ctrl/Alt/Meta, letter case is ignored and Shift is explicit: `ctrl+K` means `ctrl+k`.
+  - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
+  - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
+  - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
+- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet now; hint mode and picker mode later). While a UI mode is on top, every key goes to it and never reaches the page.
 
-## In-page UI (M2)
+## Scrolling
 
-- One lazily mounted `createShadowRootUi` host: closed mode, `isolateEvents`, inline at `<html>`. CSS goes in through the `css` option, so no stylesheet is web-accessible. The CSS avoids `@property` and `@font-face` (WXT would hoist them into the page).
-- Overlays live in the top layer (popover or `<dialog>`) so they show above page modals and fullscreen video.
+Scroll keys move the nearest scrollable ancestor of the element last clicked or focused, skipping ancestors with no room left in that direction (like native scroll chaining); then the page; then, for apps whose page never scrolls, the scrollable ancestor of the viewport's center or else the largest visible scroller. Smooth scrolling is off for key repeats and under `prefers-reduced-motion`.
+
+## In-page UI
+
+- One lazily mounted `createShadowRootUi` host (`<anykey-ui>`): closed mode, `isolateEvents`, appended to `<html>` so pages that replace `<body>` don't remove it, and remounted if a page does. CSS goes in through the `css` option, so no stylesheet is web-accessible. The CSS avoids `@property` and `@font-face` (WXT would hoist them into the page).
+- Overlays live in the top layer (modal `<dialog>`, `popover`) so they show above page modals and fullscreen video.
 - Key and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events.
+- The content script sets `noScriptStartedPostMessage`, so WXT never posts messages to the page.
 
 ## Picker (M4)
 
+- Element targets resolve at press time: selector, then fallbacks, then text or aria-label among interactive elements (restricted by `tag` when set), preferring visible matches and piercing open and closed shadow roots. When nothing matches, show a toast.
 - Capture-phase listeners block the page's pointer, mouse and click handlers while picking. Hover promotes to the nearest interactive ancestor; Up/Down walk to parent/child; Esc cancels.
 - Selector priority: `data-testid` / `data-test` / `data-qa`; a non-generated id; aria-label; role plus accessible name (`a[href]`, `name`, `title`, `placeholder`); stable classes; a short structural path. Scoring heuristics live in `src/core/selectorScore.ts` (generated ids such as digit runs, hashes and `:r1:`; hashed CSS-module, styled-components and utility classes; aria-labels with digits become `^=` prefixes). Candidates are built and checked for uniqueness in the live DOM; the next 1 to 3 unique ones become `fallbacks`, and the text/aria-label and tag are stored too.
 
@@ -137,4 +149,5 @@ The content script caches the result by `location.href`; when the URL changes it
 ## Security
 
 - Navigate and new-tab URLs must be http(s) or relative, so imported JSON cannot carry `javascript:` URLs.
-- The background validates every message with zod. Labels and selectors have length caps.
+- The background validates every message with zod and accepts messages only from AnyKey's own contexts. Labels and selectors have length caps.
+- Code that runs on every page imports only types from `src/core/schema.ts` and `src/core/messages.ts`, which keeps zod out of the content script bundle until it has data to validate (M3).
