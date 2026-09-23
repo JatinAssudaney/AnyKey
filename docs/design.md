@@ -106,7 +106,8 @@ Step 5 and the defaults layer are built (M2). With M3 the content script caches 
 
 - Listen on `window`, capture phase, registered at `document_start` so it runs before page listeners.
 - Each handler first checks `ctx.isInvalid`: after an extension update or reload the old content script keeps running with dead APIs and must let every key through. Untrusted (script-dispatched) events are ignored, so a page can't fire shortcuts such as `x`.
-- Consume a key (`preventDefault` + `stopImmediatePropagation`) only when it completes a shortcut, or continues a sequence whose earlier keys were consumed. Swallow the matching `keyup`, tracked by `event.code`; clear the tracking on window blur.
+- Consume a key (`preventDefault` + `stopImmediatePropagation`) only when it completes a shortcut, or continues a sequence whose earlier keys were consumed.
+- A keyup goes where its key's first keydown went, tracked by `event.code`: swallowed if consumed, kept from the page if a UI mode or AnyKey's UI took it, and delivered otherwise, even after focus has moved into AnyKey's UI (Shift pressed on the way to `?` must come back up for the page, or the page thinks it is still held). A keyup with no tracked keydown is kept from the page only when it comes from AnyKey's UI. Clear the tracking on window blur.
 - Pure prefixes pass through to the page (GitHub's native `g i` keeps working). A key that is both a full shortcut and a prefix is consumed and fires on timeout (`sequenceTimeoutMs`) or when the next key breaks the sequence; the keys after that full match are then replayed as a fresh start. A key that breaks a pure prefix is replayed alone (`g` then `j` scrolls).
 - Repeats never advance a sequence. A repeat of a key the page received stays with the page; a repeat of a consumed key is swallowed, and fires again only for single-chord scroll shortcuts, which then scroll instantly.
 - Ignore: IME composition (`isComposing || keyCode === 229`), modifier and lock keys (Shift on the way to `G` must not break a sequence), and editable focus unless `allowInInputs`. Editable means `composedPath()[0]` or the deep active element (through closed shadow roots, via `chrome.dom`) is a text-type input, textarea, select, contenteditable, `role=textbox|searchbox|combobox`, or the document is in `designMode`.
@@ -116,7 +117,7 @@ Step 5 and the defaults layer are built (M2). With M3 the content script caches 
   - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
-- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet now; hint mode and picker mode later). While a UI mode is on top, every key goes to it and never reaches the page.
+- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet now; hint mode and picker mode later). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened (hint mode needs the same for `f`).
 
 ## Scrolling
 
@@ -124,9 +125,9 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 
 ## In-page UI
 
-- One lazily mounted `createShadowRootUi` host (`<anykey-ui>`): closed mode, `isolateEvents`, appended to `<html>` so pages that replace `<body>` don't remove it, and remounted if a page does. CSS goes in through the `css` option, so no stylesheet is web-accessible. The CSS avoids `@property` and `@font-face` (WXT would hoist them into the page).
+- One lazily mounted `createShadowRootUi` host (`<anykey-ui>`): closed mode, without WXT's `isolateEvents` (the key engine isolates UI events itself, and that option's bubble-phase stop would also hide the keyups the page is owed), appended to `<html>` so pages that replace `<body>` don't remove it, and remounted if a page does. CSS goes in through the `css` option, so no stylesheet is web-accessible. The CSS avoids `@property` and `@font-face` (WXT would hoist them into the page).
 - Overlays live in the top layer (modal `<dialog>`, `popover`) so they show above page modals and fullscreen video.
-- Key and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events.
+- Keydown, keypress and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events.
 - The content script sets `noScriptStartedPostMessage`, so WXT never posts messages to the page.
 
 ## Picker (M4)

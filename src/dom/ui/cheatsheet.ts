@@ -48,7 +48,8 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
   const mode: Mode = {
     keyDown(event, token) {
       if (token === 'escape' || (token !== null && options.closeTokens.includes(token))) {
-        dialog.close();
+        // Auto-repeats are the same press: holding "?" a little long must not close what it just opened.
+        if (!event.repeat) dialog.close();
         return 'consume';
       }
       if (token === 'j' || token === 'k') {

@@ -24,7 +24,8 @@ export function createUiRoot(ctx: ContentScriptContext): UiRoot {
         position: 'inline',
         anchor: () => document.documentElement,
         mode: 'closed',
-        isolateEvents: true,
+        // No `isolateEvents`: the key engine already keeps AnyKey's UI events from the page, and WXT's bubble-phase
+        // stop would also hide keyups the page is owed (Shift released while the cheatsheet has focus).
         css,
         onMount: () => undefined,
       });
