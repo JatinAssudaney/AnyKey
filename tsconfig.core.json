@@ -1,0 +1,22 @@
+{
+  // src/core must stay pure: no DOM, no chrome.* and no Node globals.
+  // This config type-checks it against the ECMAScript library only, so any such use fails `pnpm typecheck`.
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ES2024"],
+    "types": [],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  },
+  "include": ["src/core/**/*.ts"],
+  "exclude": ["src/core/**/*.test.ts"]
+}

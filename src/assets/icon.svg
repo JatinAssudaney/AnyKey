@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <!-- keycap skirt: the thicker bottom edge reads as depth -->
+  <rect x="4" y="6" width="120" height="118" rx="26" fill="#9a3412"/>
+  <!-- keycap top face -->
+  <rect x="14" y="10" width="100" height="92" rx="18" fill="url(#face)"/>
+  <!-- letter A as a path so rendering never depends on installed fonts -->
+  <path fill="#ffffff" fill-rule="evenodd"
+        d="M57 30 H71 L92 82 H78 L73.15 70 H54.85 L50 82 H36 Z M64 47.35 L69.11 60 H58.89 Z"/>
+</svg>
