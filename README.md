@@ -28,3 +28,4 @@ The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chr
 - [CLAUDE.md](CLAUDE.md): architecture and conventions
 - [docs/design.md](docs/design.md): design rules and milestones
 - [PERMISSIONS.md](PERMISSIONS.md): why each permission is requested
+- [BACKLOG.md](BACKLOG.md): ideas left for later, and why they wait
