@@ -2,6 +2,7 @@ import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { installPresets } from '../background/presets';
 import { listenForMessages } from '../background/router';
+import { welcomeOnInstall } from '../background/welcome';
 import { createWriter } from '../storage/writer';
 
 export default defineBackground(() => {
@@ -14,6 +15,11 @@ export default defineBackground(() => {
       console.error('AnyKey: presets could not be installed.', error);
     });
   };
-  browser.runtime.onInstalled.addListener(install);
+  browser.runtime.onInstalled.addListener((details) => {
+    install();
+    welcomeOnInstall(details).catch((error: unknown) => {
+      console.error('AnyKey: the welcome page could not open.', error);
+    });
+  });
   browser.runtime.onStartup.addListener(install);
 });

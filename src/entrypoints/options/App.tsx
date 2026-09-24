@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import iconUrl from '@/assets/icon.svg';
-import { focusRing } from '@/components/styles';
+import { focusRing, headerLink } from '@/components/styles';
 import { DataSection } from './sections/DataSection';
 import { SettingsSection } from './sections/SettingsSection';
 import { ShortcutsSection } from './sections/ShortcutsSection';
@@ -29,6 +29,10 @@ export function App() {
           <p role="status" className="ml-auto text-sm text-stone-600 dark:text-stone-400">
             {status.progress}
           </p>
+          {/* The page that opens on install, with the keys to start with. */}
+          <a href="/welcome.html" className={headerLink}>
+            Getting started
+          </a>
         </div>
       </header>
       <main id="main" tabIndex={-1} className="mx-auto max-w-4xl px-6 py-8 focus:outline-none">

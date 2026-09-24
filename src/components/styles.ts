@@ -11,6 +11,9 @@ export const secondaryButton = `${button} border border-stone-300 bg-white hover
 
 export const dangerButton = `${button} bg-red-700 text-white hover:bg-red-800 dark:bg-red-400 dark:text-stone-950 dark:hover:bg-red-300`;
 
+/** At the right of a page's header: a link, or a button, to another of AnyKey's pages. */
+export const headerLink = `rounded text-sm font-medium text-orange-800 underline-offset-2 hover:underline dark:text-orange-300 ${focusRing}`;
+
 /** A small text button inside table rows. */
 export const linkButton = `rounded px-1.5 py-0.5 text-sm font-medium text-orange-800 underline-offset-2 hover:underline dark:text-orange-300 ${focusRing}`;
 

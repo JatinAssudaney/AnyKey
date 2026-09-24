@@ -27,6 +27,15 @@ export async function extensionWorker(context: BrowserContext): Promise<Worker> 
   return context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
 }
 
+/** The welcome page, which AnyKey opens when it is installed: in every profile `launchExtensionContext` makes. */
+export async function welcomePage(context: BrowserContext): Promise<Page> {
+  const find = (): Page | undefined => context.pages().find((page) => page.url().endsWith('/welcome.html'));
+  await expect.poll(() => find() !== undefined, { message: 'Installing AnyKey opens its welcome page' }).toBe(true);
+  const page = find();
+  if (page === undefined) throw new Error('The welcome page closed');
+  return page;
+}
+
 interface WorkerFixtures {
   extensionContext: BrowserContext;
   serviceWorker: Worker;
@@ -44,6 +53,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // eslint-disable-next-line no-empty-pattern -- Playwright requires an object pattern here.
     async ({}, use) => {
       const context = await launchExtensionContext();
+      // Tests start without the page that installing AnyKey opens, so none finds a tab it didn't open.
+      await (await welcomePage(context)).close();
       await use(context);
       await context.close();
     },

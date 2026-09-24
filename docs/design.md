@@ -12,6 +12,12 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M4 | Element picker, per-site shortcuts from the popup | done |
 | M5 | Hint mode | done |
 | M6 | Presets, overrides, conflict warnings | done |
+| M7 | Welcome page on install, where AnyKey's keys work on the page itself | done |
+| M8 | Presets checked on the live sites, signed in and signed out, and marked verified | planned |
+| M9 | Store listing: store icon, screenshots, promo tiles, description, privacy policy | planned |
+| M10 | Release 1.0: release checks as E2E tests, Windows and Chrome test pass, publish, Featured badge nomination | planned |
+
+M7 to M10 take AnyKey to the Chrome Web Store and a nomination for its Featured badge. `docs/launch.md` lists what the store asks for and which milestone covers each part.
 
 ## Data model
 
@@ -186,6 +192,14 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - It teaches the keys that work on the page, as `resolve()` finds them there, so a rekeyed or disabled default shows as it is: the cheatsheet key, and hint mode with the key that shows hints (what labels are for, and that keys pick labels until one is picked or Esc). A line goes when its action has no key.
 - On a site with a preset, a section lists the preset's shortcuts for the page (noting any that are off, or replaced by the user's on the same keys) and names the built-in keys that go to the site's own shortcuts on the page.
 - Alt+Shift+K (⌥⇧K on macOS) opens it: the manifest's `_execute_action` command, which works in every tab, even where the content script can't run. A command isn't a permission and brings no install warning. The browser holds the key: it gives the suggested key only when nothing else has it, and people change it at `chrome://extensions/shortcuts`. So the popup and the options page's Shortcuts section read the key from `commands.getAll()` (the options page again when it gets focus back, after a change there), show it as keycaps split from the browser's own text (`commandKeycaps`), and offer to set one when there is none.
+
+## Welcome page (M7)
+
+- The background opens `welcome.html` when AnyKey is installed (`runtime.onInstalled` with reason `install`), never on an update: people who update know AnyKey already, and a tab opening with every release would nag. The options page links to it, so it can be opened again.
+- The browser runs no content script in extension pages, and the first thing people do on the welcome page is press the keys it shows. So the page runs AnyKey itself: `startAnyKey` with a `ContentScriptContext` of its own, and `picker: false`. Every extension page gets the runtime messages AnyKey's pages send, the popup's `startPicker` to the background among them, so a welcome page with the picker would start it on itself. It still answers `pageInfo`, which comes to its own tab only, so the popup opened there says that site shortcuts need a web page, not that AnyKey isn't running.
+- It teaches the keys that show what AnyKey is for, as `resolve()` finds them on the page, so a rekeyed built-in shortcut shows its new keys and a line goes when its action has no key: scrolling, the cheatsheet, link hints, then the popup's key (from `commands.getAll()`) with the picker, and the presets.
+- The top of the page has something to click, so the link hints it teaches label something in the first view: a Settings button at the right of the header. A button, not a link to the options page, since `g f` opens only http(s) links in a new tab and clicks anything else with Ctrl or Cmd. The presets' site names link to the sites, to try AnyKey on.
+- It says that tabs open before the install have no AnyKey until they reload (see BACKLOG.md): it is the first thing a new user runs into, and the popup's "Reload this tab" helps only once they think to open it.
 
 ## Picker
 

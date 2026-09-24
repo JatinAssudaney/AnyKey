@@ -9,7 +9,7 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 - `src/background/`: service-worker code: the validating message router, tab actions, and preset install.
 - `src/storage/`: storage reads, pure mutation reducers, and the background write queue.
 - `src/messaging.ts`: the sending side of runtime messages, shared by the content script and extension pages.
-- `src/entrypoints/`: WXT entrypoints (background, content, popup, options). Thin: they wire modules together.
+- `src/entrypoints/`: WXT entrypoints (background, content, popup, options, welcome). Thin: they wire modules together.
 - `src/components/`: React components shared by the popup and options page.
 - `presets/`: bundled preset JSON. `e2e/`: Playwright specs, harness and fixture pages.
 
@@ -45,4 +45,4 @@ Imports flow one way: entrypoints, then dom / background / components, then stor
 
 ## Milestone loop
 
-The build is split into milestones M1 to M6 (listed in `docs/design.md`). Each one ends with `pnpm check` and `pnpm test:e2e` green, load-unpacked steps plus a manual test list for the user, a commit, and a stop for the user's review before the next milestone starts.
+The build is split into milestones M1 to M10 (listed in `docs/design.md`; M7 to M10 lead to the Chrome Web Store release, with `docs/launch.md`). Each one ends with `pnpm check` and `pnpm test:e2e` green, load-unpacked steps plus a manual test list for the user, a commit, and a stop for the user's review before the next milestone starts.

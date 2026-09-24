@@ -21,8 +21,17 @@ import { createUiRoot } from './ui/root';
 import { createToast } from './ui/toast';
 import { urlParts, withoutHash } from './url';
 
+interface StartOptions {
+  /**
+   * Whether the popup can start the picker here. Not on the welcome page: every extension page gets the runtime
+   * messages AnyKey's pages send, including the popup's request that the background start the picker in a tab, so the
+   * welcome page, which runs AnyKey too, would start it on itself.
+   */
+  picker: boolean;
+}
+
 /** Starts AnyKey in a page, with the shortcuts and settings from storage, and follows changes to them. */
-export function startAnyKey(ctx: ContentScriptContext): void {
+export function startAnyKey(ctx: ContentScriptContext, options: StartOptions): void {
   let settings: Settings = DEFAULT_SETTINGS;
   /** Null until storage has loaded; until then no shortcut runs, so a disabled key never fires early. */
   let state: SyncState | null = null;
@@ -152,7 +161,7 @@ export function startAnyKey(ctx: ContentScriptContext): void {
     if (ctx.isInvalid || !isPageRequest(message)) return false;
     if (message.type === 'pageInfo') {
       sendResponse({ ok: true, url: withoutHash(location.href) } satisfies PageInfo);
-    } else {
+    } else if (options.picker) {
       picker.start();
       sendResponse({ ok: true } satisfies BackgroundResponse);
     }

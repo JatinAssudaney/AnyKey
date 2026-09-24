@@ -10,6 +10,6 @@ export default defineContentScript({
   // Otherwise WXT posts a "content script started" message to the page itself on every load.
   noScriptStartedPostMessage: true,
   main(ctx) {
-    startAnyKey(ctx);
+    startAnyKey(ctx, { picker: true });
   },
 });
