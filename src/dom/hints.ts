@@ -79,7 +79,7 @@ export function openHints(options: HintsOptions): void {
     keyDown(event) {
       // Browser shortcuts such as reloading still work; the page doesn't see them.
       if (event.ctrlKey || event.altKey || event.metaKey) return 'isolate';
-      // Auto-repeats are the same press: holding f a little long must not type a label.
+      // Auto-repeats are the same press: holding F a little long must not type a label.
       if (event.repeat) return 'consume';
       if (event.key === 'Escape') close();
       else if (event.key === 'Backspace') {

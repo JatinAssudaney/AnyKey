@@ -67,10 +67,12 @@ test.describe('what reaches the page', () => {
 
   test("keys AnyKey doesn't use reach the page, including a lone prefix", async ({ page }) => {
     await page.goto(LONG);
-    // "g" starts AnyKey's "g g", but a site's own "g i" must keep working.
+    // "g" starts AnyKey's "g g" and "g f", but a site's own "g i" must keep working.
     await page.keyboard.press('g');
     await page.keyboard.press('i');
     await page.keyboard.press('z');
+    // Plain f stays with the site: it is fullscreen on YouTube and other video players.
+    await page.keyboard.press('f');
     expect(await pageKeys(page)).toEqual([
       'keydown:g',
       'keyup:g',
@@ -78,6 +80,8 @@ test.describe('what reaches the page', () => {
       'keyup:i',
       'keydown:z',
       'keyup:z',
+      'keydown:f',
+      'keyup:f',
     ]);
     expect(await scrollY(page)).toBe(0);
   });

@@ -65,7 +65,7 @@ type Settings = {
 };
 ```
 
-Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` link hints (click, or open in a new tab), `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
+Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `F` link hints, `g f` link hints that open in a new tab, `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
 
 ## Storage
 
@@ -125,7 +125,7 @@ Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrive
   - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
-- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet, the picker and link hints). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened, and holding `f` must not type the hint labeled F.
+- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet, the picker and link hints). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened, and holding `F` must not type the hint labeled F.
 - A mode leaves the stack the moment it closes, never in a `<dialog>`'s `close` event: Chrome fires that event as a queued task, and input outranks queued tasks, so a key pressed right after Esc would still go to the closed mode.
 
 ## Scrolling
@@ -188,7 +188,9 @@ Each candidate must match only the element within its own document or shadow roo
 
 ## Hints
 
-`f` puts a label on everything in view that can be clicked or typed into, and typing a label picks that element; `F` does the same to open links in a new tab (`src/dom/hints.ts`, labels from `src/core/hintLabels.ts`). Hints cover the top frame only, where the content script runs.
+`F` puts a label on everything in view that can be clicked or typed into, and typing a label picks that element; `g f` does the same to open links in a new tab (`src/dom/hints.ts`, labels from `src/core/hintLabels.ts`). Hints cover the top frame only, where the content script runs.
+
+The keys aren't Vimium's `f` and `F`: `f` is fullscreen on YouTube and most other video players, while few sites bind `F`. `g f` is what Surfingkeys uses to open a link in a new tab, and it adds no wait, since `g` already waits for a second key for `g g`. GitHub's Actions pages use `g f` to open the workflow file, so the GitHub preset yields it there (M6). Their full-screen logs answer to `f` as well as `F`, so hints keep `F`.
 
 **Targets**, in document order through open and closed shadow roots:
 - the interactive elements the picker moves between (links, buttons, form fields, ARIA widget roles, contenteditable, `[onclick]`, `tabindex` 0 and up) that aren't `:disabled`;
@@ -209,9 +211,9 @@ A press anywhere (`pointerdown` or `mousedown`), the window losing focus, or the
 
 **Drawing.** One popover layer over the viewport, in the top layer, lets the pointer through (`pointer-events: none`) and is `aria-hidden`. Each label sits on its target's top left corner (moved in from the viewport's top and left edges) and follows the target when the page or any scroller scrolls and when the window resizes. A label whose target left the view or the page hides.
 
-**Picking** (`activate` in `src/dom/executor.ts`). A text field (whatever `isEditable` covers) takes focus with the caret at the end, and a `<select>` also opens its list. Anything else gets the same click as a click shortcut. With `F`, a link opens in a new tab through the background (behind the current tab when `newTabInBackground` is on), and anything else gets a Ctrl or Cmd click. A target that left the page since the hints appeared gets a toast, and so does a page with nothing to hint.
+**Picking** (`activate` in `src/dom/executor.ts`). A text field (whatever `isEditable` covers) takes focus with the caret at the end, and a `<select>` also opens its list. Anything else gets the same click as a click shortcut. For `g f`, a link opens in a new tab through the background (behind the current tab when `newTabInBackground` is on), and anything else gets a Ctrl or Cmd click. A target that left the page since the hints appeared gets a toast, and so does a page with nothing to hint.
 
-Targets are collected when the key is pressed, before the layer mounts, so keys typed right after `f` are never lost. The scan reads every element's box: about 20 ms for 13,000 elements on a fast machine, growing linearly.
+Targets are collected when the key is pressed, before the layer mounts, so keys typed right after `F` are never lost. The scan reads every element's box: about 20 ms for 13,000 elements on a fast machine, growing linearly.
 
 ## Presets (M6)
 

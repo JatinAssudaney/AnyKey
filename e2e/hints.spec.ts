@@ -3,6 +3,9 @@ import { expect, FIXTURE_ORIGIN, pageKeys, scrollY, shownHints, stored, test, ui
 
 const HINTS = `${FIXTURE_ORIGIN}/hints.html`;
 
+/** All the page sees of Shift+F: the Shift on the way to F goes down and comes up, as it does for any shortcut. */
+const SHIFT = ['keydown:Shift', 'keyup:Shift'];
+
 /** What the hints are on: each hint's label by the id of the element under it, in the order they were made. */
 async function hintsById(page: Page): Promise<Map<string, string>> {
   const hints = await shownHints(page);
@@ -16,9 +19,9 @@ async function hintsById(page: Page): Promise<Map<string, string>> {
   return byId;
 }
 
-/** Presses the key that shows hints and waits for them. */
-async function showHints(page: Page, key = 'f'): Promise<Map<string, string>> {
-  await page.keyboard.press(key);
+/** Presses the keys that show hints and waits for them. */
+async function showHints(page: Page, keys: readonly string[] = ['Shift+F']): Promise<Map<string, string>> {
+  for (const key of keys) await page.keyboard.press(key);
   await expect.poll(async () => (await shownHints(page)).length).toBeGreaterThan(0);
   return hintsById(page);
 }
@@ -31,7 +34,7 @@ function clickLog(page: Page): Promise<string[]> {
   return page.evaluate(() => window.clickLog ?? []);
 }
 
-test('f puts a hint on everything in view that can be clicked, and typing one clicks it', async ({ page }) => {
+test('F puts a hint on everything in view that can be clicked, and typing one clicks it', async ({ page }) => {
   await page.goto(HINTS);
   const hints = await showHints(page);
   // Not on the disabled, hidden, covered or out-of-view elements, nor on a wrapper around a button or a focusable
@@ -56,7 +59,7 @@ test('f puts a hint on everything in view that can be clicked, and typing one cl
   await page.keyboard.type(hints.get('like') ?? '');
   await expect.poll(() => clickLog(page)).toEqual(['like']);
   expect(await shownHints(page)).toEqual([]);
-  expect(await pageKeys(page)).toEqual([]);
+  expect(await pageKeys(page)).toEqual(SHIFT);
 
   // Inside a closed shadow root too.
   await page.keyboard.type((await showHints(page)).get('player') ?? '');
@@ -71,7 +74,7 @@ test('Esc closes the hints, and other keys do nothing while they show', async ({
   expect(await shownHints(page)).toHaveLength(13);
   await page.keyboard.press('Escape');
   await expect.poll(() => shownHints(page)).toEqual([]);
-  expect(await pageKeys(page)).toEqual([]);
+  expect(await pageKeys(page)).toEqual(SHIFT);
   expect(await scrollY(page)).toBe(0);
   expect(await clickLog(page)).toEqual([]);
 
@@ -118,27 +121,29 @@ test('a hint on a text field focuses it, and a hint on a link follows it', async
   await page.waitForURL(`${FIXTURE_ORIGIN}/basic.html`);
 });
 
-test('F opens a link in a new tab, and clicks anything else with Ctrl or Cmd', async ({ page, extensionContext }) => {
+test('g f opens a link in a new tab, and clicks anything else with Ctrl or Cmd', async ({ page, extensionContext }) => {
   await page.goto(HINTS);
   const opened = extensionContext.waitForEvent('page');
-  await page.keyboard.type((await showHints(page, 'Shift+F')).get('docs') ?? '');
+  await page.keyboard.type((await showHints(page, ['g', 'f'])).get('docs') ?? '');
   const tab = await opened;
   await tab.waitForURL(`${FIXTURE_ORIGIN}/basic.html`);
   expect(page.url()).toBe(HINTS);
   await tab.close();
 
-  await page.keyboard.type((await showHints(page, 'Shift+F')).get('like') ?? '');
+  await page.keyboard.type((await showHints(page, ['g', 'f'])).get('like') ?? '');
   await expect.poll(() => clickLog(page)).toEqual(['mod+like']);
 });
 
-test('holding f shows the hints once, without typing a label', async ({ page }) => {
+test('holding F shows the hints once, without typing a label', async ({ page }) => {
   await page.goto(HINTS);
-  await page.keyboard.down('f');
+  await page.keyboard.down('Shift');
+  await page.keyboard.down('F');
   await expect.poll(async () => (await shownHints(page)).length).toBe(13);
   // Playwright marks further downs of a held key as repeats. "f" is a label here, so a repeat must not pick it.
-  await page.keyboard.down('f');
-  await page.keyboard.down('f');
-  await page.keyboard.up('f');
+  await page.keyboard.down('F');
+  await page.keyboard.down('F');
+  await page.keyboard.up('F');
+  await page.keyboard.up('Shift');
   expect(await shownHints(page)).toHaveLength(13);
   expect(await clickLog(page)).toEqual([]);
 });
@@ -187,6 +192,6 @@ test('the hint characters come from the settings', async ({ page, extensionConte
 
 test('a page with nothing to click says so', async ({ page }) => {
   await page.goto(`${FIXTURE_ORIGIN}/basic.html`);
-  await page.keyboard.press('f');
+  await page.keyboard.press('Shift+F');
   await expect.poll(() => uiText(page, 'ak-toast')).toBe('No links or buttons in view.');
 });

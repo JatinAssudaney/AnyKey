@@ -19,6 +19,6 @@ No option reaches pages where extensions can't run: browser pages such as `brave
 
 ## Link hints inside frames
 
-AnyKey's content script runs only in each page's top frame, so links and buttons inside frames (embedded players, comment widgets, some web apps' panes) get no hints, and `f` does nothing while a frame has focus.
+AnyKey's content script runs only in each page's top frame, so links and buttons inside frames (embedded players, comment widgets, some web apps' panes) get no hints, and `F` does nothing while a frame has focus.
 
 **Why it waits.** It needs the content script in every frame (`all_frames`, which adds no permission but runs AnyKey inside every ad and widget frame too) and a protocol between frames: the top frame collects each frame's targets and places, hands out labels that are unique across frames, and routes typed keys to the frame that owns the picked label. Most sites keep their controls in the top frame, so it isn't worth that yet.

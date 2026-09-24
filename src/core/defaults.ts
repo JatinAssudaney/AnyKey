@@ -29,8 +29,9 @@ export const DEFAULT_SHORTCUTS: readonly Shortcut[] = [
   defaultShortcut('scroll-half-up', 'u', 'Scroll up half a page', { type: 'scroll', direction: 'halfUp' }),
   defaultShortcut('scroll-top', 'g g', 'Scroll to the top', { type: 'scroll', direction: 'top' }),
   defaultShortcut('scroll-bottom', 'G', 'Scroll to the bottom', { type: 'scroll', direction: 'bottom' }),
-  defaultShortcut('hints', 'f', 'Click a link or button', { type: 'hints' }),
-  defaultShortcut('hints-new-tab', 'F', 'Open a link in a new tab', { type: 'hints', newTab: true }),
+  // Not f, which YouTube and most video players use for fullscreen (docs/design.md, "Hints").
+  defaultShortcut('hints', 'F', 'Click a link or button', { type: 'hints' }),
+  defaultShortcut('hints-new-tab', 'g f', 'Open a link in a new tab', { type: 'hints', newTab: true }),
   defaultShortcut('history-back', 'H', 'Go back', { type: 'history', op: 'back' }),
   defaultShortcut('history-forward', 'L', 'Go forward', { type: 'history', op: 'forward' }),
   defaultShortcut('tab-prev', 'J', 'Previous tab', { type: 'tab', op: 'prev' }),
