@@ -73,9 +73,9 @@ Text, ready to paste in `store/listing.md`:
 
 Registering is quick, but the email checks take a while. From [Register your developer account](https://developer.chrome.com/docs/webstore/register) and [Set up your account](https://developer.chrome.com/docs/webstore/set-up-account):
 
-- [ ] Choose the Google account to publish with. Its email can't be changed once registered (moving means a new account and transferring AnyKey to it), so Google suggests an account just for publishing, one you check often: store alerts and review results go there.
+- [x] Choose the Google account to publish with. Its email can't be changed once registered (moving means a new account and transferring AnyKey to it), so Google suggests an account just for publishing, one you check often: store alerts and review results go there.
 - [ ] Turn on [2-Step Verification](https://developer.chrome.com/docs/webstore/program-policies/two-step-verification) for that account (Google Account, Security). The store requires it before the first publish and before every update.
-- [ ] Open the [developer dashboard](https://chrome.google.com/webstore/devconsole), accept the developer agreement and policies, and pay the one-time registration fee.
+- [x] Open the [developer dashboard](https://chrome.google.com/webstore/devconsole), accept the developer agreement and policies, and pay the one-time registration fee.
 - [ ] In the dashboard's Account page, fill in the publisher name (shown under AnyKey's title in the store) and the contact email, then click the verification link Google sends to it. No physical address: AnyKey sells nothing.
 - [ ] Declare yourself a [trader or a non-trader](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure) (EU consumer law): a trader publishes for a trade, business or profession and gives a verified legal name and contact details; a non-trader publishes outside one. It is your declaration to make.
 
@@ -86,6 +86,6 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] Store listing tab: paste the text from `store/listing.md`, upload the images from `store/images`, and add the video's link.
 - [x] Privacy tab: as `store/listing.md` says (single purpose, the permission justifications, no remote code, the data use boxes, and PRIVACY.md's URL).
 - [x] Distribution: free, public, every region.
-- [ ] Test instructions (optional, for the reviewer): as `store/listing.md` says.
-- [ ] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload.
+- [x] Test instructions (optional, for the reviewer): as `store/listing.md` says.
+- [x] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload. Submitted on 25 September 2026, version 1.0.0.
 - [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
