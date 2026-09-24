@@ -211,6 +211,8 @@ A press anywhere (`pointerdown` or `mousedown`), the window losing focus, or the
 
 **Drawing.** One popover layer over the viewport, in the top layer, lets the pointer through (`pointer-events: none`) and is `aria-hidden`. Each label sits on its target's top left corner (moved in from the viewport's top and left edges) and follows the target when the page or any scroller scrolls and when the window resizes. A label whose target left the view or the page hides.
 
+While hints show, a bar at the bottom center names the mode and how to leave it ("Hint mode: type a label to click it, or press Esc to go back to your shortcuts", or "open it in a new tab" for `g f`). Keys pick labels instead of running shortcuts until the hints close, and without the bar that looks like shortcuts breaking. The bar goes with the hints, so its going says the shortcuts are back. Labels draw above it, and one on its text makes it hard to read, so it sits at the bottom center, or at the top while fewer labels would sit on it there.
+
 **Picking** (`activate` in `src/dom/executor.ts`). A text field (whatever `isEditable` covers) takes focus with the caret at the end, and a `<select>` also opens its list. Anything else gets the same click as a click shortcut. For `g f`, a link opens in a new tab through the background (behind the current tab when `newTabInBackground` is on), and anything else gets a Ctrl or Cmd click. A target that left the page since the hints appeared gets a toast, and so does a page with nothing to hint.
 
 Targets are collected when the key is pressed, before the layer mounts, so keys typed right after `F` are never lost. The scan reads every element's box: about 20 ms for 13,000 elements on a fast machine, growing linearly.

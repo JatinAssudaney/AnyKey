@@ -11,6 +11,8 @@ export interface HintsOptions {
   ui: UiRoot;
   /** The characters labels are made of, the most comfortable first: the hintChars setting. */
   chars: string;
+  /** Whether picking opens a link in a new tab, which the bar naming hint mode says. */
+  newTab: boolean;
   pushMode: (mode: Mode) => void;
   popMode: (mode: Mode) => void;
   /** Runs on the element whose label was typed, once the hints are gone. */
@@ -23,6 +25,9 @@ interface Hint {
   label: string;
   marker: HTMLSpanElement;
 }
+
+/** Room the bar naming hint mode keeps from the viewport's edge, in px, as in the CSS. */
+const BAR_EDGE = 16;
 
 /**
  * Link hints (rules in docs/design.md, "Hints"): a label on everything in view that can be clicked or typed into.
@@ -42,6 +47,14 @@ export function openHints(options: HintsOptions): void {
     return label === undefined ? [] : [{ element, label, marker: h('span', { class: 'ak-link-hint' }) }];
   });
   if (hints.length === 0) return;
+  // Keys pick labels instead of running shortcuts until the hints close, so the mode says so while it lasts.
+  const action = options.newTab ? 'open it in a new tab' : 'click it';
+  const bar = h(
+    'div',
+    { class: 'ak-surface ak-link-hints-bar' },
+    h('strong', {}, 'Hint mode: '),
+    `type a label to ${action}, or press Esc to go back to your shortcuts.`,
+  );
 
   let typed = '';
   let closed = false;
@@ -116,6 +129,24 @@ export function openHints(options: HintsOptions): void {
       marker.style.left = `${Math.round(Math.max(box.left, 0))}px`;
       marker.style.top = `${Math.round(Math.max(box.top, 0))}px`;
     }
+    placeBar();
+  }
+
+  /**
+   * Keeps the bar at the bottom of the viewport, or at the top while fewer labels would sit on it there. Labels draw
+   * above the bar, so one on its text makes it hard to read.
+   */
+  function placeBar(): void {
+    if (layer === null) return;
+    const view = layer.getBoundingClientRect();
+    const { left, right, height } = bar.getBoundingClientRect();
+    const shown = hints.filter(({ marker }) => !marker.hidden && marker.style.visibility !== 'hidden');
+    const labels = shown.map(({ marker }) => marker.getBoundingClientRect());
+    const covered = (top: number): number =>
+      labels.filter((box) => box.left < right && box.right > left && box.top < top + height && box.bottom > top).length;
+    const atBottom = view.bottom - BAR_EDGE - height;
+    const atTop = view.top + BAR_EDGE;
+    bar.classList.toggle('ak-link-hints-bar-top', covered(atBottom) > covered(atTop));
   }
 
   function placeSoon(): void {
@@ -140,11 +171,13 @@ export function openHints(options: HintsOptions): void {
     (container) => {
       if (closed) return;
       const markers = hints.map(({ marker }) => marker);
-      layer = h('div', { class: 'ak-link-hints', popover: 'manual', 'aria-hidden': 'true' }, ...markers);
+      // Labels come after the bar, so they draw above it.
+      layer = h('div', { class: 'ak-link-hints', popover: 'manual', 'aria-hidden': 'true' }, bar, ...markers);
       container.append(layer);
       render();
-      place();
+      // Shown before placing, since placing the bar measures it. Nothing paints in between.
       layer.showPopover();
+      place();
     },
     (error: unknown) => {
       console.error('AnyKey: link hints failed to open.', error);

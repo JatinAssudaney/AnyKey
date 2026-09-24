@@ -12,8 +12,8 @@ export interface ExecutorOptions {
   scroller: Scroller;
   isMac: boolean;
   openCheatsheet: () => void;
-  /** Shows link hints. Typing one runs `activate` on its element. */
-  openHints: (activate: (element: Element) => void) => void;
+  /** Shows link hints. Typing one runs `activate` on its element; `newTab` only changes what the hints say. */
+  openHints: (activate: (element: Element) => void, newTab: boolean) => void;
   toast: (message: string) => void;
 }
 
@@ -107,7 +107,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
         const newTab = action.newTab === true;
         options.openHints((element) => {
           activate(element, newTab);
-        });
+        }, newTab);
         return;
       }
     }

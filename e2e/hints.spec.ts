@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { expect, FIXTURE_ORIGIN, pageKeys, scrollY, shownHints, stored, test, uiText } from './harness.ts';
+import { expect, FIXTURE_ORIGIN, pageKeys, scrollY, shownHints, stored, test, uiBox, uiText } from './harness.ts';
 
 const HINTS = `${FIXTURE_ORIGIN}/hints.html`;
 
@@ -69,11 +69,15 @@ test('F puts a hint on everything in view that can be clicked, and typing one cl
 test('Esc closes the hints, and other keys do nothing while they show', async ({ page }) => {
   await page.goto(HINTS);
   await showHints(page);
+  expect(await uiText(page, 'ak-link-hints-bar')).toBe(
+    'Hint mode: type a label to click it, or press Esc to go back to your shortcuts.',
+  );
   // x would close the tab, z is no hint character, and the arrow would scroll.
   for (const key of ['x', 'z', 'ArrowDown']) await page.keyboard.press(key);
   expect(await shownHints(page)).toHaveLength(13);
   await page.keyboard.press('Escape');
   await expect.poll(() => shownHints(page)).toEqual([]);
+  expect(await uiText(page, 'ak-link-hints-bar')).toBeNull();
   expect(await pageKeys(page)).toEqual(SHIFT);
   expect(await scrollY(page)).toBe(0);
   expect(await clickLog(page)).toEqual([]);
@@ -124,7 +128,11 @@ test('a hint on a text field focuses it, and a hint on a link follows it', async
 test('g f opens a link in a new tab, and clicks anything else with Ctrl or Cmd', async ({ page, extensionContext }) => {
   await page.goto(HINTS);
   const opened = extensionContext.waitForEvent('page');
-  await page.keyboard.type((await showHints(page, ['g', 'f'])).get('docs') ?? '');
+  const hints = await showHints(page, ['g', 'f']);
+  expect(await uiText(page, 'ak-link-hints-bar')).toBe(
+    'Hint mode: type a label to open it in a new tab, or press Esc to go back to your shortcuts.',
+  );
+  await page.keyboard.type(hints.get('docs') ?? '');
   const tab = await opened;
   await tab.waitForURL(`${FIXTURE_ORIGIN}/basic.html`);
   expect(page.url()).toBe(HINTS);
@@ -146,6 +154,20 @@ test('holding F shows the hints once, without typing a label', async ({ page }) 
   await page.keyboard.up('Shift');
   expect(await shownHints(page)).toHaveLength(13);
   expect(await clickLog(page)).toEqual([]);
+});
+
+test('the hint mode bar sits at the bottom, or at the top while labels would sit on it at the bottom', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 560 });
+  await page.goto(`${HINTS}?many=30`);
+  await showHints(page);
+  const bar = await uiBox(page, 'ak-link-hints-bar');
+  expect((bar?.y ?? 0) + (bar?.height ?? 0)).toBeCloseTo(560 - 16);
+  await page.keyboard.press('Escape');
+
+  // The last row of buttons and their labels now sit where the bar would go.
+  await page.setViewportSize({ width: 900, height: 395 });
+  await showHints(page);
+  expect((await uiBox(page, 'ak-link-hints-bar'))?.y).toBe(16);
 });
 
 test('a click closes the hints and reaches the page', async ({ page }) => {

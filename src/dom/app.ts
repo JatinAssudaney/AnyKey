@@ -80,11 +80,12 @@ export function startAnyKey(ctx: ContentScriptContext): void {
         console.error('AnyKey: the cheatsheet failed to open.', error);
       });
     },
-    openHints: (activate) => {
+    openHints: (activate, newTab) => {
       openHints({
         ctx,
         ui,
         chars: settings.hintChars,
+        newTab,
         pushMode: (mode) => {
           engine.pushMode(mode);
         },

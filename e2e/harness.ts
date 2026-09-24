@@ -1,5 +1,13 @@
 import path from 'node:path';
-import { chromium, expect, test as base, type BrowserContext, type Page, type Worker } from '@playwright/test';
+import {
+  chromium,
+  expect,
+  test as base,
+  type BrowserContext,
+  type CDPSession,
+  type Page,
+  type Worker,
+} from '@playwright/test';
 
 export { expect } from '@playwright/test';
 export { FIXTURE_ORIGIN } from './constants.ts';
@@ -156,6 +164,26 @@ export interface ShownHint {
   y: number;
 }
 
+/** Where an element shows in the viewport: its border box. */
+export interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Where the first element in AnyKey's UI with the class shows, or null when there is none. */
+export async function uiBox(page: Page, className: string): Promise<Box | null> {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { root } = await cdp.send('DOM.getDocument', { depth: -1, pierce: true });
+    const node = find(root, (node) => classesOf(node).includes(className));
+    return node === undefined ? null : await borderBox(cdp, node.nodeId);
+  } finally {
+    await cdp.detach();
+  }
+}
+
 /**
  * The link hints showing, in the order they were made: the ones that go on with what was typed, and whose elements
  * are in view. Read through the DevTools protocol, as `uiText` is, with where each hint is drawn.
@@ -172,15 +200,20 @@ export async function shownHints(page: Page): Promise<ShownHint[]> {
     visit((await cdp.send('DOM.getDocument', { depth: -1, pierce: true })).root);
     return await Promise.all(
       hints.map(async (node) => {
-        // The border box as four corners, x and y each, starting top left.
-        const { model } = await cdp.send('DOM.getBoxModel', { nodeId: node.nodeId });
-        const [x = Number.NaN, y = Number.NaN] = model.border;
+        const { x, y } = await borderBox(cdp, node.nodeId);
         return { label: textOf(node).replace(/\s+/g, ''), x, y };
       }),
     );
   } finally {
     await cdp.detach();
   }
+}
+
+async function borderBox(cdp: CDPSession, nodeId: number): Promise<Box> {
+  const { model } = await cdp.send('DOM.getBoxModel', { nodeId });
+  // Four corners, x and y each, clockwise from the top left.
+  const [x = Number.NaN, y = Number.NaN, right = Number.NaN, , , bottom = Number.NaN] = model.border;
+  return { x, y, width: right - x, height: bottom - y };
 }
 
 /** The whole document, shadow roots included, as the DevTools protocol sees it. */

@@ -481,7 +481,8 @@
   margin-right: auto;
 }
 
-/* Link hints: a layer over the viewport that lets the pointer through, with a label on each target */
+/* Link hints: a layer over the viewport that lets the pointer through, with a label on each target and a bar naming
+   the mode */
 
 .ak-link-hints {
   inset: 0;
@@ -516,4 +517,20 @@
 
 .ak-link-hint-typed {
   color: #b45309;
+}
+
+.ak-link-hints-bar {
+  position: absolute;
+  inset: auto 0 16px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  margin: 0 auto;
+  padding: 8px 14px;
+  border: 1px solid var(--ak-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
+.ak-link-hints-bar-top {
+  inset: 16px 0 auto;
 }

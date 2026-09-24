@@ -47,7 +47,7 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
         />
         <SettingField
           label="Hint characters"
-          hint={`The keys that link hints are labeled with, the easiest to reach first. Default: ${DEFAULT_SETTINGS.hintChars}.`}
+          hint={`The keys that link hints are labeled with, the easiest to reach first. They pick labels only while hints show, and run your shortcuts the rest of the time. Default: ${DEFAULT_SETTINGS.hintChars}.`}
           value={settings.hintChars}
           check={(draft) => checkSetting('hintChars', draft.trim().toLowerCase())}
           onCommit={(value) => {
