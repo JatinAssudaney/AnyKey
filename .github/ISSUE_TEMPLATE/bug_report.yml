@@ -1,0 +1,39 @@
+name: Bug report
+description: A key that doesn't work, or something AnyKey does wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: AnyKey collects nothing, so what you write here is all there is to go on. Thank you for taking the time.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you pressed or clicked, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Site
+      description: The page's address, or only the site if the address is private.
+      placeholder: https://github.com/owner/repo
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      placeholder: Chrome 140 on macOS 15
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AnyKey version
+      description: Shown on AnyKey's card at chrome://extensions.
+      placeholder: 1.0.0
+  - type: input
+    id: layout
+    attributes:
+      label: Keyboard layout
+      description: If it's about keys. Layouts with AltGr or dead keys matter most.
+      placeholder: US, German (QWERTZ), French (AZERTY)

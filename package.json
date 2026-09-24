@@ -1,12 +1,22 @@
 {
   "name": "anykey",
   "description": "Make any website keyboard-navigable: bind keys to any element, link hints, scroll keys and site presets.",
+  "license": "MIT",
+  "homepage": "https://github.com/JatinAssudaney/AnyKey#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JatinAssudaney/AnyKey.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JatinAssudaney/AnyKey/issues"
+  },
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": ">=22.12"
   },
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",

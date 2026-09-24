@@ -7,6 +7,8 @@
       The store's promo tiles, drawn at their exact size by e2e/store: ?size=small (440 by 280) or ?size=marquee
       (1400 by 560). The store asks for no text, saturated colors, well-defined edges and a design that holds up at
       half size, so they show the toolbar icon on a field of keys, with link hints in AnyKey's own colors.
+      ?size=social (1280 by 640) is the GitHub repository's banner and social preview, which may carry text, so it
+      adds the name and what AnyKey does.
     -->
     <style>
       * {
@@ -71,6 +73,28 @@
         border-radius: 10px;
         background: #e7e5e4;
       }
+      .title {
+        position: absolute;
+        margin: 0;
+        color: #fff;
+        font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        text-shadow: 0 4px 16px rgb(67 20 7 / 0.35);
+      }
+      .title strong {
+        display: block;
+        font-size: 104px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -2px;
+      }
+      .title span {
+        display: block;
+        margin-top: 20px;
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 46px;
+        text-wrap: balance;
+      }
       .window img {
         display: block;
         width: 100%;
@@ -103,6 +127,19 @@
             { text: 'jk', x: 372, y: 382 },
           ],
           window: { x: 560, y: 70, width: 900 },
+        },
+        social: {
+          width: 1280,
+          height: 640,
+          key: 76,
+          gap: 14,
+          logo: { x: 80, y: 72, size: 150 },
+          hints: [
+            { text: 'df', x: 196, y: 60 },
+            { text: 'jk', x: 470, y: 520 },
+          ],
+          title: { x: 84, y: 262, width: 470, name: 'AnyKey', line: 'Use any website from the keyboard.' },
+          window: { x: 600, y: 112, width: 800 },
         },
       };
       const layout = LAYOUTS[new URLSearchParams(location.search).get('size') ?? 'small'];
@@ -147,6 +184,18 @@
         shot.alt = '';
         frame.append(bar, shot);
         tile.append(frame);
+      }
+
+      if (layout.title) {
+        const title = document.createElement('p');
+        title.className = 'title';
+        Object.assign(title.style, { left: `${layout.title.x}px`, top: `${layout.title.y}px`, width: `${layout.title.width}px` });
+        const name = document.createElement('strong');
+        name.textContent = layout.title.name;
+        const line = document.createElement('span');
+        line.textContent = layout.title.line;
+        title.append(name, line);
+        tile.append(title);
       }
 
       const logo = document.createElement('img');

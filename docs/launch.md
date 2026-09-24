@@ -89,3 +89,4 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] Test instructions (optional, for the reviewer): as `store/listing.md` says.
 - [x] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload. Submitted on 25 September 2026, version 1.0.0.
 - [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
+- [ ] Once AnyKey is public: send me its store link, for README.md (Install, and the badge in place of "in review") and the repository's About website.

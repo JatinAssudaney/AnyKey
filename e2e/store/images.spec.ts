@@ -14,13 +14,15 @@ import {
   welcomePage,
 } from '../harness.ts';
 
-// Makes the Chrome Web Store images in store/images: `pnpm store:images`, which builds dist/chrome-mv3 first. The
-// screenshots show the real extension on store/demo.html, a made-up recipe site served as pantry.example, and on
-// AnyKey's own pages. Run it again whenever the UI they show changes.
+// Makes the Chrome Web Store images in store/images, and the GitHub repository's banner in .github:
+// `pnpm store:images`, which builds dist/chrome-mv3 first. The screenshots show the real extension on
+// store/demo.html, a made-up recipe site served as pantry.example, and on AnyKey's own pages. Run it again whenever
+// the UI they show changes.
 
 const STORE = path.resolve(import.meta.dirname, '../../store');
 const DEMO = 'https://pantry.example/recipes/lemon-garlic-spaghetti';
 const ICON = path.resolve(import.meta.dirname, '../../src/assets/icon.svg');
+const GITHUB = path.resolve(import.meta.dirname, '../../.github');
 
 function out(name: string): string {
   return path.join(STORE, 'images', name);
@@ -126,14 +128,16 @@ test('store icon and promo tiles', async ({ page }) => {
   );
   await page.screenshot({ path: out('icon-128.png'), omitBackground: true });
 
-  for (const [size, width, height] of [
-    ['small', 440, 280],
-    ['marquee', 1400, 560],
+  for (const [size, width, height, file] of [
+    ['small', 440, 280, out('promo-small.png')],
+    ['marquee', 1400, 560, out('promo-marquee.png')],
+    // Not the store's: the README's banner, and the preview GitHub shows where the repository's link is shared.
+    ['social', 1280, 640, path.join(GITHUB, 'social-preview.png')],
   ] as const) {
     await page.setViewportSize({ width, height });
     await page.goto(`${pathToFileURL(path.join(STORE, 'promo.html')).href}?size=${size}`);
     await page.waitForFunction(() => [...document.images].every((image) => image.complete && image.naturalWidth > 0));
-    await page.screenshot({ path: out(`promo-${size}.png`) });
+    await page.screenshot({ path: file });
   }
 });
 

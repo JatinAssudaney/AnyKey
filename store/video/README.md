@@ -19,6 +19,12 @@ npm run dev          # Remotion Studio, to watch it
 npx remotion render Demo out/anykey-demo.mp4
 ```
 
+The README's GIF of link hints (`.github/hints.gif`) is the Hints scene on its own, at half size and 15 fps:
+
+```sh
+npx remotion render Hints ../../.github/hints.gif --codec=gif --scale=0.5 --every-nth-frame=2
+```
+
 The stills are captured, not recorded: `e2e/store/video.spec.ts` drives the real extension on the demo page and saves a PNG at each step, plus `layout.json`, which says where the buttons, the picker's panel and the popup were, so the pointer and the camera find them. Make the stills again when the UI they show changes, and the video follows.
 
 `src/Demo.tsx` lists the scenes and their lengths, and each scene (`src/scenes/`) sets its own timing in seconds. The Studio also has each scene on its own, under Scenes.

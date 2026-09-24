@@ -1,0 +1,29 @@
+name: Preset request
+description: Shortcuts for a site AnyKey has no preset for, or a change to one it has.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: A preset adds keys a site lacks and leaves the site's own keys to it. Your own shortcuts always win over a preset's.
+  - type: input
+    id: site
+    attributes:
+      label: Site
+      placeholder: mail.google.com
+    validations:
+      required: true
+  - type: textarea
+    id: shortcuts
+    attributes:
+      label: Shortcuts you'd like
+      description: What each one would do, and a key if you have one in mind.
+      placeholder: |
+        g i: go to the inbox
+        g s: go to starred
+    validations:
+      required: true
+  - type: input
+    id: native
+    attributes:
+      label: The site's own shortcuts
+      description: A link to the site's list of keyboard shortcuts, if it has one, so the preset stays out of their way.

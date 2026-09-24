@@ -12,6 +12,7 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 - `src/entrypoints/`: WXT entrypoints (background, content, popup, options, welcome). Thin: they wire modules together.
 - `src/components/`: React components shared by the popup and options page.
 - `presets/`: bundled preset JSON. `e2e/`: Playwright specs, harness and fixture pages.
+- `.github/`: CI (`pnpm check` and `pnpm test:e2e` on Linux, for every push), the issue forms, and the README's banner (the `social` layout of `store/promo.html`, made by `pnpm store:images`, also the repository's social preview) and GIF (the video's Hints scene, see `store/video/README.md`).
 - `store/`: the Chrome Web Store listing (`listing.md`), the demo page and promo art that `pnpm store:images` (`e2e/store/`) turns into `store/images`, and the stills for `store/video/`, a Remotion project with its own npm install that makes the demo video. Run it again when the UI it shows changes.
 
 Imports flow one way: entrypoints, then dom / background / components, then storage, then `messaging.ts`, then core. Core imports from no other layer.
