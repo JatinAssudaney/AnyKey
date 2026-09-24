@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "youtube",
   "name": "YouTube",
-  "version": 1,
+  "version": 2,
   "matches": ["*://www.youtube.com/*"],
   "reserved": [
     { "keys": "/", "label": "Focus the search box" },
@@ -69,7 +69,7 @@
         }
       },
       "label": "Like the video",
-      "verified": false,
+      "verified": true,
       "matches": ["*://www.youtube.com/watch*"]
     },
     {
@@ -84,7 +84,7 @@
         }
       },
       "label": "Dislike the video",
-      "verified": false,
+      "verified": true,
       "matches": ["*://www.youtube.com/watch*"]
     },
     {
@@ -99,7 +99,7 @@
         }
       },
       "label": "Subscribe to the channel",
-      "verified": false,
+      "verified": true,
       "matches": ["*://www.youtube.com/watch*"]
     },
     {
@@ -111,7 +111,7 @@
         "target": { "selector": "#simplebox-placeholder", "fallbacks": ["ytd-comment-simplebox-renderer #placeholder-area"] }
       },
       "label": "Write a comment",
-      "verified": false,
+      "verified": true,
       "matches": ["*://www.youtube.com/watch*"]
     },
     {
@@ -123,7 +123,7 @@
         "target": { "selector": "ytd-video-owner-renderer a[href]", "fallbacks": ["#owner ytd-channel-name a[href]"] }
       },
       "label": "Go to the channel",
-      "verified": false,
+      "verified": true,
       "matches": ["*://www.youtube.com/watch*"]
     }
   ]

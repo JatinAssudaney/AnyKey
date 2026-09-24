@@ -40,7 +40,8 @@ Checked on 2026-09-24:
 ## Presets (M8)
 
 - [x] `pnpm test:live` checks the GitHub and YouTube presets on the live sites, signed out.
-- [ ] Every preset shortcut passes `docs/preset-checklist.md` on its live site, signed in and signed out, and is marked `verified: true`, so no Unverified badge is left for a reviewer to see.
+- [x] GitHub and YouTube pass `docs/preset-checklist.md` on the live sites, signed in and signed out, and are marked `verified: true` (GitHub version 3, YouTube version 2).
+- [ ] Reddit passes the checklist by hand, signed in and signed out, and is marked `verified: true`, so no Unverified badge is left for a reviewer to see.
 
 ## Store listing (M9)
 
@@ -64,10 +65,29 @@ Text, ready to paste in `store/listing.md`:
 ## Release (M10)
 
 - [ ] Version 1.0.0.
-- [ ] A manual test pass on Windows and in Google Chrome (so far: Brave on macOS), where key handling differs: Ctrl for Cmd, AltGr, and the keys the browser keeps.
-- [ ] A developer account: the registration fee and identity verification.
-- [ ] `pnpm zip`, upload, fill in the listing, and submit for review.
-- [ ] Once AnyKey is public: nominate it for the Featured badge.
+- [ ] A manual test pass in Google Chrome on macOS (so far: Brave): install Chrome, load `dist/chrome-mv3` unpacked at `chrome://extensions`, and go through the manual lists.
+- [ ] Windows, without a Windows machine: an E2E run with a Windows user agent, which takes AnyKey's own Windows paths (Ctrl where a Mac has Cmd, the keycaps, the key recorder). What only Windows itself shows stays unchecked: AltGr keyboards, and the keys Chrome on Windows keeps (Ctrl+W, Ctrl+Tab and the rest listed in `src/core/conflicts.ts`). A friend's PC for a quarter of an hour, or a Windows virtual machine on the Mac (UTM or Parallels), would cover them; otherwise Issues will.
+- [ ] `pnpm zip`, for the upload.
+
+### Developer account (by hand, start early)
+
+Registering is quick, but the email checks take a while. From [Register your developer account](https://developer.chrome.com/docs/webstore/register) and [Set up your account](https://developer.chrome.com/docs/webstore/set-up-account):
+
+- [ ] Choose the Google account to publish with. Its email can't be changed once registered (moving means a new account and transferring AnyKey to it), so Google suggests an account just for publishing, one you check often: store alerts and review results go there.
+- [ ] Turn on [2-Step Verification](https://developer.chrome.com/docs/webstore/program-policies/two-step-verification) for that account (Google Account, Security). The store requires it before the first publish and before every update.
+- [ ] Open the [developer dashboard](https://chrome.google.com/webstore/devconsole), accept the developer agreement and policies, and pay the one-time registration fee.
+- [ ] In the dashboard's Account page, fill in the publisher name (shown under AnyKey's title in the store) and the contact email, then click the verification link Google sends to it. No physical address: AnyKey sells nothing.
+- [ ] Declare yourself a [trader or a non-trader](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure) (EU consumer law): a trader publishes for a trade, business or profession and gives a verified legal name and contact details; a non-trader publishes outside one. It is your declaration to make.
+
+### Submit (by hand)
+
+- [ ] Upload the demo video to YouTube (public or unlisted), and send me its link for `store/listing.md`.
+- [ ] In the dashboard: Add new item, then upload the zip from `pnpm zip` (`dist/anykey-1.0.0-chrome.zip`).
+- [ ] Store listing tab: paste the text from `store/listing.md`, upload the images from `store/images`, and add the video's link.
+- [ ] Privacy tab: as `store/listing.md` says (single purpose, the permission justifications, no remote code, the data use boxes, and PRIVACY.md's URL).
+- [ ] Distribution: free, public, every region.
+- [ ] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload.
+- [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
 
 ## Open question
 

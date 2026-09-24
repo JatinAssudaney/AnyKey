@@ -147,6 +147,8 @@ test('video frames', async () => {
 
     // A preset's settings.
     const options = await context.newPage();
+    // The site's arrow turns as it opens: without the animation, the still never catches it halfway.
+    await options.emulateMedia({ reducedMotion: 'reduce' });
     await options.goto(`chrome-extension://${extensionId}/options.html`);
     await options.getByRole('button', { name: 'github.com', exact: true }).click();
     await expect(options.getByRole('table', { name: 'GitHub preset shortcuts' })).toBeVisible();

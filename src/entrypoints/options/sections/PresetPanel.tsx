@@ -59,9 +59,9 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
         {preset.name} preset
       </h4>
       <p className={hintText}>
-        Shortcuts AnyKey adds on {preset.name}. Your changes to them stay when AnyKey updates the preset. Those marked
-        Unverified haven&apos;t been tried on the live site yet: if one can&apos;t find what it clicks, AnyKey says so
-        on the page.
+        Shortcuts AnyKey adds on {preset.name}. Your changes to them stay when AnyKey updates the preset.
+        {preset.shortcuts.some(({ verified }) => !verified) &&
+          " Those marked Unverified haven't been tried on the live site yet: if one can't find what it clicks, AnyKey says so on the page."}
       </p>
       <ShortcutTable
         caption={`${preset.name} preset shortcuts`}

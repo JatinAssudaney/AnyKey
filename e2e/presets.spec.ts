@@ -94,9 +94,15 @@ test('settings keep a built-in shortcut on the site, rekey a preset shortcut, an
   await page.goto(WATCH);
   const options = await extensionContext.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
+  // Reddit's preset hasn't been checked on the live site yet, and YouTube's has.
+  await options.getByRole('button', { name: 'www.reddit.com', exact: true }).click();
+  const reddit = options.getByRole('region', { name: 'www.reddit.com', exact: true });
+  await expect(reddit.getByRole('rowheader', { name: /^Go to Popular/ })).toContainText('Unverified');
+  await expect(reddit).toContainText('Those marked Unverified');
   await options.getByRole('button', { name: 'www.youtube.com', exact: true }).click();
   const youtube = options.getByRole('region', { name: 'www.youtube.com', exact: true });
-  await expect(youtube.getByRole('rowheader', { name: /^Like the video/ })).toContainText('Unverified');
+  await expect(youtube.getByRole('rowheader', { name: /^Like the video/ })).not.toContainText('Unverified');
+  await expect(youtube).not.toContainText('Those marked Unverified');
 
   await youtube.getByText('Built-in shortcuts that give way to YouTube').click();
   await youtube.getByRole('switch', { name: /^Keep "Scroll down"/ }).check();

@@ -99,6 +99,8 @@ test('screenshots', async () => {
 
     // The settings for a site with a preset: its shortcuts, which can be changed or switched off one by one.
     const options = await context.newPage();
+    // The site's arrow turns as it opens: without the animation, the screenshot never catches it halfway.
+    await options.emulateMedia({ reducedMotion: 'reduce' });
     await options.goto(`chrome-extension://${extensionId}/options.html`);
     await options.getByRole('button', { name: 'github.com', exact: true }).click();
     const site = options.getByRole('region', { name: 'github.com', exact: true });
