@@ -51,4 +51,18 @@ AnyKey collects no data and makes no network requests. Your shortcuts stay in yo
 - **Data usage:** tick no data type: AnyKey sends nothing anywhere. Tick all three certifications (no selling or transfer, no use unrelated to the single purpose, no use for credit decisions).
 - **Privacy policy URL:** https://github.com/JatinAssudaney/AnyKey/blob/main/PRIVACY.md
 
+## Test instructions tab
+
+Optional, read only by the reviewer:
+
+```text
+No account or sign-in is needed. AnyKey runs on any web page, but not on browser pages (chrome://) or the Chrome Web Store, where extensions can't run.
+
+1. Installing opens a welcome page, and AnyKey's keys already work on it.
+2. On any site (for example en.wikipedia.org): press j and k to scroll, F to put a label on every link and button (type a label to click it), and ? to list every shortcut that works on the page. Esc closes each of them.
+3. Click AnyKey's toolbar button, then "Add shortcut for this site". Click a link or button on the page, press a key (for example q), then Save. Pressing q now clicks that element.
+4. On github.com, youtube.com or reddit.com, press ? to see the preset's shortcuts for that site beside the site's own.
+5. "Open settings" in the toolbar button's panel shows every shortcut and setting.
+```
+
 When a permission or what AnyKey stores changes, update PERMISSIONS.md, PRIVACY.md and this page together.

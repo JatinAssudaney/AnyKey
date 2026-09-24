@@ -82,9 +82,10 @@ Registering is quick, but the email checks take a while. From [Register your dev
 ### Submit (by hand)
 
 - [x] Upload the demo video to YouTube (public or unlisted), and send me its link for `store/listing.md`.
-- [ ] In the dashboard: Add new item, then upload the zip from `pnpm zip` (`dist/anykey-1.0.0-chrome.zip`).
-- [ ] Store listing tab: paste the text from `store/listing.md`, upload the images from `store/images`, and add the video's link.
-- [ ] Privacy tab: as `store/listing.md` says (single purpose, the permission justifications, no remote code, the data use boxes, and PRIVACY.md's URL).
-- [ ] Distribution: free, public, every region.
+- [x] In the dashboard: Add new item, then upload the zip from `pnpm zip` (`dist/anykey-1.0.0-chrome.zip`).
+- [x] Store listing tab: paste the text from `store/listing.md`, upload the images from `store/images`, and add the video's link.
+- [x] Privacy tab: as `store/listing.md` says (single purpose, the permission justifications, no remote code, the data use boxes, and PRIVACY.md's URL).
+- [x] Distribution: free, public, every region.
+- [ ] Test instructions (optional, for the reviewer): as `store/listing.md` says.
 - [ ] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload.
 - [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
