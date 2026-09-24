@@ -46,7 +46,7 @@ AnyKey collects no data and makes no network requests. Your shortcuts stay in yo
 
 ## Privacy tab
 
-- **Single purpose** and **permission justifications:** copy them from PERMISSIONS.md (Single purpose, then each row of Requested; the content script's row answers the host permission).
+- **Single purpose** and **permission justifications:** copy them from PERMISSIONS.md (Single purpose, then each row of Requested: the `scripting` row answers both `scripting` and the host permission).
 - **Remote code:** No, AnyKey doesn't use remote code (PERMISSIONS.md, Remote code and data use).
 - **Data usage:** tick no data type: AnyKey sends nothing anywhere. Tick all three certifications (no selling or transfer, no use unrelated to the single purpose, no use for credit decisions).
 - **Privacy policy URL:** https://github.com/JatinAssudaney/AnyKey/blob/main/PRIVACY.md

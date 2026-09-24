@@ -1,6 +1,6 @@
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
-import { markTabsWithoutAnyKey } from '../background/badge';
+import { startInOpenTabs } from '../background/openTabs';
 import { installPresets } from '../background/presets';
 import { listenForMessages } from '../background/router';
 import { welcomeOnInstall } from '../background/welcome';
@@ -18,11 +18,12 @@ export default defineBackground(() => {
   };
   browser.runtime.onInstalled.addListener((details) => {
     install();
+    // Before the welcome page opens, so the tabs it looks at are the ones that were open already.
+    startInOpenTabs(details).catch((error: unknown) => {
+      console.error('AnyKey: it could not start in the open tabs.', error);
+    });
     welcomeOnInstall(details).catch((error: unknown) => {
       console.error('AnyKey: the welcome page could not open.', error);
-    });
-    markTabsWithoutAnyKey(details).catch((error: unknown) => {
-      console.error('AnyKey: the tabs without AnyKey could not be marked.', error);
     });
   });
   browser.runtime.onStartup.addListener(install);

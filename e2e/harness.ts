@@ -27,6 +27,28 @@ export async function launchExtensionContext(
   });
 }
 
+/**
+ * A fresh Chromium profile with no extension yet, so pages can be open before `loadExtension` installs AnyKey, as
+ * they are in a browser people already use. Loading it again updates it.
+ */
+export async function launchContextWithoutExtension(): Promise<BrowserContext> {
+  return chromium.launchPersistentContext('', {
+    channel: 'chromium',
+    // Playwright turns extensions off unless it loads them itself; this one loads through the DevTools protocol.
+    ignoreDefaultArgs: ['--disable-extensions'],
+    args: ['--enable-unsafe-extension-debugging'],
+  });
+}
+
+/** Installs the built extension into a running browser, or updates it: as the browser does from the Web Store. */
+export async function loadExtension(context: BrowserContext): Promise<void> {
+  const browser = context.browser();
+  if (browser === null) throw new Error('No browser to load the extension into');
+  const cdp = await browser.newBrowserCDPSession();
+  await cdp.send('Extensions.loadUnpacked', { path: EXTENSION_PATH });
+  await cdp.detach();
+}
+
 export async function extensionWorker(context: BrowserContext): Promise<Worker> {
   return context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
 }

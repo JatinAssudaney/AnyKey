@@ -17,7 +17,10 @@ export default defineConfig({
   manifest: {
     name: APP_NAME,
     description: APP_DESCRIPTION,
-    permissions: ['storage'],
+    // scripting and host access to every site (which the content script has already) let AnyKey start in the tabs
+    // that were open when it was installed or updated, without reloading them.
+    permissions: ['storage', 'scripting'],
+    host_permissions: ['<all_urls>'],
     // A key for the popup, which works in every tab, even where the content script can't run. The browser gives it
     // the key only when nothing else has that key, and people change it on the browser's extension shortcuts page.
     commands: {

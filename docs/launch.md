@@ -23,7 +23,7 @@ Sources: [badges](https://support.google.com/chrome_webstore/answer/1050673#cws_
 Checked on 2026-09-24:
 
 - [x] Manifest V3, with a service worker.
-- [x] Permissions: `storage` and the content script, nothing else (see PERMISSIONS.md).
+- [x] Permissions: `storage`, `scripting` and host access to every site, each for a reason PERMISSIONS.md gives, and no install warning beyond the one a content script on every site brings.
 - [x] No remote code, and no `eval` or `new Function` in any bundle.
 - [x] AnyKey sends nothing anywhere. Settings sync through the browser's own sync.
 - [x] A page where AnyKey was used (scrolled, cheatsheet opened) still goes into the back/forward cache: AnyKey has no `unload` handler and keeps no port open.
@@ -35,7 +35,7 @@ Checked on 2026-09-24:
 
 - [x] A welcome page opens when AnyKey is installed, and never on an update.
 - [x] AnyKey's keys work on the welcome page itself, so people can try them where they read about them.
-- [x] It teaches the popup's key and how to give anything on a page a key, and says that tabs open before the install need a reload.
+- [x] It teaches the popup's key and how to give anything on a page a key. The tabs open before the install need no reload: AnyKey starts in them.
 
 ## Presets (M8)
 
@@ -88,7 +88,3 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [ ] Distribution: free, public, every region.
 - [ ] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload.
 - [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
-
-## Open question
-
-Starting AnyKey from the toolbar icon in tabs that were open before an install or update (`activeTab` and `scripting`, which add no install warning) would fix those tabs without a reload. BACKLOG.md has the options. The badge doesn't need it, and it adds permissions, so it waits for a decision.

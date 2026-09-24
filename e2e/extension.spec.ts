@@ -3,10 +3,11 @@ import { expect, FIXTURE_ORIGIN, test } from './harness.ts';
 test('manifest keeps the permission footprint minimal', async ({ serviceWorker }) => {
   const manifest = await serviceWorker.evaluate(() => chrome.runtime.getManifest());
   expect(manifest.name).toBe('AnyKey');
-  expect(manifest.permissions).toEqual(['storage']);
+  expect(manifest.permissions).toEqual(['storage', 'scripting']);
   // A key for the popup. Commands are not permissions, so no install warning comes with it.
   expect(manifest.commands).toEqual({ _execute_action: { suggested_key: { default: 'Alt+Shift+K' } } });
-  expect(manifest.host_permissions ?? []).toEqual([]);
+  // Host access to every site, as the content script has, so AnyKey can start in tabs open at an install or update.
+  expect(manifest.host_permissions).toEqual(['<all_urls>']);
   expect(manifest.content_scripts).toEqual([
     expect.objectContaining({ matches: ['<all_urls>'], run_at: 'document_start' }),
   ]);

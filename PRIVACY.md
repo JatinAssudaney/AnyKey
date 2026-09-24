@@ -6,7 +6,7 @@ AnyKey is a browser extension that makes websites keyboard-navigable. It collect
 
 ## What AnyKey reads on the pages you visit
 
-AnyKey runs on every page so its keys work everywhere. On each page it:
+AnyKey runs on every page so its keys work everywhere. When it is installed or updated, it also starts in the tabs you already have open, so they work without a reload. On each page it:
 
 - reads the page's address, to tell which of your shortcuts work there;
 - listens for key presses, to tell whether they match one of your shortcuts. In text fields only the shortcuts you allowed there act;
