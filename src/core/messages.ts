@@ -1,6 +1,18 @@
 import { z } from 'zod/mini';
-import { IdSchema, KeyModeSchema, KeysSchema, SettingsSchema, ShortcutSchema, TabOpSchema } from './schema';
-import { isHttpUrl, MAX_URL_LENGTH } from './url';
+import {
+  ElementActionSchema,
+  IdSchema,
+  KeyModeSchema,
+  KeysSchema,
+  LabelSchema,
+  SettingsSchema,
+  ShortcutSchema,
+  TabOpSchema,
+} from './schema';
+import { isHost, isHttpUrl, MAX_URL_LENGTH } from './url';
+
+/** A site, as `URL.hostname` gives it: the host a site doc belongs to. */
+export const HostSchema = z.string().check(z.refine(isHost, 'Enter a site such as github.com.'));
 
 /**
  * Changes to stored settings. Extension pages send them to the background, which is the only writer (rules in
@@ -19,9 +31,15 @@ export const MutationSchema = z.discriminatedUnion('op', [
   }),
   /** Puts a built-in shortcut back to its original keys, turned on. */
   z.object({ op: z.literal('resetDefault'), id: IdSchema }),
-  /** Adds a user shortcut, or replaces the one with the same id. */
-  z.object({ op: z.literal('saveShortcut'), shortcut: ShortcutSchema }),
+  /**
+   * Adds a user shortcut, or replaces the one with the same id. `site` names the site whose doc keeps a site
+   * shortcut (a global shortcut has none), and the shortcut moves there from whichever doc kept it before.
+   */
+  z.object({ op: z.literal('saveShortcut'), shortcut: ShortcutSchema, site: z.optional(HostSchema) }),
+  /** Deletes a user shortcut from whichever doc keeps it. */
   z.object({ op: z.literal('deleteShortcut'), id: IdSchema }),
+  /** Switches AnyKey off, or back on, for one site. */
+  z.object({ op: z.literal('setSiteDisabled'), site: HostSchema, disabled: z.boolean() }),
   /** Replaces every doc this version knows with the given items (an import). The old data becomes the backup. */
   z.object({ op: z.literal('replaceAll'), items: z.record(z.string(), z.unknown()) }),
   /** Swaps the stored data with the backup. */
@@ -30,6 +48,16 @@ export const MutationSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('repairDoc'), key: z.string().check(z.maxLength(300)) }),
 ]);
 export type Mutation = z.infer<typeof MutationSchema>;
+
+/** What the picker makes. The background adds the rest: an id, and the page's site as the scope. */
+export const PickedShortcutSchema = z.object({
+  keys: KeysSchema,
+  keyMode: KeyModeSchema,
+  action: ElementActionSchema,
+  label: LabelSchema,
+  allowInInputs: z.optional(z.boolean()),
+});
+export type PickedShortcut = z.infer<typeof PickedShortcutSchema>;
 
 /** Requests to the background. The background validates each one with this schema. */
 export const BackgroundMessageSchema = z.discriminatedUnion('type', [
@@ -43,7 +71,23 @@ export const BackgroundMessageSchema = z.discriminatedUnion('type', [
   }),
   /** From AnyKey's own pages only. */
   z.object({ type: z.literal('mutate'), mutation: MutationSchema }),
+  /** From the popup: starts the element picker in a tab, for the site the popup showed. */
+  z.object({ type: z.literal('startPicker'), tabId: z.int().check(z.gte(0)), host: HostSchema }),
+  /** From the picker in a page: saves what it made as a shortcut for the page's own site. */
+  z.object({ type: z.literal('addSiteShortcut'), shortcut: PickedShortcutSchema }),
+  /** From the picker in a page: it closed without saving. */
+  z.object({ type: z.literal('pickerDone') }),
 ]);
 export type BackgroundMessage = z.infer<typeof BackgroundMessageSchema>;
 
 export type BackgroundResponse = { ok: true } | { ok: false; error: string };
+
+/** Requests to the content script in a tab's top frame, from the popup and the background. */
+export type PageRequest = { type: 'pageInfo' } | { type: 'startPicker' };
+
+/** The answer to `pageInfo`. */
+export interface PageInfo {
+  ok: true;
+  /** The page's URL without its # part. */
+  url: string;
+}

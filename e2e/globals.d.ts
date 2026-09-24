@@ -10,5 +10,7 @@ declare global {
     pageKeys?: string[];
     focusClosedInput?: () => void;
     closedInputValue?: () => string;
+    /** How often the picker fixture's buttons were clicked. */
+    clicks?: { like: number; play: number };
   }
 }

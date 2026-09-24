@@ -2,6 +2,13 @@
 
 A Chrome extension that makes any website keyboard-navigable: bind a key to any element, use Vimium-style link hints and scroll keys everywhere, and get shortcut presets for popular sites. Your settings always override presets.
 
+## Using it
+
+- **Scroll and move around** on any page: `j`/`k` scroll, `d`/`u` half a page, `g g` and `G` the top and bottom, `H`/`L` back and forward, `J`/`K` the previous and next tab, `x` closes the tab. `?` shows every shortcut that works on the page.
+- **Bind a key to anything on a page.** Click AnyKey's toolbar button, then **Add shortcut for this site**. Point at a button, link or field and click it (or press Tab to move and Enter to pick), then type the keys, such as `g s`, and press Enter. The shortcut works on every page of that site.
+- **Turn AnyKey off for a site** with the switch in the toolbar popup, so every key goes to the site.
+- **Settings** (in the popup, **Open settings**) change the built-in keys, add shortcuts for every site or one site, and import or export everything.
+
 ## Development
 
 Requires Node 22.12+ and pnpm.

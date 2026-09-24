@@ -1,27 +1,12 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import type { Page } from '@playwright/test';
-import { expect, FIXTURE_ORIGIN, pageKeys, scrollY, test } from './harness.ts';
+import { expect, FIXTURE_ORIGIN, pageKeys, pressUntil, scrollY, stored, test } from './harness.ts';
 
 const LONG = `${FIXTURE_ORIGIN}/long.html`;
 
 async function openOptions(page: Page, extensionId: string): Promise<void> {
   await page.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(page.getByRole('heading', { name: 'Shortcuts', exact: true })).toBeVisible();
-}
-
-/** Everything in sync storage, read from an extension page. */
-function stored(extensionPage: Page): Promise<Record<string, unknown>> {
-  return extensionPage.evaluate(() => chrome.storage.sync.get(null));
-}
-
-/** Presses keys until the check passes: a tab picks up a settings change a moment after it is saved. */
-async function pressUntil(page: Page, keys: readonly string[], check: () => Promise<boolean>): Promise<void> {
-  await expect
-    .poll(async () => {
-      for (const key of keys) await page.keyboard.press(key);
-      return check();
-    })
-    .toBe(true);
 }
 
 test('rekeying a built-in shortcut applies to an open tab right away', async ({ page, extensionContext, extensionId }) => {
@@ -231,4 +216,49 @@ test('a file that is not an export is refused', async ({ page, extensionId }, te
   await page.locator('input[type=file]').setInputFiles(file);
   await expect(page.getByRole('alert').filter({ hasText: "isn't an AnyKey settings export" })).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('a site shortcut added in settings clicks an element on that site', async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
+  await page.goto(`${FIXTURE_ORIGIN}/picker.html`);
+  const options = await extensionContext.newPage();
+  await openOptions(options, extensionId);
+  await expect(options.getByText('No sites yet.')).toBeVisible();
+
+  await options.getByRole('button', { name: 'Add a site shortcut' }).click();
+  const dialog = options.getByRole('dialog', { name: 'Add a shortcut' });
+  await expect(dialog.getByLabel('Works on')).toHaveValue('site');
+  // A pasted address becomes its site.
+  await dialog.getByLabel('Site', { exact: true }).fill(`${FIXTURE_ORIGIN}/picker.html`);
+  await expect(dialog.getByLabel('Pages', { exact: true })).toHaveValue('*://127.0.0.1/*');
+  await dialog.getByLabel('Element', { exact: true }).fill('#like');
+  await dialog.getByLabel('Keys', { exact: true }).fill('q');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+  await expect.poll(() => stored(options)).toMatchObject({
+    'site:127.0.0.1': {
+      shortcuts: [
+        {
+          keys: 'q',
+          action: { type: 'click', target: { selector: '#like' } },
+          scope: { type: 'site', match: '*://127.0.0.1/*' },
+        },
+      ],
+    },
+  });
+  const site = options.getByRole('region', { name: '127.0.0.1', exact: true });
+  await expect(site.getByRole('table', { name: 'Shortcuts for 127.0.0.1' })).toBeVisible();
+
+  await page.bringToFront();
+  await pressUntil(page, ['q'], async () => (await page.evaluate(() => window.clicks?.like)) === 1);
+
+  // Deleting the site's last shortcut keeps the site listed, with focus on its Add button.
+  await site.getByRole('button', { name: /^Delete / }).click();
+  await options.getByRole('dialog', { name: /^Delete "/ }).getByRole('button', { name: 'Delete' }).click();
+  await expect(options.getByRole('button', { name: 'Add shortcut for 127.0.0.1' })).toBeFocused();
+  await expect.poll(() => stored(options)).toEqual({});
+  await options.close();
 });

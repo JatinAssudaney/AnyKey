@@ -1,19 +1,22 @@
 import type { BackgroundMessage } from '../core/messages';
-import type { Action, Settings } from '../core/schema';
+import type { Settings, Shortcut } from '../core/schema';
 import { isSafeUrl } from '../core/url';
 import { sendToBackground } from '../messaging';
+import { clickElement, focusElement, linkOf } from './click';
 import type { Scroller } from './scroll';
+import { findTarget } from './targets';
 
 export interface ExecutorOptions {
   settings: () => Settings;
   scroller: Scroller;
+  isMac: boolean;
   openCheatsheet: () => void;
   toast: (message: string) => void;
 }
 
-export type RunAction = (action: Action, repeat: boolean) => void;
+export type RunShortcut = (shortcut: Shortcut, repeat: boolean) => void;
 
-export function createExecutor(options: ExecutorOptions): RunAction {
+export function createExecutor(options: ExecutorOptions): RunShortcut {
   const { toast } = options;
 
   async function request(message: BackgroundMessage): Promise<void> {
@@ -37,7 +40,7 @@ export function createExecutor(options: ExecutorOptions): RunAction {
     else location.assign(resolved.href);
   }
 
-  return (action, repeat) => {
+  return ({ action, label }, repeat) => {
     const settings = options.settings();
     switch (action.type) {
       case 'scroll': {
@@ -59,12 +62,32 @@ export function createExecutor(options: ExecutorOptions): RunAction {
       case 'cheatsheet':
         options.openCheatsheet();
         return;
-      case 'click':
-      case 'focus':
+      case 'click': {
+        const element = findTarget(action.target);
+        if (element === null) {
+          toast(notFound(label));
+          return;
+        }
+        const link = action.newTab === true ? linkOf(element) : null;
+        // A link opens through the background, which can place the tab; anything else gets a Ctrl or Cmd click.
+        if (link !== null) navigate(link.href, true, settings);
+        else clickElement(element, { modifier: action.newTab === true, isMac: options.isMac });
+        return;
+      }
+      case 'focus': {
+        const element = findTarget(action.target);
+        if (element === null) toast(notFound(label));
+        else if (!focusElement(element)) toast(`"${label}" found an element that can't take focus.`);
+        return;
+      }
       case 'hints':
-        // Element targets arrive with the picker (M4) and hints with M5; no shortcut can hold these actions yet.
+        // Hints arrive with M5; no shortcut can hold this action yet.
         toast('This version of AnyKey cannot run this shortcut yet.');
         return;
     }
   };
+}
+
+function notFound(label: string): string {
+  return `Couldn't find the element for "${label}" on this page.`;
 }

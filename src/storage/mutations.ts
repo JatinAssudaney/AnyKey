@@ -11,11 +11,13 @@ import {
   SYNC_QUOTA,
   type DefaultOverride,
   type Problem,
+  type SiteState,
   type SyncData,
   type SyncState,
 } from '../core/docs';
 import type { Mutation } from '../core/messages';
 import { storedKeys, type KeyMode, type Settings, type Shortcut } from '../core/schema';
+import { isHost } from '../core/url';
 
 export type MutationResult =
   | { ok: true; data: SyncData; touched: readonly string[] }
@@ -42,11 +44,14 @@ export function applyMutation(data: SyncData, mutation: Mutation): MutationResul
       if (!DEFAULTS_BY_ID.has(mutation.id)) return fail(unknownDefault(mutation.id));
       return commitOverrides(data, withEntry(state.global.overrides, mutation.id, undefined));
     case 'saveShortcut':
-      return saveShortcut(data, mutation.shortcut);
-    case 'deleteShortcut': {
-      const shortcuts = state.global.shortcuts.filter((shortcut) => shortcut.id !== mutation.id);
-      if (shortcuts.length === state.global.shortcuts.length) return { ok: true, data, touched: [] };
-      return commit(data, { ...state, global: { ...state.global, shortcuts } }, [GLOBAL_KEY]);
+      return saveShortcut(data, mutation.shortcut, mutation.site);
+    case 'deleteShortcut':
+      return deleteShortcut(data, mutation.id);
+    case 'setSiteDisabled': {
+      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
+      const sites = withSite(state.sites, mutation.site, { ...site, disabled: mutation.disabled });
+      return commit(data, { ...state, sites }, [siteKey(mutation.site)]);
     }
     case 'replaceAll':
       return replaceAll(data, mutation.items);
@@ -79,22 +84,79 @@ function setDefault(data: SyncData, change: Extract<Mutation, { op: 'setDefault'
   return commitOverrides(data, withEntry(data.state.global.overrides, change.id, empty ? undefined : override));
 }
 
-function saveShortcut(data: SyncData, shortcut: Shortcut): MutationResult {
+/**
+ * Saves a user shortcut in the global doc, or in the doc of `site`. An edit that changes where it works moves it:
+ * it leaves the doc that kept it, so the change touches both docs.
+ */
+function saveShortcut(data: SyncData, shortcut: Shortcut, site: string | undefined): MutationResult {
   if (shortcut.source !== 'user' || !shortcut.id.startsWith('user:')) {
     return fail('Only your own shortcuts can be saved this way.');
   }
-  if (shortcut.scope.type !== 'global') return fail('This version of AnyKey saves global shortcuts only.');
+  if (site === undefined && shortcut.scope.type === 'site') return fail('Choose the site this shortcut is for.');
+  if (site !== undefined && shortcut.scope.type === 'global') return fail("A shortcut for every site can't be saved with one site's settings.");
+  if (site !== undefined && !isHost(site)) return fail(NOT_A_SITE);
   const stored = storedKeys(shortcut.keys, shortcut.keyMode);
   if (!stored.ok) return fail(stored.error);
   const label = shortcut.label.trim();
   if (label === '') return fail('Enter a name.');
 
   const saved: Shortcut = { ...shortcut, keys: stored.keys, label };
-  const list = data.state.global.shortcuts;
-  const shortcuts = list.some((s) => s.id === saved.id)
-    ? list.map((s) => (s.id === saved.id ? saved : s))
-    : [...list, saved];
-  return commit(data, { ...data.state, global: { ...data.state.global, shortcuts } }, [GLOBAL_KEY]);
+  const removed = withoutShortcut(data.state, saved.id, site === undefined ? GLOBAL_KEY : siteKey(site));
+  const { state } = removed;
+  if (site === undefined) {
+    const global = { ...state.global, shortcuts: upsert(state.global.shortcuts, saved) };
+    return commit(data, { ...state, global }, [GLOBAL_KEY, ...removed.touched]);
+  }
+  const doc = state.sites.get(site) ?? EMPTY_SITE;
+  const sites = withSite(state.sites, site, { ...doc, shortcuts: upsert(doc.shortcuts, saved) });
+  return commit(data, { ...state, sites }, [siteKey(site), ...removed.touched]);
+}
+
+function deleteShortcut(data: SyncData, id: string): MutationResult {
+  const { state, touched } = withoutShortcut(data.state, id);
+  if (touched.length === 0) return { ok: true, data, touched: [] };
+  return commit(data, state, touched);
+}
+
+/** The state without the user shortcut `id`, in every doc but `keep`, and the keys of the docs that changed. */
+function withoutShortcut(state: SyncState, id: string, keep?: string): { state: SyncState; touched: string[] } {
+  const touched: string[] = [];
+  const drop = (list: readonly Shortcut[]): Shortcut[] => list.filter((shortcut) => shortcut.id !== id);
+  let { global, sites } = state;
+  if (keep !== GLOBAL_KEY && global.shortcuts.some((shortcut) => shortcut.id === id)) {
+    global = { ...global, shortcuts: drop(global.shortcuts) };
+    touched.push(GLOBAL_KEY);
+  }
+  for (const [host, site] of state.sites) {
+    const key = siteKey(host);
+    if (key === keep || !site.shortcuts.some((shortcut) => shortcut.id === id)) continue;
+    sites = withSite(sites, host, { ...site, shortcuts: drop(site.shortcuts) });
+    touched.push(key);
+  }
+  return { state: { ...state, global, sites }, touched };
+}
+
+/** Replaces the shortcut with the same id where it is, or adds it at the end. */
+function upsert(list: readonly Shortcut[], shortcut: Shortcut): Shortcut[] {
+  return list.some((s) => s.id === shortcut.id)
+    ? list.map((s) => (s.id === shortcut.id ? shortcut : s))
+    : [...list, shortcut];
+}
+
+const EMPTY_SITE: SiteState = { disabled: false, shortcuts: [], globals: new Map() };
+
+const NOT_A_SITE = 'Enter a site such as github.com.';
+
+/** The sites with `host` set to `site`. A site left with nothing in it goes, as its doc does. */
+function withSite(
+  sites: ReadonlyMap<string, SiteState>,
+  host: string,
+  site: SiteState,
+): ReadonlyMap<string, SiteState> {
+  const next = new Map(sites);
+  if (!site.disabled && site.shortcuts.length === 0 && site.globals.size === 0) next.delete(host);
+  else next.set(host, site);
+  return next;
 }
 
 /** Every doc this version knows is replaced; entries the new items can't provide are dropped. */

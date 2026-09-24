@@ -17,6 +17,9 @@ function bounded(max: number, emptyMessage?: string) {
 
 export const IdSchema = bounded(LIMITS.id);
 
+/** A shortcut's name, shown in the cheatsheet and settings. */
+export const LabelSchema = bounded(LIMITS.label, 'Enter a name.');
+
 /** Shortcut notation. `parseKeys` checks the content, so an empty string gets its message ("Enter a key."). */
 export const KeysSchema = z.string().check(z.maxLength(LIMITS.keys, `Use at most ${LIMITS.keys} characters.`));
 
@@ -52,9 +55,23 @@ export type ScrollDirection = z.infer<typeof ScrollDirectionSchema>;
 export const TabOpSchema = z.enum(['next', 'prev', 'close', 'duplicate']);
 export type TabOp = z.infer<typeof TabOpSchema>;
 
+/** Clicks an element. `newTab` opens a link in a new tab instead. */
+export const ClickActionSchema = z.object({
+  type: z.literal('click'),
+  target: ElementTargetSchema,
+  newTab: z.optional(z.boolean()),
+});
+
+/** Focuses an element, with the caret at the end of a text field. */
+export const FocusActionSchema = z.object({ type: z.literal('focus'), target: ElementTargetSchema });
+
+/** The actions the picker makes: they act on one element of the page. */
+export const ElementActionSchema = z.discriminatedUnion('type', [ClickActionSchema, FocusActionSchema]);
+export type ElementAction = z.infer<typeof ElementActionSchema>;
+
 export const ActionSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('click'), target: ElementTargetSchema, newTab: z.optional(z.boolean()) }),
-  z.object({ type: z.literal('focus'), target: ElementTargetSchema }),
+  ClickActionSchema,
+  FocusActionSchema,
   z.object({ type: z.literal('scroll'), direction: ScrollDirectionSchema }),
   z.object({ type: z.literal('history'), op: z.enum(['back', 'forward']) }),
   z.object({
@@ -96,8 +113,7 @@ export const ShortcutSchema = z
     keyMode: KeyModeSchema,
     action: ActionSchema,
     scope: ScopeSchema,
-    /** Shown in the cheatsheet and settings. */
-    label: bounded(LIMITS.label, 'Enter a name.'),
+    label: LabelSchema,
     allowInInputs: z.optional(z.boolean()),
     source: z.enum(['default', 'preset', 'user']),
     /** Presets only: whether the preset shortcut was checked against the live site. */

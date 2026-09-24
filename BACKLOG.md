@@ -6,7 +6,7 @@ Ideas left for later, with why each waits and what it would cost.
 
 Browsers add content scripts only to pages that load after AnyKey is installed, updated or reloaded. A tab that was already open has no AnyKey (after an install) or a dead copy that steps aside (after an update or reload). Its shortcuts do nothing until the tab is reloaded, and a site's own `?` opens instead of the cheatsheet (YouTube, for one). Chrome and Brave update extensions in the background, so users hit this after every release, and new users find AnyKey doing nothing in the tabs they already had open.
 
-**Why it waits.** Fixing it takes more permissions, and AnyKey keeps its permission list short so people aren't put off installing (decided 2026-09-24). Until then, the popup tells the user to reload the tab (planned for M4).
+**Why it waits.** Fixing it takes more permissions, and AnyKey keeps its permission list short so people aren't put off installing (decided 2026-09-24). Until then, the popup tells the user to reload the tab, with a button that does it.
 
 **Options**, fewest permissions first:
 

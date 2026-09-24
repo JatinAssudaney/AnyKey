@@ -1,4 +1,4 @@
-import type { UrlParts } from './url';
+import { isHost, type UrlParts } from './url';
 
 /**
  * A parsed Chrome match pattern (https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns).
@@ -26,7 +26,6 @@ const DEFAULT_PORTS = new Map([
 ]);
 const PATTERN = /^([^:/]+):\/\/([^/]*)(\/.*)$/;
 const PORT = /^(.+):(\d{1,5}|\*)$/;
-const HOSTNAME = /^(?:[a-z\d-]+(?:\.[a-z\d-]+)*|\[[\da-f:.]+\])$/;
 
 export function parseMatchPattern(pattern: string): MatchPattern | null {
   if (pattern === '<all_urls>') return { kind: 'all' };
@@ -48,7 +47,8 @@ export function parseMatchPattern(pattern: string): MatchPattern | null {
 
   const subdomains = host.startsWith('*.');
   if (subdomains) host = host.slice(2);
-  if (host === '' || (host !== '*' && !HOSTNAME.test(host)) || (subdomains && host === '*')) return null;
+  // Every host a site doc can have makes a pattern (`siteMatch`), so the host grammar is the same.
+  if (host === '' || (host !== '*' && !isHost(host)) || (subdomains && host === '*')) return null;
   return { kind: 'url', scheme, host, subdomains, port, path: globToRegExp(path) };
 }
 

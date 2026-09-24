@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Picker fixture</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px system-ui, sans-serif;
+      }
+      main {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Picker fixture</h1>
+      <p>
+        <button type="button" id="like" data-testid="like-button">Like</button>
+        <span id="likes">0 likes</span>
+      </p>
+      <p><a id="docs" href="/basic.html">Docs</a></p>
+      <p><label>Search <input id="search" type="search" name="q" placeholder="Search the docs" /></label></p>
+      <p><video-player></video-player></p>
+      <p><button type="button" id="route">Settings</button></p>
+    </main>
+    <script>
+      // Stands in for a site's own handlers.
+      window.clicks = { like: 0, play: 0 };
+      window.pageKeys = [];
+      for (const type of ['keydown', 'keyup']) {
+        document.addEventListener(type, (event) => {
+          window.pageKeys.push(`${type}:${event.key}`);
+        });
+      }
+      document.getElementById('like').addEventListener('click', () => {
+        window.clicks.like += 1;
+        document.getElementById('likes').textContent = `${window.clicks.like} likes`;
+      });
+
+      // A single-page app's router: the address changes without loading a new page.
+      document.getElementById('route').addEventListener('click', () => {
+        history.pushState(null, '', '/app/settings');
+        document.querySelector('h1').textContent = 'Settings';
+      });
+
+      // A button inside a closed shadow root, as sites built on web components have them.
+      customElements.define(
+        'video-player',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'play';
+            button.textContent = 'Play';
+            button.addEventListener('click', () => {
+              window.clicks.play += 1;
+            });
+            this.attachShadow({ mode: 'closed' }).append(button);
+          }
+        },
+      );
+    </script>
+  </body>
+</html>

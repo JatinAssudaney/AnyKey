@@ -3,7 +3,8 @@ import { focusRing } from '@/components/styles';
 import { DataSection } from './sections/DataSection';
 import { SettingsSection } from './sections/SettingsSection';
 import { ShortcutsSection } from './sections/ShortcutsSection';
-import { useSync } from './useSync';
+import { SitesSection } from './sections/SitesSection';
+import { useSync } from '@/components/useSync';
 
 export function App() {
   const { data, backup, status, mutate } = useSync();
@@ -48,6 +49,7 @@ export function App() {
               </p>
             )}
             <ShortcutsSection data={data} mutate={mutate} />
+            <SitesSection data={data} mutate={mutate} />
             <SettingsSection data={data} mutate={mutate} />
             <DataSection data={data} backup={backup} mutate={mutate} />
           </div>

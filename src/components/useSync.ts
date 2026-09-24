@@ -26,8 +26,9 @@ interface Pending {
 }
 
 /**
- * The options page's view of storage. A change shows at once (applied locally with the writer's own reducers) and
- * stays applied until storage has been read again after the background answered, so nothing flickers back.
+ * The view of storage the popup and the options page share. A change shows at once (applied locally with the
+ * writer's own reducers) and stays applied until storage has been read again after the background answered, so
+ * nothing flickers back.
  */
 export function useSync(): SyncStore {
   const [stored, setStored] = useState<SyncData | null>(null);

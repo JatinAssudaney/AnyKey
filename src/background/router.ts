@@ -1,7 +1,15 @@
 import { browser, type Browser } from 'wxt/browser';
-import { BackgroundMessageSchema, type BackgroundMessage, type BackgroundResponse } from '../core/messages';
+import {
+  BackgroundMessageSchema,
+  type BackgroundMessage,
+  type BackgroundResponse,
+  type PickedShortcut,
+} from '../core/messages';
+import type { Shortcut } from '../core/schema';
+import { isHost, siteMatch } from '../core/url';
 import { errorMessage } from '../messaging';
 import type { Writer } from '../storage/writer';
+import { endSession, saveInSession, startPicker } from './picker';
 import { openTab, runTabOp } from './tabs';
 
 /**
@@ -42,12 +50,51 @@ async function handle(message: BackgroundMessage, sender: Browser.runtime.Messag
       if (!isExtensionPage(sender)) throw new Error("Only AnyKey's own pages can change settings.");
       await writer.submit(message.mutation);
       return;
+    case 'startPicker':
+      if (!isExtensionPage(sender)) throw new Error("Only AnyKey's own pages can start the picker.");
+      await startPicker(message.tabId, message.host);
+      return;
+    case 'addSiteShortcut': {
+      const { tabId, host } = pickerPage(sender);
+      await saveInSession(tabId, host, () =>
+        writer.submit({ op: 'saveShortcut', shortcut: siteShortcut(message.shortcut, host), site: host }),
+      );
+      return;
+    }
+    case 'pickerDone':
+      await endSession(pickerPage(sender).tabId);
+      return;
   }
+}
+
+/** The picker's shortcut, completed: a new id, and every page of the site it was made on. */
+function siteShortcut(picked: PickedShortcut, host: string): Shortcut {
+  return {
+    id: `user:${crypto.randomUUID()}`,
+    ...picked,
+    scope: { type: 'site', match: siteMatch(host) },
+    source: 'user',
+    enabled: true,
+  };
 }
 
 function senderTab(sender: Browser.runtime.MessageSender): Browser.tabs.Tab {
   if (sender.tab === undefined) throw new Error('Only pages can send this request.');
   return sender.tab;
+}
+
+/**
+ * The tab and site of a picker's request. The site comes from the sender's URL, which the browser vouches for,
+ * never from the message. The picker runs in the top frame only.
+ */
+function pickerPage(sender: Browser.runtime.MessageSender): { tabId: number; host: string } {
+  const tabId = senderTab(sender).id;
+  const url = sender.url !== undefined && URL.canParse(sender.url) ? new URL(sender.url) : null;
+  if (tabId === undefined || sender.frameId !== 0 || url === null || !/^https?:$/.test(url.protocol)) {
+    throw new Error('AnyKey can add shortcuts only for web pages.');
+  }
+  if (!isHost(url.hostname)) throw new Error('AnyKey can add shortcuts only for web pages.');
+  return { tabId, host: url.hostname };
 }
 
 /** The popup or the options page. A content script's sender URL is the page it runs in. */

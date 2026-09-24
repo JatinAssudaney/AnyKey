@@ -1,17 +1,18 @@
-import type { Action, ScrollDirection, TabOp } from '@/core/schema';
+import type { Action, ElementTarget, ScrollDirection, TabOp } from '@/core/schema';
 
-// The actions the options page can create, as <select> choices. Clicking and focusing elements come with the
-// picker (M4), and link hints with M5.
+// The actions the options page can create, as <select> choices. Link hints come with M5.
 
 export interface ActionChoice {
   /** The <option> value, such as "scroll:down". */
   value: string;
   name: string;
-  /** Null for "Go to a web address", whose action is built from the form. */
+  /** Null for the choices whose action is built from more fields: a web address, or an element. */
   action: Action | null;
 }
 
 export const NAVIGATE = 'navigate';
+export const CLICK = 'click';
+export const FOCUS = 'focus';
 
 const scroll = (direction: ScrollDirection, name: string): ActionChoice => ({
   value: `scroll:${direction}`,
@@ -48,6 +49,13 @@ export const ACTION_GROUPS: readonly { label: string; choices: readonly ActionCh
     ],
   },
   {
+    label: 'Page elements',
+    choices: [
+      { value: CLICK, name: 'Click an element', action: null },
+      { value: FOCUS, name: 'Focus an element', action: null },
+    ],
+  },
+  {
     label: 'Other',
     choices: [
       { value: NAVIGATE, name: 'Go to a web address', action: null },
@@ -73,15 +81,22 @@ export function choiceValue(action: Action): string | null {
   return CHOICES.has(value) ? value : null;
 }
 
-/** The action a choice makes. "Go to a web address" takes the URL and new-tab fields. */
-export function actionOf(value: string, navigate: { url: string; newTab: boolean }): Action {
-  return (
-    findChoice(value)?.action ?? {
-      type: 'navigate',
-      url: navigate.url.trim(),
-      ...(navigate.newTab ? { newTab: true } : {}),
-    }
-  );
+/** The fields some choices take their action from. */
+export interface ActionFields {
+  url: string;
+  /** A web address or a link opens in a new tab. */
+  newTab: boolean;
+  target: ElementTarget;
+}
+
+/** The action a choice makes, with the web address or the element from the form where it needs one. */
+export function actionOf(value: string, fields: ActionFields): Action {
+  const fixed = findChoice(value)?.action ?? null;
+  if (fixed !== null) return fixed;
+  const newTab = fields.newTab ? { newTab: true } : {};
+  if (value === CLICK) return { type: 'click', target: fields.target, ...newTab };
+  if (value === FOCUS) return { type: 'focus', target: fields.target };
+  return { type: 'navigate', url: fields.url.trim(), ...newTab };
 }
 
 /** What an action does, in words. */

@@ -2,6 +2,9 @@ import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { createShadowRootUi, type ShadowRootContentScriptUi } from 'wxt/utils/content-script-ui/shadow-root';
 import css from './styles.css?inline';
 
+/** The tag of the element that hosts AnyKey's shadow root. */
+export const UI_HOST = 'anykey-ui';
+
 export interface UiRoot {
   /** The container inside AnyKey's shadow root. Mounts on first use, and again if the page removed the host. */
   container(): Promise<HTMLElement>;
@@ -20,7 +23,7 @@ export function createUiRoot(ctx: ContentScriptContext): UiRoot {
   return {
     async container() {
       ui ??= createShadowRootUi(ctx, {
-        name: 'anykey-ui',
+        name: UI_HOST,
         position: 'inline',
         anchor: () => document.documentElement,
         mode: 'closed',

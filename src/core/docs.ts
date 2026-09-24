@@ -10,6 +10,7 @@ import {
   type Settings,
   type Shortcut,
 } from './schema';
+import { isHost } from './url';
 
 // The docs AnyKey keeps in chrome.storage.sync (rules in docs/design.md, "Storage"), and a tolerant reader for them:
 // a doc saved by a newer version, or damaged, still yields every entry this version can read.
@@ -217,11 +218,6 @@ function parseEntries<T>(value: unknown, parser: Parser<T>, report: Report): Map
     else report('invalid');
   }
   return entries;
-}
-
-/** A lowercase hostname or a bracketed IPv6 address, as `URL.hostname` gives them. */
-function isHost(host: string): boolean {
-  return host.length <= 253 && /^(?:(?:[a-z\d_-]+\.)*[a-z\d_-]+\.?|\[[\da-f:.]+\])$/.test(host);
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

@@ -122,6 +122,18 @@ export function startEngine(options: EngineOptions): Engine {
     if (ui.owns(event.target) || (event.type === 'keypress' && modes.length > 0)) event.stopImmediatePropagation();
   }
 
+  /** Text typed or pasted into AnyKey's fields stays private too: a page's input or paste handlers never see it. */
+  function isolateUiInput(event: Event): void {
+    if (ctx.isInvalid || !ui.owns(event.target)) return;
+    event.stopImmediatePropagation();
+    modes.at(-1)?.uiInput?.();
+  }
+
+  function onPointer(event: MouseEvent): void {
+    if (ctx.isInvalid || !event.isTrusted) return;
+    modes.at(-1)?.pointer?.(event);
+  }
+
   function onWindowBlur(event: Event): void {
     if (event.target !== window) return;
     // Keyups may never arrive while the window is in the background.
@@ -136,6 +148,9 @@ export function startEngine(options: EngineOptions): Engine {
   for (const type of ['keypress', 'focusin', 'focusout', 'focus', 'blur'] as const) {
     ctx.addEventListener(window, type, isolateUiEvent, capture);
   }
+  for (const type of UI_INPUT_EVENTS) ctx.addEventListener(window, type, isolateUiInput, capture);
+  // Registered now, before page scripts run, so a mode such as the picker sees presses and clicks first.
+  for (const type of POINTER_EVENTS) ctx.addEventListener(window, type, onPointer, capture);
   ctx.addEventListener(window, 'blur', onWindowBlur, capture);
 
   return {
@@ -160,7 +175,33 @@ export function startEngine(options: EngineOptions): Engine {
   };
 }
 
-function keyInput(event: KeyboardEvent): KeyInput | null {
+const UI_INPUT_EVENTS = [
+  'beforeinput',
+  'input',
+  'compositionstart',
+  'compositionupdate',
+  'compositionend',
+  'paste',
+  'copy',
+  'cut',
+] as const;
+
+const POINTER_EVENTS = [
+  'pointerdown',
+  'pointerup',
+  'pointermove',
+  'pointercancel',
+  'mousedown',
+  'mouseup',
+  'mousemove',
+  'click',
+  'dblclick',
+  'auxclick',
+  'contextmenu',
+] as const;
+
+/** The fields of a keydown that shortcuts depend on, or null for the keydowns without a key that autofill sends. */
+export function keyInput(event: KeyboardEvent): KeyInput | null {
   const key: unknown = event.key;
   const code: unknown = event.code;
   if (typeof key !== 'string' || typeof code !== 'string') return null;

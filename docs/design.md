@@ -9,7 +9,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M1 | Scaffold: WXT + React + TS + Tailwind, lint, tests, E2E harness, icons, docs | done |
 | M2 | Key engine, global scroll/history/tab shortcuts, cheatsheet | done |
 | M3 | Storage layer, options editor with key recorder, import/export | done |
-| M4 | Element picker, per-site shortcuts from the popup | planned |
+| M4 | Element picker, per-site shortcuts from the popup | done |
 | M5 | Hint mode | planned |
 | M6 | Presets, overrides, conflict warnings | planned |
 
@@ -79,12 +79,13 @@ Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half 
 | `preset:<presetId>` | `{ overrides: Record<presetShortcutId, PresetOverride> }` (M6) |
 
 - Every doc carries a version field `v` and stays under 8KB (about 20 to 25 picker shortcuts per site). A doc is never split across items: Chrome sync delivers items independently, so a split doc could be read half-updated. Any stored-format change bumps `v` (`DOC_VERSION` in `src/core/docs.ts`).
-- Storage stays sparse: a setting equal to its default and an override equal to the built-in shortcut are left out, and a doc left empty is removed, so a later version can improve the defaults. Keys are stored in canonical notation (`ctrl+k`, never `Ctrl+K`).
-- `chrome.storage.local` holds `backup` (below) and, from M6, `presets` (validated bundled presets, written by the background on install and update).
+- Storage stays sparse: a setting equal to its default and an override equal to the built-in shortcut are left out, and a doc left empty is removed (a site doc once the site is on, with no shortcuts and no `globals`), so a later version can improve the defaults. Keys are stored in canonical notation (`ctrl+k`, never `Ctrl+K`).
+- A site shortcut lives in the doc of the site it was made for, named in the `saveShortcut` mutation (`site`), which a site shortcut must have and a global one must not. Its `match` may be edited to other pages, even of another host. Saving a shortcut takes it out of any other doc, so changing where it works moves it, and both docs are written in the same save.
+- `chrome.storage.local` holds `backup` (below) and, from M6, `presets` (validated bundled presets, written by the background on install and update). `chrome.storage.session` holds picker sessions (see Picker); content scripts can't read or write that area.
 
 **Reading.** The content script and the options page read every sync item and read again after each change; an older read never overwrites a newer one. `parseSync` never throws: an entry that fails its schema is skipped, and its doc is reported as damaged, or as newer when its `v` is above this version's. No shortcut runs in a page until storage has loaded.
 
-**Single writer.** Only the background writes (`src/storage/writer.ts`). Pages send typed mutations (`src/core/messages.ts`), and in M3 the background accepts them only from AnyKey's own pages (the sender URL is under the extension's origin): a page could otherwise drive its content script to rewrite settings. The writer:
+**Single writer.** Only the background writes (`src/storage/writer.ts`). Pages send typed mutations (`src/core/messages.ts`), and the background accepts them only from AnyKey's own pages (the sender URL is under the extension's origin): a page could otherwise drive its content script to rewrite settings. The one thing a content script may save is a shortcut from the picker, under the rules in Picker. The writer:
 
 1. collects mutations for 300ms, and starts a save at least 1000ms after the last one (a save writes at most a `set` and a `remove`, so at most 120 writes a minute);
 2. reads all of sync storage fresh and applies the pure reducers in `src/storage/mutations.ts` in order; a mutation that fails is rejected on its own and the rest still save;
@@ -124,7 +125,7 @@ Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrive
   - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
-- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet now; hint mode and picker mode later). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened (hint mode needs the same for `f`).
+- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet and the picker; hint mode in M5). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened (hint mode needs the same for `f`).
 - A mode leaves the stack the moment it closes, never in a `<dialog>`'s `close` event: Chrome fires that event as a queued task, and input outranks queued tasks, so a key pressed right after Esc would still go to the closed mode.
 
 ## Scrolling
@@ -135,21 +136,50 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 
 - One lazily mounted `createShadowRootUi` host (`<anykey-ui>`): closed mode, without WXT's `isolateEvents` (the key engine isolates UI events itself, and that option's bubble-phase stop would also hide the keyups the page is owed), appended to `<html>` so pages that replace `<body>` don't remove it, and remounted if a page does. CSS goes in through the `css` option, so no stylesheet is web-accessible. The CSS avoids `@property` and `@font-face` (WXT would hoist them into the page).
 - Overlays live in the top layer (modal `<dialog>`, `popover`) so they show above page modals and fullscreen video.
-- Keydown, keypress and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events.
+- Keydown, keypress and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events. Input events from inside the host (`beforeinput`, `input`, composition, `paste`, `copy`, `cut`) are stopped the same way and reported to the top mode's `uiInput`.
+- So elements inside the host never receive keydown, keypress, focus or input events. In-page UI reacts to keys through its mode's `keyDown` (returning `isolate` lets the key type or move focus) and to typed text through `uiInput`. Click, change, submit, pointer and a dialog's `cancel` events do arrive.
+- Trusted pointer and mouse events (`pointerdown`, `pointerup`, `pointermove`, `pointercancel`, `mousedown`, `mouseup`, `mousemove`, `click`, `dblclick`, `auxclick`, `contextmenu`) go to the top mode's `pointer` handler first, at window capture.
 - The content script sets `noScriptStartedPostMessage`, so WXT never posts messages to the page.
 
 ## Options page
 
-- Built-in shortcuts can be rekeyed, switched off and reset; the user's own global shortcuts can be added, edited, switched off and deleted (site shortcuts arrive with the picker in M4). A change shows at once and saves in the background: the header's status says "Saving…" then "Saved.", and a failure appears in an alert. Text fields save on blur or Enter.
+- Built-in shortcuts can be rekeyed, switched off and reset; the user's own global shortcuts can be added, edited, switched off and deleted. A change shows at once and saves in the background: the header's status says "Saving…" then "Saved.", and a failure appears in an alert. Text fields save on blur or Enter.
+- Sites lists every site with a doc: a switch for AnyKey on the site, and its shortcuts to switch off, edit and delete. "Add a site shortcut" and each site's "Add shortcut for <host>" take any action; click and focus take a typed selector (" >>> " steps into shadow roots) and optional text. The site field accepts a pasted address and keeps its host; the pages follow the site (`*://<host>/*`) until edited. A site changed on the page stays listed while it holds nothing, so no control vanishes while in use.
 - Conflict warnings come from `src/core/conflicts.ts`: a shortcut that doesn't run because another takes its keys (and the one that takes them), a key that waits for the sequence timeout because a longer shortcut that still runs starts with it, keys the browser keeps for itself on this platform, and a shortcut that also runs in text fields on a key that types.
-- The key recorder (`src/core/recorder.ts`, shared with the picker's recorder in M4) never traps focus. Esc cancels, and its keydown is cancelled so the dialog around it stays open. Tab finishes and moves focus on as usual. Enter, a 1-second pause, or a fourth chord finishes. Auto-repeats and lone modifiers don't count as keys. The platform's command key is recorded as `mod`, so a shortcut recorded on a Mac works on Windows. Key mode records characters (`?`), code mode records physical keys (`shift+Slash`).
-- When a change removes the focused control, focus moves to the nearest control that stays, never back to the top of the page: Reset to the row's Edit button, Delete to Add shortcut, Repair to the next Repair button or else Export.
+- The key recorder (`src/core/recorder.ts`, shared with the picker's panel) never traps focus. Esc cancels, and its keydown is cancelled so the dialog around it stays open. Tab finishes and moves focus on as usual. Enter, a 1-second pause, or a fourth chord finishes. Auto-repeats and lone modifiers don't count as keys. The platform's command key is recorded as `mod`, so a shortcut recorded on a Mac works on Windows. Key mode records characters (`?`), code mode records physical keys (`shift+Slash`).
+- When a change removes the focused control, focus moves to the nearest control that stays, never back to the top of the page: Reset to the row's Edit button, Delete to Add shortcut (a site shortcut's Delete to its site's Add button), Repair to the next Repair button or else Export.
 
-## Picker (M4)
+## Popup
 
-- Element targets resolve at press time: selector, then fallbacks, then text or aria-label among interactive elements (restricted by `tag` when set), preferring visible matches and piercing open and closed shadow roots. When nothing matches, show a toast.
-- Capture-phase listeners block the page's pointer, mouse and click handlers while picking. Hover promotes to the nearest interactive ancestor; Up/Down walk to parent/child; Esc cancels.
-- Selector priority: `data-testid` / `data-test` / `data-qa`; a non-generated id; aria-label; role plus accessible name (`a[href]`, `name`, `title`, `placeholder`); stable classes; a short structural path. Scoring heuristics live in `src/core/selectorScore.ts` (generated ids such as digit runs, hashes and `:r1:`; hashed CSS-module, styled-components and utility classes; aria-labels with digits become `^=` prefixes). Candidates are built and checked for uniqueness in the live DOM; the next 1 to 3 unique ones become `fallbacks`, and the text/aria-label and tag are stored too.
+- The popup can't read the tab's URL without the `tabs` permission, so it asks the tab's content script (`pageInfo`). No answer means AnyKey isn't running there: a browser page, or a tab opened before AnyKey was installed or updated, which "Reload this tab" fixes.
+- For a web page it shows the site, a switch for AnyKey on the site (by exact host), the site shortcuts that apply to the page, and "Add shortcut for this site", which starts the picker and closes the popup so the page is in view.
+
+## Picker
+
+**Sessions.** The picker starts only from the popup. The popup sends `startPicker` with the tab and its site; the background records a session in `chrome.storage.session` (`picker:<tabId>`: `{ startedAt, host }`) and asks the tab's top frame to pick (`src/background/picker.ts`). If no content script answers, the session ends and the popup says to reload the tab. The content script then saves with `addSiteShortcut`, which carries only keys, key mode, action and name. The background accepts it only from a tab's top frame, on an http(s) page, while that tab has a session for the sender's host that is under 30 minutes old. The site comes from the sender's URL, which the browser vouches for, never from the message, and the shortcut covers every page of it (`*://<host>/*`). A save ends the session, and so does closing the picker (`pickerDone`); a failed save keeps it, so the user can fix the shortcut and save again. Saves for one tab run one at a time, so saves sent together can't all find the session open. A hostile page can therefore save, at most, one shortcut for its own site while the user has the picker open on it.
+
+**Picking** (`src/dom/picker.ts`).
+- The page gets no presses or clicks: `pointerdown`, `pointerup`, `mousedown`, `mouseup`, `click`, `dblclick`, `auxclick` and `contextmenu` are stopped at window capture. Hovering still reaches the page, so a menu that opens on hover can be picked from.
+- Keys with Ctrl, Alt or Meta go to the browser (not the page); every other key is the picker's.
+- The element under the pointer (through open and closed shadow roots) moves up to the nearest interactive element it sits in, at most 6 levels. ↑ and ↓ walk to the parent and back down. Tab and Shift+Tab move through visible interactive elements in document order, shadow roots included, starting with what is on screen. It starts on the element that had focus when the popup opened. Enter or a click picks; Esc cancels.
+- The outline and the banner of instructions are popovers that let the pointer through. The banner moves to the top while the element sits under it.
+
+**The panel** (`src/dom/ui/pickerPanel.ts`) is a modal `<dialog>` in the corner, so the page stays in view. It offers click or focus (focus for text fields), "Open the link in a new tab" for links, a name that says what the shortcut does until the user edits it, keys typed or recorded, and warnings for conflicts with the shortcuts on the page. "Pick again" goes back to picking.
+
+**Selectors** (`src/dom/selectorCandidates.ts`, heuristics in `src/core/selectorScore.ts`). Candidates, most stable first:
+1. test attributes: `data-testid`, `data-test-id`, `data-test`, `data-qa`, `data-cy`;
+2. an id that isn't generated (not `:r1:`, long numbers, hashes, or numbered library ids such as `mat-input-0`);
+3. `aria-label`, `title` or `placeholder`, as a `^=` prefix of the words before the first number when the label has one (counts change);
+4. `name`; a link's `href`; `input[type]` for distinctive types such as `search`; `role`;
+5. stable classes, alone and then in pairs (not state, utility, CSS-module, styled-components or other build-made names);
+6. any of those below the nearest ancestor with a unique test attribute or id;
+7. a structural path of `:nth-of-type` steps up to such an ancestor.
+
+Each candidate must match only the element within its own document or shadow root, and " >>> " joins the chain of shadow hosts. The first is the selector and up to 3 more are fallbacks. The element's text (up to 100 characters) and tag are stored too.
+
+**Finding the element** (`src/dom/targets.ts`) happens at press time: the selector, then the fallbacks, then the text among interactive elements (or elements of `tag`), searched through open and closed shadow roots. The text match ignores case, spacing and numbers ("Like 1,203" finds "Like 1,204"), and text with no words in it never matches. A visible match wins over a hidden one found earlier, and a hidden one is used only when nothing visible matches. AnyKey's own UI is never searched. When nothing matches, a toast names the shortcut.
+
+**Running** (`src/dom/click.ts`). Click sends pointer and mouse events to the element's center, then a click, so menus that open on `pointerdown` or `mousedown` open too. A click with `newTab` on a link opens the link through the background, as navigate does. Focus focuses the element, or the first focusable element inside it, with the caret at the end; when nothing takes focus, a toast says so.
 
 ## Hints (M5)
 
@@ -165,5 +195,5 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 ## Security
 
 - Navigate and new-tab URLs must be http(s) or relative, so imported JSON cannot carry `javascript:` URLs.
-- The background validates every message with zod and accepts messages only from AnyKey's own contexts, and setting changes only from its own pages. Labels and selectors have length caps.
+- The background validates every message with zod and accepts messages only from AnyKey's own contexts. Setting changes and picker starts come only from its own pages; a content script can add a site shortcut only during a picker session (see Picker). Labels and selectors have length caps.
 - The content script validates stored data before using it. Schemas use `zod/mini`, whose functions tree-shake, so the content script carries only the schemas it parses with (about 26 kB, where classic zod would add about 85 kB), and none of the reducers, import or export code.

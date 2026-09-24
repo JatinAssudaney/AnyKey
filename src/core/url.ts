@@ -33,3 +33,15 @@ export function isSafeUrl(url: string): boolean {
 export function isHttpUrl(url: string): boolean {
   return isSafeUrl(url) && /^https?:\/\//i.test(url);
 }
+
+const HOST = /^(?:(?:[a-z\d_-]+\.)*[a-z\d_-]+\.?|\[[\da-f:.]+\])$/;
+
+/** A lowercase hostname or a bracketed IPv6 address, as `URL.hostname` gives them: what a site doc is keyed by. */
+export function isHost(host: string): boolean {
+  return host.length <= 253 && HOST.test(host);
+}
+
+/** The match pattern for every page of a site, over http and https: `*://github.com/*`. */
+export function siteMatch(host: string): string {
+  return `*://${host}/*`;
+}

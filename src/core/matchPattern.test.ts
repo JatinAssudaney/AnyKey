@@ -36,6 +36,9 @@ describe('matchesPattern', () => {
     ['http://localhost:80/*', 'http://localhost/', true],
     ['*://localhost:*/*', 'http://localhost:1234/', true],
     ['*://[::1]/*', 'http://[::1]:8080/', true],
+    ['*://my_host.local/*', 'http://my_host.local/', true],
+    ['*://example.com./*', 'https://example.com./', true],
+    ['*://example.com./*', 'https://example.com/', false],
     ['file:///Users/*', 'file:///Users/me/page.html', true],
   ])('%s against %s: %s', (pattern, href, expected) => {
     expect(matchesPattern(pattern, url(href))).toBe(expected);

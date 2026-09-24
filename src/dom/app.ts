@@ -1,12 +1,16 @@
+import { browser, type Browser } from 'wxt/browser';
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { DEFAULT_SETTINGS } from '../core/defaults';
 import { effectiveSettings, type SyncState } from '../core/docs';
-import { sequenceTokens } from '../core/keys';
+import { keycapLabels, sequenceTokens } from '../core/keys';
+import type { BackgroundResponse, PageInfo, PageRequest } from '../core/messages';
 import { resolve, shortcutsForUrl } from '../core/resolve';
 import type { Settings, Shortcut } from '../core/schema';
+import { sendToBackground } from '../messaging';
 import { watchSync } from '../storage/read';
 import { startEngine } from './engine';
 import { createExecutor } from './executor';
+import { createPicker } from './picker';
 import { isMac } from './platform';
 import { createScroller } from './scroll';
 import { openCheatsheet } from './ui/cheatsheet';
@@ -39,13 +43,14 @@ export function startAnyKey(ctx: ContentScriptContext): void {
       if (withoutHash(location.href) !== resolvedUrl) applyShortcuts();
     },
     run: (shortcut, repeat) => {
-      runAction(shortcut.action, repeat);
+      runShortcut(shortcut, repeat);
     },
   });
 
-  const runAction = createExecutor({
+  const runShortcut = createExecutor({
     settings: () => settings,
     scroller: createScroller(ctx),
+    isMac,
     toast,
     openCheatsheet: () => {
       if (cheatsheetOpen) return;
@@ -76,6 +81,29 @@ export function startAnyKey(ctx: ContentScriptContext): void {
     },
   });
 
+  const picker = createPicker({
+    ctx,
+    ui,
+    isMac,
+    pushMode: (mode) => {
+      engine.pushMode(mode);
+    },
+    popMode: (mode) => {
+      engine.popMode(mode);
+    },
+    pageShortcuts: () => (state === null ? [] : shortcutsForUrl(state, urlParts(withoutHash(location.href)))),
+    save: async (shortcut) => {
+      const response = await sendToBackground({ type: 'addSiteShortcut', shortcut });
+      return response.ok ? null : response.error;
+    },
+    saved: (shortcut) => {
+      toast(`Saved "${shortcut.label}". Press ${keysInWords(shortcut.keys)} to use it.`);
+    },
+    cancelled: () => {
+      void sendToBackground({ type: 'pickerDone' });
+    },
+  });
+
   function applyShortcuts(): void {
     if (state === null) return;
     resolvedUrl = withoutHash(location.href);
@@ -88,7 +116,41 @@ export function startAnyKey(ctx: ContentScriptContext): void {
     settings = effectiveSettings(data.state);
     applyShortcuts();
   });
+
+  /** Requests from the popup and the background, which only AnyKey itself can send to a content script. */
+  function onMessage(message: unknown, _sender: Browser.runtime.MessageSender, sendResponse: (response: unknown) => void): boolean {
+    if (ctx.isInvalid || !isPageRequest(message)) return false;
+    if (message.type === 'pageInfo') {
+      sendResponse({ ok: true, url: withoutHash(location.href) } satisfies PageInfo);
+    } else {
+      picker.start();
+      sendResponse({ ok: true } satisfies BackgroundResponse);
+    }
+    return false;
+  }
+  browser.runtime.onMessage.addListener(onMessage);
+
   ctx.onInvalidated(() => {
     watcher.stop();
+    try {
+      browser.runtime.onMessage.removeListener(onMessage);
+    } catch {
+      // After an extension reload this script can't reach the API, and its listener is dead anyway.
+    }
   });
+}
+
+function isPageRequest(value: unknown): value is PageRequest {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    (value.type === 'pageInfo' || value.type === 'startPicker')
+  );
+}
+
+/** Keys as a toast says them: "g then s", "Ctrl+K". */
+function keysInWords(keys: string): string {
+  const chords = keycapLabels(keys, 'key', isMac) ?? [];
+  return chords.map((labels) => labels.join(isMac ? '' : '+')).join(' then ');
 }

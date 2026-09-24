@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { chromium, test as base, type BrowserContext, type Page, type Worker } from '@playwright/test';
+import { chromium, expect, test as base, type BrowserContext, type Page, type Worker } from '@playwright/test';
 
 export { expect } from '@playwright/test';
 export { FIXTURE_ORIGIN } from './constants.ts';
@@ -84,6 +84,42 @@ export async function pageKeys(page: Page): Promise<string[]> {
   return page.evaluate(() => window.pageKeys ?? []);
 }
 
+/** Everything in sync storage, read from an extension page. */
+export function stored(extensionPage: Page): Promise<Record<string, unknown>> {
+  return extensionPage.evaluate(() => chrome.storage.sync.get(null));
+}
+
+/** Presses keys until the check passes: a tab picks up a settings change a moment after it is saved. */
+export async function pressUntil(page: Page, keys: readonly string[], check: () => Promise<boolean>): Promise<void> {
+  await expect
+    .poll(async () => {
+      for (const key of keys) await page.keyboard.press(key);
+      return check();
+    })
+    .toBe(true);
+}
+
+/**
+ * The id of the tab showing `url`. Without the `tabs` permission AnyKey can't read tab URLs, so this asks the
+ * content script in each tab, as the popup does.
+ */
+export async function tabIdOf(extensionPage: Page, url: string): Promise<number> {
+  const id = await extensionPage.evaluate(async (wanted) => {
+    for (const tab of await chrome.tabs.query({})) {
+      if (tab.id === undefined) continue;
+      try {
+        const info: unknown = await chrome.tabs.sendMessage(tab.id, { type: 'pageInfo' }, { frameId: 0 });
+        if (typeof info === 'object' && info !== null && 'url' in info && info.url === wanted) return tab.id;
+      } catch {
+        // No AnyKey in this tab.
+      }
+    }
+    return null;
+  }, url);
+  if (id === null) throw new Error(`No tab with AnyKey shows ${url}`);
+  return id;
+}
+
 /** The fields of a DevTools protocol DOM node that the helpers below read. */
 interface DomNode {
   nodeType: number;
@@ -99,14 +135,36 @@ interface DomNode {
  * scripts and Playwright locators can't enter, so this reads the DOM through the DevTools protocol.
  */
 export async function openCheatsheetText(page: Page): Promise<string | null> {
+  const dialog = find(await pierceDocument(page), (node) => node.nodeName === 'DIALOG' && (node.attributes ?? []).includes('open'));
+  return dialog === undefined ? null : textOf(dialog).replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The text of the first element in AnyKey's UI with the class, such as "ak-toast", or null when there is none. Read
+ * through the DevTools protocol, as `openCheatsheetText` is.
+ */
+export async function uiText(page: Page, className: string): Promise<string | null> {
+  const node = find(await pierceDocument(page), (node) => classesOf(node).includes(className));
+  return node === undefined ? null : textOf(node).replace(/\s+/g, ' ').trim();
+}
+
+/** The whole document, shadow roots included, as the DevTools protocol sees it. */
+async function pierceDocument(page: Page): Promise<DomNode> {
   const cdp = await page.context().newCDPSession(page);
   try {
-    const { root } = await cdp.send('DOM.getDocument', { depth: -1, pierce: true });
-    const dialog = find(root, (node) => node.nodeName === 'DIALOG' && (node.attributes ?? []).includes('open'));
-    return dialog === undefined ? null : textOf(dialog).replace(/\s+/g, ' ').trim();
+    return (await cdp.send('DOM.getDocument', { depth: -1, pierce: true })).root;
   } finally {
     await cdp.detach();
   }
+}
+
+function classesOf(node: DomNode): string[] {
+  const attributes = node.attributes ?? [];
+  // Attributes come as a flat list of names and values.
+  for (let i = 0; i < attributes.length; i += 2) {
+    if (attributes[i] === 'class') return (attributes[i + 1] ?? '').split(/\s+/);
+  }
+  return [];
 }
 
 function find(node: DomNode, predicate: (node: DomNode) => boolean): DomNode | undefined {

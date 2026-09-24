@@ -18,6 +18,13 @@ function mine(id: string, keys: string, extra: Partial<Shortcut> = {}): Shortcut
   };
 }
 
+function onSite(id: string, keys: string, match = '*://github.com/*'): Shortcut {
+  return mine(id, keys, {
+    action: { type: 'click', target: { selector: '[data-testid="star"]', text: 'Star' } },
+    scope: { type: 'site', match },
+  });
+}
+
 function ok(result: MutationResult): Extract<MutationResult, { ok: true }> {
   if (!result.ok) throw new Error(`Expected success, got: ${result.error}`);
   return result;
@@ -88,12 +95,17 @@ describe('saveShortcut and deleteShortcut', () => {
     expect(replaced.state.global.shortcuts).toEqual([mine('user:1', 'm')]);
   });
 
-  it('saves only user shortcuts with a global scope', () => {
+  it('saves only user shortcuts, with a site exactly when the scope is a site', () => {
     const data = parseSync({});
     expect(applyMutation(data, { op: 'saveShortcut', shortcut: mine('default:scroll-down', 'n') }).ok).toBe(false);
     expect(applyMutation(data, { op: 'saveShortcut', shortcut: mine('user:1', 'n', { source: 'preset' }) }).ok).toBe(false);
-    const site = mine('user:1', 'n', { scope: { type: 'site', match: '*://github.com/*' } });
-    expect(applyMutation(data, { op: 'saveShortcut', shortcut: site }).ok).toBe(false);
+    expect(error(applyMutation(data, { op: 'saveShortcut', shortcut: onSite('user:1', 'n') }))).toBe(
+      'Choose the site this shortcut is for.',
+    );
+    expect(applyMutation(data, { op: 'saveShortcut', shortcut: mine('user:1', 'n'), site: 'github.com' }).ok).toBe(false);
+    expect(error(applyMutation(data, { op: 'saveShortcut', shortcut: onSite('user:1', 'n'), site: 'Not a host' }))).toBe(
+      'Enter a site such as github.com.',
+    );
   });
 
   it('deletes by id, and does nothing for an unknown id', () => {
@@ -106,6 +118,79 @@ describe('saveShortcut and deleteShortcut', () => {
     const long = (n: number) => mine(`user:${n}`, `ctrl+${n}`, { action: { type: 'navigate', url: `/${'x'.repeat(2000)}` } });
     const data = run({}, ...[1, 2, 3].map((n) => ({ op: 'saveShortcut', shortcut: long(n) }) as const));
     expect(error(applyMutation(data, { op: 'saveShortcut', shortcut: long(4) }))).toMatch(/8 KB/);
+  });
+});
+
+describe('site shortcuts', () => {
+  it("saves a site shortcut in its site's doc, and deletes it from there", () => {
+    const data = run({}, { op: 'saveShortcut', shortcut: onSite('user:1', 'G S'), site: 'github.com' });
+    expect(data.items).toEqual({ 'site:github.com': { v: 1, shortcuts: [onSite('user:1', 'G S')] } });
+    expect(data.state.sites.get('github.com')?.shortcuts).toEqual([onSite('user:1', 'G S')]);
+    const deleted = ok(applyMutation(data, { op: 'deleteShortcut', id: 'user:1' }));
+    expect(deleted.touched).toEqual(['site:github.com']);
+    expect(deleted.data.items).toEqual({});
+    expect(deleted.data.state.sites.size).toBe(0);
+  });
+
+  it('moves a shortcut between docs when where it works changes, writing both', () => {
+    const global = run({}, { op: 'saveShortcut', shortcut: mine('user:1', 'n') });
+    const toSite = ok(applyMutation(global, { op: 'saveShortcut', shortcut: onSite('user:1', 'n'), site: 'github.com' }));
+    expect(toSite.touched).toEqual(['site:github.com', 'global']);
+    expect(toSite.data.items).toEqual({ 'site:github.com': { v: 1, shortcuts: [onSite('user:1', 'n')] } });
+
+    const otherSite = onSite('user:1', 'n', '*://gitlab.com/*');
+    const moved = ok(applyMutation(toSite.data, { op: 'saveShortcut', shortcut: otherSite, site: 'gitlab.com' }));
+    expect(moved.touched).toEqual(['site:gitlab.com', 'site:github.com']);
+    expect(moved.data.items).toEqual({ 'site:gitlab.com': { v: 1, shortcuts: [otherSite] } });
+
+    const back = ok(applyMutation(moved.data, { op: 'saveShortcut', shortcut: mine('user:1', 'n') }));
+    expect(back.touched).toEqual(['global', 'site:gitlab.com']);
+    expect(back.data.items).toEqual({ global: { v: 1, shortcuts: [mine('user:1', 'n')], overrides: {} } });
+  });
+
+  it('keeps a site shortcut in place when it is edited', () => {
+    const data = run(
+      {},
+      { op: 'saveShortcut', shortcut: onSite('user:1', 'a'), site: 'github.com' },
+      { op: 'saveShortcut', shortcut: onSite('user:2', 'b'), site: 'github.com' },
+      { op: 'saveShortcut', shortcut: onSite('user:1', 'c', '*://github.com/*/issues*'), site: 'github.com' },
+    );
+    expect(data.state.sites.get('github.com')?.shortcuts.map((s) => [s.id, s.keys])).toEqual([
+      ['user:1', 'c'],
+      ['user:2', 'b'],
+    ]);
+  });
+
+  it('switches a site off and on, keeping nothing once the site is back to normal', () => {
+    const off = run({}, { op: 'setSiteDisabled', site: 'www.youtube.com', disabled: true });
+    expect(off.items).toEqual({ 'site:www.youtube.com': { v: 1, disabled: true, shortcuts: [] } });
+    const on = ok(applyMutation(off, { op: 'setSiteDisabled', site: 'www.youtube.com', disabled: false }));
+    expect(on.touched).toEqual(['site:www.youtube.com']);
+    expect(on.data.items).toEqual({});
+    expect(on.data.state.sites.size).toBe(0);
+    expect(error(applyMutation(off, { op: 'setSiteDisabled', site: 'https://x.com', disabled: true }))).toBe(
+      'Enter a site such as github.com.',
+    );
+  });
+
+  it('keeps shortcuts when a site is switched off, and the switch when its last shortcut goes', () => {
+    const data = run(
+      {},
+      { op: 'saveShortcut', shortcut: onSite('user:1', 'a'), site: 'github.com' },
+      { op: 'setSiteDisabled', site: 'github.com', disabled: true },
+      { op: 'deleteShortcut', id: 'user:1' },
+    );
+    expect(data.items).toEqual({ 'site:github.com': { v: 1, disabled: true, shortcuts: [] } });
+  });
+
+  it("refuses to move a shortcut out of, or into, a site doc that's damaged", () => {
+    const damaged = { 'site:github.com': { v: 1, shortcuts: [onSite('user:1', 'a'), { id: 42 }] } };
+    const data = parseSync(damaged);
+    expect(error(applyMutation(data, { op: 'saveShortcut', shortcut: mine('user:1', 'a') }))).toMatch(/partly damaged/);
+    expect(error(applyMutation(data, { op: 'deleteShortcut', id: 'user:1' }))).toMatch(/^Your shortcuts for github\.com are partly damaged/);
+    expect(
+      error(applyMutation(data, { op: 'saveShortcut', shortcut: onSite('user:2', 'b'), site: 'github.com' })),
+    ).toMatch(/partly damaged/);
   });
 });
 
