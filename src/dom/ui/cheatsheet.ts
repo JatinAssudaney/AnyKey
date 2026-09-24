@@ -4,6 +4,7 @@ import type { Action, KeyMode, Shortcut } from '../../core/schema';
 import type { Mode } from '../modes';
 import { deepActiveElement } from '../shadow';
 import { h } from './h';
+import { anyKeyIcon } from './icon';
 import type { UiRoot } from './root';
 
 // Page elements come first: most are shortcuts for the site's own pages, a preset's or ones picked there.
@@ -82,7 +83,7 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
       closeButton,
     ),
     body,
-    h('footer', { class: 'ak-cheatsheet-footer' }, 'AnyKey. Press Esc to close.'),
+    h('footer', { class: 'ak-cheatsheet-footer' }, anyKeyIcon(), 'AnyKey. Press Esc to close.'),
   );
 
   let closed = false;

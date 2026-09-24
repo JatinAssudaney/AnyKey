@@ -302,10 +302,19 @@
 }
 
 .ak-cheatsheet-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 20px;
   border-top: 1px solid var(--ak-border);
   color: var(--ak-muted);
   font-size: 12px;
+}
+
+.ak-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
 }
 
 /* Toast */
