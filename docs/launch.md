@@ -60,7 +60,7 @@ Text, ready to paste in `store/listing.md`:
 - [x] Description: an overview paragraph, then the features. No lists of keywords.
 - [x] Category: Accessibility.
 - [x] Privacy practices: the single purpose and the permission justifications from PERMISSIONS.md, and what AnyKey does with data, matching the privacy policy.
-- [ ] A privacy policy, a website and a support page, at public URLs: PRIVACY.md, the repository and its Issues, on GitHub once pushed.
+- [x] A privacy policy, a website and a support page, at public URLs: [PRIVACY.md](https://github.com/JatinAssudaney/AnyKey/blob/main/PRIVACY.md), [the repository](https://github.com/JatinAssudaney/AnyKey) and [its Issues](https://github.com/JatinAssudaney/AnyKey/issues).
 
 ## Release (M10)
 
