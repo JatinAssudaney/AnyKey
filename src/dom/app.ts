@@ -161,6 +161,8 @@ export function startAnyKey(ctx: ContentScriptContext, options: StartOptions): v
     if (ctx.isInvalid || !isPageRequest(message)) return false;
     if (message.type === 'pageInfo') {
       sendResponse({ ok: true, url: withoutHash(location.href) } satisfies PageInfo);
+    } else if (message.type === 'ping') {
+      sendResponse({ ok: true } satisfies BackgroundResponse);
     } else if (options.picker) {
       picker.start();
       sendResponse({ ok: true } satisfies BackgroundResponse);
@@ -185,6 +187,6 @@ function isPageRequest(value: unknown): value is PageRequest {
     typeof value === 'object' &&
     value !== null &&
     'type' in value &&
-    (value.type === 'pageInfo' || value.type === 'startPicker')
+    (value.type === 'pageInfo' || value.type === 'startPicker' || value.type === 'ping')
   );
 }

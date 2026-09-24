@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
+import { markTabsWithoutAnyKey } from '../background/badge';
 import { installPresets } from '../background/presets';
 import { listenForMessages } from '../background/router';
 import { welcomeOnInstall } from '../background/welcome';
@@ -19,6 +20,9 @@ export default defineBackground(() => {
     install();
     welcomeOnInstall(details).catch((error: unknown) => {
       console.error('AnyKey: the welcome page could not open.', error);
+    });
+    markTabsWithoutAnyKey(details).catch((error: unknown) => {
+      console.error('AnyKey: the tabs without AnyKey could not be marked.', error);
     });
   });
   browser.runtime.onStartup.addListener(install);

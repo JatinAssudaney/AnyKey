@@ -94,8 +94,9 @@ export function App() {
             Tabs you already had open
           </h2>
           <p className="mt-2">
-            Pages that were open before you installed AnyKey don&apos;t have it yet. Reload one with{' '}
-            <KeyCaps keys="mod+r" mode="key" /> and AnyKey starts there. Pages you open from now on have it right away.
+            Pages that were open before you installed AnyKey don&apos;t have it yet, and AnyKey&apos;s toolbar button
+            shows ! while you&apos;re on one. Reload it with <KeyCaps keys="mod+r" mode="key" /> and AnyKey starts
+            there. Pages you open from now on have it right away.
           </p>
         </section>
 

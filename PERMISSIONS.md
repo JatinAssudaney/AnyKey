@@ -16,7 +16,7 @@ AnyKey makes websites keyboard-navigable. Users bind keys to elements on any pag
 ## Not requested
 
 - `tabs`: switching to the next or previous tab, closing a tab, duplicating a tab, reloading a tab and messaging a tab's content script all work through `chrome.tabs` without it. AnyKey never reads tab URLs or titles: the popup asks the page's own content script which site it is on.
-- `activeTab`, `scripting` and `host_permissions`: the content script declared in the manifest already covers every page. Tabs that were open before AnyKey was installed or updated start working once they are reloaded.
+- `activeTab`, `scripting` and `host_permissions`: the content script declared in the manifest already covers every page. Tabs that were open before AnyKey was installed or updated start working once they are reloaded, and until then AnyKey's toolbar button shows a badge on them.
 
 ## Remote code and data use
 

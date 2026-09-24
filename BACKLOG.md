@@ -6,11 +6,10 @@ Ideas left for later, with why each waits and what it would cost.
 
 Browsers add content scripts only to pages that load after AnyKey is installed, updated or reloaded. A tab that was already open has no AnyKey (after an install) or a dead copy that steps aside (after an update or reload). Its shortcuts do nothing until the tab is reloaded, and a site's own `?` opens instead of the cheatsheet (YouTube, for one). Chrome and Brave update extensions in the background, so users hit this after every release, and new users find AnyKey doing nothing in the tabs they already had open.
 
-**Why it waits.** Fixing it takes more permissions, and AnyKey keeps its permission list short so people aren't put off installing (decided 2026-09-24). Until then, the popup tells the user to reload the tab, with a button that does it, and the welcome page that opens on install says that tabs already open need a reload.
+**Why it waits.** Fixing it takes more permissions, and AnyKey keeps its permission list short so people aren't put off installing (decided 2026-09-24). Until then, AnyKey's toolbar button shows a `!` badge on those tabs (`src/background/badge.ts`, which needs no permission), the popup tells the user to reload the tab, with a button that does it, and the welcome page that opens on install says that tabs already open need a reload.
 
 **Options**, fewest permissions first:
 
-- **Toolbar badge on tabs without a live AnyKey.** After an install or update, the background marks every open tab, and each content script clears its own tab's mark when it starts. No new permissions. Shows the problem without fixing it.
 - **Start AnyKey from the toolbar icon.** Opening the popup in such a tab injects AnyKey there. Needs `activeTab` and `scripting`, neither of which adds an install warning. Fixes one tab at a time, when the user clicks.
 - **Start AnyKey in every open tab** on install and update. Needs `scripting` and host access to all sites. The install warning stays the same, since the content script already runs on all sites, but it adds two permissions to justify in Web Store review, and the background could read every tab's URL.
 

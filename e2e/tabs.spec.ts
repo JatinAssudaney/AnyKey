@@ -1,4 +1,4 @@
-import { expect, extensionWorker, FIXTURE_ORIGIN, launchExtensionContext, pageKeys, scrollY, test } from './harness.ts';
+import { expect, extensionWorker, FIXTURE_ORIGIN, launchExtensionContext, pageKeys, scrollY, test, welcomePage } from './harness.ts';
 
 test('J and K switch tabs, and x closes the tab', async ({ extensionContext }) => {
   const first = await extensionContext.newPage();
@@ -49,6 +49,41 @@ test('a tab left behind by an extension reload lets every key through', async ()
     await page.keyboard.press('x');
     expect((await pageKeys(page)).slice(-2)).toEqual(['keydown:x', 'keyup:x']);
     expect(page.isClosed()).toBe(false);
+  } finally {
+    await context.close();
+  }
+});
+
+test('tabs AnyKey is not running in are marked on install, until they load a page', async () => {
+  const context = await launchExtensionContext();
+  try {
+    // The browser's first tab was open before AnyKey was installed, and the install opened the welcome page.
+    const [first] = context.pages();
+    const welcome = await welcomePage(context);
+    if (first === undefined || first === welcome) throw new Error('The browser opened no tab of its own');
+    await first.bringToFront();
+    const firstId = await welcome.evaluate(
+      async () => (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0]?.id,
+    );
+    const welcomeId = await welcome.evaluate(async () => (await chrome.tabs.getCurrent())?.id);
+    const badge = (tabId: number | undefined) =>
+      welcome.evaluate((id) => chrome.action.getBadgeText({ tabId: id }), tabId);
+
+    await expect.poll(() => badge(firstId)).toBe('!');
+    expect(await welcome.evaluate((id) => chrome.action.getTitle({ tabId: id }), firstId)).toBe(
+      'AnyKey: reload this tab to use your shortcuts here',
+    );
+    // AnyKey runs in the welcome page, which may have been loading when it was asked: its mark, if any, goes.
+    await expect.poll(() => badge(welcomeId)).toBe('');
+
+    await first.goto(`${FIXTURE_ORIGIN}/long.html`);
+    expect(await badge(firstId)).toBe('');
+    await expect
+      .poll(async () => {
+        await first.keyboard.press('j');
+        return scrollY(first);
+      })
+      .toBeGreaterThan(0);
   } finally {
     await context.close();
   }

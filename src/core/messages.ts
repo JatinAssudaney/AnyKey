@@ -95,8 +95,11 @@ export type BackgroundMessage = z.infer<typeof BackgroundMessageSchema>;
 
 export type BackgroundResponse = { ok: true } | { ok: false; error: string };
 
-/** Requests to the content script in a tab's top frame, from the popup and the background. */
-export type PageRequest = { type: 'pageInfo' } | { type: 'startPicker' };
+/**
+ * Requests to the content script in a tab's top frame, from the popup and the background. `ping` asks only whether
+ * AnyKey is running there, so the background learns nothing about the page.
+ */
+export type PageRequest = { type: 'pageInfo' } | { type: 'startPicker' } | { type: 'ping' };
 
 /** The answer to `pageInfo`. */
 export interface PageInfo {
