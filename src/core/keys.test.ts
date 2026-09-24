@@ -76,9 +76,17 @@ describe('keycapLabels', () => {
 
   it('keeps plain letters as typed and names special keys', () => {
     expect(keycapLabels('g g', 'key', false)).toEqual([['g'], ['g']]);
-    expect(keycapLabels('G', 'key', false)).toEqual([['G']]);
     expect(keycapLabels('shift+down', 'key', false)).toEqual([['Shift', '↓']]);
     expect(keycapLabels('f5', 'key', false)).toEqual([['F5']]);
+  });
+
+  it('shows the Shift a capital letter takes, and none for other characters', () => {
+    expect(keycapLabels('G', 'key', false)).toEqual([['Shift', 'G']]);
+    expect(keycapLabels('g F', 'key', true)).toEqual([['g'], ['⇧', 'F']]);
+    expect(keycapLabels('É', 'key', false)).toEqual([['Shift', 'É']]);
+    expect(keycapLabels('ctrl+shift+k', 'key', false)).toEqual([['Ctrl', 'Shift', 'K']]);
+    expect(keycapLabels('?', 'key', false)).toEqual([['?']]);
+    expect(keycapLabels('shift+KeyG', 'code', false)).toEqual([['Shift', 'G']]);
   });
 
   it('shows physical keys by their US-layout character', () => {
@@ -93,6 +101,8 @@ describe('keysInWords', () => {
     expect(keysInWords('mod+shift+k', 'key', false)).toBe('Ctrl+Shift+K');
     expect(keysInWords('mod+shift+k', 'key', true)).toBe('⇧⌘K');
     expect(keysInWords('?', 'key', true)).toBe('?');
+    expect(keysInWords('F', 'key', true)).toBe('⇧F');
+    expect(keysInWords('F', 'key', false)).toBe('Shift+F');
   });
 
   it('says nothing for notation that does not parse', () => {

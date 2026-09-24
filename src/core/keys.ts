@@ -276,7 +276,8 @@ const CODE_LABELS = new Map([
 
 /**
  * Keycap labels for display: one array per chord, modifiers first. macOS uses its symbols in Apple's order
- * (⌃ ⌥ ⇧ ⌘); other platforms use names.
+ * (⌃ ⌥ ⇧ ⌘); other platforms use names. A capital letter shows the Shift it takes: keyboards print their letters as
+ * capitals, so a bare G would read as the g key.
  */
 export function keycapLabels(keys: string, mode: KeyMode, isMac: boolean): string[][] | null {
   const parsed = parseKeys(keys, mode);
@@ -284,10 +285,17 @@ export function keycapLabels(keys: string, mode: KeyMode, isMac: boolean): strin
   const names = isMac ? MAC_MODIFIERS : PC_MODIFIERS;
   return parsed.chords.map((chord) => {
     const mods = resolveMod(chord, isMac);
-    const labels = (['ctrl', 'alt', 'shift', 'meta'] as const).filter((name) => mods[name]).map((name) => names[name]);
-    labels.push(keyLabel(chord.key, mode, mods.ctrl || mods.alt || mods.meta));
+    const command = mods.ctrl || mods.alt || mods.meta;
+    const held = { ...mods, shift: mods.shift || (mode === 'key' && !command && isCapital(chord.key)) };
+    const labels = (['ctrl', 'alt', 'shift', 'meta'] as const).filter((name) => held[name]).map((name) => names[name]);
+    labels.push(keyLabel(chord.key, mode, command));
     return labels;
   });
+}
+
+/** A single letter written as a capital, which in key mode means Shift is held. */
+function isCapital(key: string): boolean {
+  return Array.from(key).length === 1 && key !== key.toLowerCase();
 }
 
 /** Keys as a sentence says them: "g then s", "Ctrl+K", "⌘K". Empty for notation that doesn't parse. */

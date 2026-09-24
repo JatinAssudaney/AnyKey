@@ -36,3 +36,33 @@ test('the popup turns AnyKey off and on for a site', async ({ page, extensionCon
     .toBe(true);
   await popup.close();
 });
+
+test('the popup teaches hint mode with the keys that show hints on the page', async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
+  await page.goto(PICKER);
+  const popup = await extensionContext.newPage();
+  await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+  await popup.goto(`chrome-extension://${extensionId}/popup.html?tab=${await tabIdOf(popup, PICKER)}`);
+  const hintMode = popup.getByRole('region', { name: 'Hint mode' });
+  await expect(hintMode).toContainText('on the page to label every link and button, then type a label to click it.');
+  await expect(hintMode).toContainText('keys pick labels instead of running your shortcuts');
+  // Shift+F, as macOS or other platforms write it.
+  await expect(hintMode.locator('kbd')).toHaveText([/^(⇧|Shift)$/, 'F', 'Esc']);
+  await expect(popup.getByText('on the page to see every shortcut.').locator('kbd')).toHaveText(['?']);
+
+  // It follows the user's keys, and goes when hints have none.
+  const setOverride = (override: object) =>
+    popup.evaluate(
+      (value) => chrome.storage.sync.set({ global: { v: 1, shortcuts: [], overrides: { 'default:hints': value } } }),
+      override,
+    );
+  await setOverride({ keys: 'g h' });
+  await expect(hintMode.locator('kbd')).toHaveText(['g', 'h', 'Esc']);
+  await setOverride({ enabled: false });
+  await expect(hintMode).toBeHidden();
+  await expect(popup.getByRole('heading', { name: 'Shortcuts for this site' })).toBeVisible();
+  await popup.close();
+});

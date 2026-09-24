@@ -125,6 +125,7 @@ Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrive
   - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
+- Keys show as keycaps (`keycapLabels`, and `keysInWords` for sentences): modifiers first, as macOS symbols in Apple's order (⌃ ⌥ ⇧ ⌘) or as names elsewhere. A capital letter shows the Shift it takes (`F` shows as ⇧F, or Shift+F), because keyboards print their letters as capitals and a bare F reads as the f key.
 - A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet, the picker and link hints). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened, and holding `F` must not type the hint labeled F.
 - A mode leaves the stack the moment it closes, never in a `<dialog>`'s `close` event: Chrome fires that event as a queued task, and input outranks queued tasks, so a key pressed right after Esc would still go to the closed mode.
 
@@ -154,6 +155,7 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 
 - The popup can't read the tab's URL without the `tabs` permission, so it asks the tab's content script (`pageInfo`). No answer means AnyKey isn't running there: a browser page, or a tab opened before AnyKey was installed or updated, which "Reload this tab" fixes.
 - For a web page it shows the site, a switch for AnyKey on the site (by exact host), the site shortcuts that apply to the page, and "Add shortcut for this site", which starts the picker and closes the popup so the page is in view.
+- It teaches the keys that work on the page, as `resolve()` finds them there, so a rekeyed or disabled default shows as it is: the cheatsheet key, and hint mode with the key that shows hints (what labels are for, and that keys pick labels until one is picked or Esc). A line goes when its action has no key.
 
 ## Picker
 

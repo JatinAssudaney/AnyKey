@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import iconUrl from '@/assets/icon.svg';
 import { KeyCaps } from '@/components/KeyCaps';
+import { isMac } from '@/components/platform';
 import { checkbox, errorText, hintText, primaryButton, secondaryButton } from '@/components/styles';
 import { useSync } from '@/components/useSync';
 import type { PageInfo, PageRequest } from '@/core/messages';
-import { shortcutsForUrl } from '@/core/resolve';
+import { resolve, shortcutsForUrl } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
 import { isHost } from '@/core/url';
 import { urlParts } from '@/dom/url';
@@ -33,6 +34,9 @@ export function App() {
   }, []);
 
   const reloadable = page.status === 'unavailable' ? page.tabId : null;
+  const applying = page.status === 'ready' && data !== null ? shortcutsForUrl(data.state, urlParts(page.url)) : [];
+  // What the page's keys do: the popup teaches the keys that work there, which the user may have changed.
+  const { active } = resolve({ shortcuts: applying, isMac });
 
   return (
     <main className="w-80 bg-white p-4 text-sm text-stone-900 dark:bg-stone-900 dark:text-stone-100">
@@ -80,9 +84,9 @@ export function App() {
         <SiteControls
           page={page}
           disabled={data.state.sites.get(hostOf(page.url))?.disabled === true}
-          shortcuts={shortcutsForUrl(data.state, urlParts(page.url)).filter(
-            (shortcut) => shortcut.source === 'user' && shortcut.scope.type === 'site',
-          )}
+          shortcuts={applying.filter((shortcut) => shortcut.source === 'user' && shortcut.scope.type === 'site')}
+          hints={active.find(({ action }) => action.type === 'hints' && action.newTab !== true)}
+          cheatsheet={active.find(({ action }) => action.type === 'cheatsheet')}
           onToggle={(disabled) => {
             void mutate({ op: 'setSiteDisabled', site: hostOf(page.url), disabled });
           }}
@@ -115,11 +119,15 @@ interface SiteControlsProps {
   disabled: boolean;
   /** The site shortcuts that apply to the page. */
   shortcuts: readonly Shortcut[];
+  /** The shortcut that shows link hints on the page, if one does. */
+  hints: Shortcut | undefined;
+  /** The shortcut that opens the cheatsheet on the page, if one does. */
+  cheatsheet: Shortcut | undefined;
   onToggle: (disabled: boolean) => void;
   onAdd: () => void;
 }
 
-function SiteControls({ page, disabled, shortcuts, onToggle, onAdd }: SiteControlsProps) {
+function SiteControls({ page, disabled, shortcuts, hints, cheatsheet, onToggle, onAdd }: SiteControlsProps) {
   const host = hostOf(page.url);
   if (!isHost(host)) {
     return <p className={`${hintText} mt-4`}>Shortcuts for one site work on web pages only.</p>;
@@ -167,8 +175,28 @@ function SiteControls({ page, disabled, shortcuts, onToggle, onAdd }: SiteContro
             <button type="button" onClick={onAdd} className={`${primaryButton} w-full`}>
               Add shortcut for this site
             </button>
-            <p className={hintText}>Pick something on the page, then press the keys you want for it. Press ? on the page to see every shortcut.</p>
+            <p className={hintText}>
+              Pick something on the page, then press the keys you want for it.
+              {cheatsheet !== undefined && (
+                <>
+                  {' '}
+                  Press <KeyCaps keys={cheatsheet.keys} mode={cheatsheet.keyMode} /> on the page to see every shortcut.
+                </>
+              )}
+            </p>
           </div>
+          {hints !== undefined && (
+            <section aria-labelledby="hint-mode-heading">
+              <h2 id="hint-mode-heading" className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400">
+                Hint mode
+              </h2>
+              <p className={hintText}>
+                Press <KeyCaps keys={hints.keys} mode={hints.keyMode} /> on the page to label every link and button,
+                then type a label to click it. While labels show, keys pick labels instead of running your shortcuts,
+                until you pick one or press <KeyCaps keys="escape" mode="key" />.
+              </p>
+            </section>
+          )}
         </>
       )}
     </div>
