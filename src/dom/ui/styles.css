@@ -145,12 +145,17 @@
 .ak-cheatsheet {
   width: min(760px, calc(100vw - 32px));
   max-width: none;
-  max-height: min(680px, calc(100vh - 32px));
+  max-height: calc(100vh - 48px);
   padding: 0;
   border: 1px solid var(--ak-border);
   border-radius: 12px;
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
   overflow: hidden;
+}
+
+/* Room for three or four columns when there is a lot to list: a site's own keys, mostly. */
+.ak-cheatsheet-wide {
+  width: min(1400px, calc(100vw - 32px));
 }
 
 .ak-cheatsheet[open] {
@@ -204,10 +209,7 @@
 }
 
 .ak-cheatsheet-body {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  column-gap: 32px;
-  padding: 4px 20px 20px;
+  padding: 16px 20px 20px;
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -217,8 +219,33 @@
   outline: none;
 }
 
-.ak-group h3 {
-  margin: 16px 0 6px;
+/* A band fills as many columns as fit, each column as tall as the others. */
+.ak-band {
+  column-width: 280px;
+  column-gap: 40px;
+}
+
+.ak-band + .ak-band {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ak-border);
+}
+
+.ak-site-keys h3 {
+  column-span: all;
+}
+
+.ak-group {
+  break-inside: avoid;
+}
+
+/* Margins at the top of a column drop away, so every column starts level. */
+.ak-group + .ak-group {
+  margin-top: 16px;
+}
+
+.ak-cheatsheet h3 {
+  margin: 0 0 6px;
   color: var(--ak-muted);
   font-size: 12px;
   font-weight: 600;
@@ -226,19 +253,26 @@
   text-transform: uppercase;
 }
 
-.ak-group table {
+.ak-cheatsheet table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.ak-group td {
+.ak-cheatsheet tr {
+  break-inside: avoid;
+}
+
+.ak-cheatsheet td {
   padding: 5px 0;
   vertical-align: middle;
 }
 
-.ak-group td.ak-keys {
+.ak-cheatsheet td.ak-keys {
   width: 112px;
   padding-right: 16px;
+}
+
+.ak-alt {
   white-space: nowrap;
 }
 
@@ -258,6 +292,11 @@
 .ak-plus,
 .ak-then {
   margin: 0 4px;
+  color: var(--ak-muted);
+  font-size: 12px;
+}
+
+.ak-or {
   color: var(--ak-muted);
   font-size: 12px;
 }

@@ -35,9 +35,12 @@ test("YouTube's own keys win over AnyKey's on its video pages, and nowhere else"
       return openCheatsheetText(page);
     })
     .toContain("YouTube's own keys");
-  const text = await openCheatsheetText(page);
+  const text = (await openCheatsheetText(page)) ?? '';
   expect(text).toContain('Go back 10 seconds');
   expect(text).toContain('Like the video');
+  // The site's own keys come first, and keys that do the same thing share a row.
+  expect(text.indexOf("YouTube's own keys")).toBeLessThan(text.indexOf('Scrolling'));
+  expect(text).toContain('k or Space Play or pause');
   await page.keyboard.press('Escape');
   await expect.poll(() => openCheatsheetText(page)).toBeNull();
 

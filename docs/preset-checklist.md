@@ -10,7 +10,7 @@ How to check a preset on the live site. Every preset shortcut ships with `verifi
 
 ## Every preset
 
-- [ ] Press `?` on a page from the tables below. The cheatsheet ends with "<Site>'s own keys", listing the site's keys that still reach it.
+- [ ] Press `?` on a page from the tables below. The cheatsheet starts with "<Site>'s own keys", listing the site's keys that still reach it.
 - [ ] Open the popup there. The "<Site> preset" section lists the preset's shortcuts for the page, and says which keys go to the site's own shortcuts.
 - [ ] In the options page, Sites, the site's section shows the preset's shortcuts, the built-in shortcuts that give way, and the site's own keys.
 

@@ -275,7 +275,7 @@ These stay AnyKey's although the site uses them: `?` on all three sites (AnyKey'
 - Only key-mode shortcuts are compared: site keys are characters, and the character a physical key types depends on the layout.
 - The picker compares with the site's keys on the page (`pageShortcuts`), the options page with all of them (`shortcutsOnSite`), where a built-in shortcut that gives way to a key doesn't count as taking it (`yieldedBy`). The site keys a shortcut clashes with in the same way share one warning.
 
-**The cheatsheet** ends with "<Site>'s own keys": the site's keys that work on the page and that no active shortcut takes (`nativeKeysLeft`).
+**The cheatsheet** starts with "<Site>'s own keys": the site's keys that work on the page and that no active shortcut takes (`nativeKeysLeft`). They come first because on a site with a preset they are what its pages are built around. AnyKey's groups follow, starting with Page elements, which holds the preset's shortcuts and the ones picked on the site. Keys with the same label share a row ("k or Space"), and past 24 rows the dialog widens to fit more columns.
 
 **Checking.** Every preset shortcut ships with `verified: false`, which the options page shows as Unverified, until it is checked on the live site with `docs/preset-checklist.md`; it then becomes `verified: true` in the preset's next version. Preset shortcuts use keys that none of the site's own shortcuts use on any of its pages, which a test checks.
 
