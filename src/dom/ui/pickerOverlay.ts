@@ -6,6 +6,8 @@ export interface PickerOverlay {
   place(element: Element | null, description: string): void;
   /** Says something through the banner's live region, such as what a key press highlighted. */
   announce(text: string): void;
+  /** Confirms a saved shortcut. The banner's button then says Done, since closing throws nothing away. */
+  confirm(text: string): void;
   showBanner(visible: boolean): void;
   /** Puts the outline back above anything shown since, such as the picker's panel. */
   raise(): void;
@@ -19,12 +21,12 @@ const EDGE = 16;
  * The picker's outline around the highlighted element and its banner of instructions. Both sit in the top layer, so
  * page overlays can't cover them, and the outline lets the pointer through.
  */
-export async function createPickerOverlay(root: UiRoot, onCancel: () => void): Promise<PickerOverlay> {
+export async function createPickerOverlay(root: UiRoot, onClose: () => void): Promise<PickerOverlay> {
   const container = await root.container();
   const chip = h('span', { class: 'ak-highlight-label' });
   const outline = h('div', { class: 'ak-highlight', popover: 'manual', 'aria-hidden': 'true' }, chip);
   const status = h('p', { class: 'ak-banner-status', role: 'status' });
-  const cancel = h('button', { type: 'button', class: 'ak-button' }, 'Cancel');
+  const close = h('button', { type: 'button', class: 'ak-button' }, 'Cancel');
   const banner = h(
     'div',
     { class: 'ak-surface ak-banner', popover: 'manual', role: 'region', 'aria-label': 'AnyKey picker' },
@@ -32,12 +34,12 @@ export async function createPickerOverlay(root: UiRoot, onCancel: () => void): P
       'p',
       {},
       h('strong', {}, 'Pick an element for a shortcut. '),
-      'Click it, or press Tab to move and Enter to pick. ↑ selects the parent and ↓ the child. Esc cancels.',
+      'Click it, or press Tab to move and Enter to pick. ↑ selects the parent and ↓ the child. Esc closes the picker.',
     ),
     status,
-    cancel,
+    close,
   );
-  cancel.addEventListener('click', onCancel);
+  close.addEventListener('click', onClose);
   container.append(outline, banner);
   banner.showPopover();
 
@@ -71,7 +73,13 @@ export async function createPickerOverlay(root: UiRoot, onCancel: () => void): P
       banner.classList.toggle('ak-banner-top', underBottom && !underTop);
     },
     announce(text) {
+      status.classList.remove('ak-banner-saved');
       status.textContent = text;
+    },
+    confirm(text) {
+      status.classList.add('ak-banner-saved');
+      status.textContent = text;
+      close.textContent = 'Done';
     },
     showBanner(visible) {
       show(banner, visible);

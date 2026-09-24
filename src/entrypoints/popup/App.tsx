@@ -167,7 +167,7 @@ function SiteControls({ page, disabled, shortcuts, onToggle, onAdd }: SiteContro
             <button type="button" onClick={onAdd} className={`${primaryButton} w-full`}>
               Add shortcut for this site
             </button>
-            <p className={hintText}>Pick something on the page, then choose its keys. Press ? on the page to see every shortcut.</p>
+            <p className={hintText}>Pick something on the page, then press the keys you want for it. Press ? on the page to see every shortcut.</p>
           </div>
         </>
       )}

@@ -2,7 +2,7 @@ import { browser, type Browser } from 'wxt/browser';
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { DEFAULT_SETTINGS } from '../core/defaults';
 import { effectiveSettings, type SyncState } from '../core/docs';
-import { keycapLabels, sequenceTokens } from '../core/keys';
+import { keysInWords, sequenceTokens } from '../core/keys';
 import type { BackgroundResponse, PageInfo, PageRequest } from '../core/messages';
 import { resolve, shortcutsForUrl } from '../core/resolve';
 import type { Settings, Shortcut } from '../core/schema';
@@ -96,11 +96,13 @@ export function startAnyKey(ctx: ContentScriptContext): void {
       const response = await sendToBackground({ type: 'addSiteShortcut', shortcut });
       return response.ok ? null : response.error;
     },
-    saved: (shortcut) => {
-      toast(`Saved "${shortcut.label}". Press ${keysInWords(shortcut.keys)} to use it.`);
-    },
-    cancelled: () => {
+    closed: (saved) => {
       void sendToBackground({ type: 'pickerDone' });
+      const [only] = saved;
+      if (saved.length > 1) toast(`Saved ${saved.length} shortcuts for this site.`);
+      else if (only !== undefined) {
+        toast(`Saved "${only.label}". Press ${keysInWords(only.keys, only.keyMode, isMac)} to use it.`);
+      }
     },
   });
 
@@ -147,10 +149,4 @@ function isPageRequest(value: unknown): value is PageRequest {
     'type' in value &&
     (value.type === 'pageInfo' || value.type === 'startPicker')
   );
-}
-
-/** Keys as a toast says them: "g then s", "Ctrl+K". */
-function keysInWords(keys: string): string {
-  const chords = keycapLabels(keys, 'key', isMac) ?? [];
-  return chords.map((labels) => labels.join(isMac ? '' : '+')).join(' then ');
 }

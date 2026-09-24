@@ -290,6 +290,12 @@ export function keycapLabels(keys: string, mode: KeyMode, isMac: boolean): strin
   });
 }
 
+/** Keys as a sentence says them: "g then s", "Ctrl+K", "⌘K". Empty for notation that doesn't parse. */
+export function keysInWords(keys: string, mode: KeyMode, isMac: boolean): string {
+  const chords = keycapLabels(keys, mode, isMac) ?? [];
+  return chords.map((labels) => labels.join(isMac ? '' : '+')).join(' then ');
+}
+
 function keyLabel(key: string, mode: KeyMode, withCommandModifier: boolean): string {
   if (mode === 'code') {
     const label = CODE_LABELS.get(key);

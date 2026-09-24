@@ -10,7 +10,7 @@ AnyKey makes websites keyboard-navigable. Users bind keys to elements on any pag
 
 | Permission | Why AnyKey needs it |
 |---|---|
-| `storage` | Saves the user's shortcuts and settings in `chrome.storage.sync`, so they follow the user across the Chrome browsers they are signed in to. Keeps a backup of those settings in `chrome.storage.local` before an import replaces them, and caches the bundled site presets there. Notes in `chrome.storage.session` which tab has the element picker open, so only that tab can save the shortcut it makes. |
+| `storage` | Saves the user's shortcuts and settings in `chrome.storage.sync`, so they follow the user across the Chrome browsers they are signed in to. Keeps a backup of those settings in `chrome.storage.local` before an import replaces them, and caches the bundled site presets there. Notes in `chrome.storage.session` which tab has the element picker open, so only that tab can save shortcuts, and only while the picker is open. |
 | Content script on `<all_urls>` (host access) | Keyboard shortcuts have to work on every site the user visits, so a content script runs in the top frame of every page. It listens for key presses, and it reads the page only to find the elements the user bound keys to, to describe the element the user picks for a new shortcut (its attributes and text, kept with that shortcut), and to draw link hints. It sends nothing anywhere. |
 
 ## Not requested

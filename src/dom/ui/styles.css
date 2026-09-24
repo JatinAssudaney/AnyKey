@@ -354,6 +354,16 @@
   margin-top: 4px;
 }
 
+.ak-banner-saved {
+  color: var(--ak-fg);
+  font-weight: 500;
+}
+
+.ak-banner-saved::before {
+  content: "✓ " / "";
+  color: var(--ak-accent);
+}
+
 .ak-banner .ak-button {
   grid-column: 2;
   grid-row: 1 / span 2;

@@ -1,5 +1,6 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { describeConflict, findConflicts } from '../../core/conflicts';
+import { keysInWords } from '../../core/keys';
 import type { PickedShortcut } from '../../core/messages';
 import { createRecorder, type Recorder, type RecorderStep } from '../../core/recorder';
 import { LIMITS, storedKeys, type ElementAction, type ElementTarget, type Shortcut } from '../../core/schema';
@@ -10,7 +11,8 @@ import type { Disposition } from '../modes';
 import { h } from './h';
 import type { UiRoot } from './root';
 
-export type PanelResult = { type: 'saved'; shortcut: PickedShortcut } | { type: 'again' } | { type: 'cancelled' };
+/** How the panel closed. Either way the picker goes back to picking, so the next element can get a shortcut. */
+export type PanelResult = { type: 'saved'; shortcut: PickedShortcut } | { type: 'cancelled' };
 
 export interface PanelOptions {
   root: UiRoot;
@@ -42,10 +44,14 @@ export interface PickerPanel {
 /** The id conflicts are reported under while the shortcut has none of its own. */
 const NEW_ID = 'user:new';
 
+const RECORDING_HINT = 'Press the keys, such as g then s, and Enter to save. Works on every page of this site.';
+const TYPING_HINT = 'Type keys such as g s or shift+s, or record them. Works on every page of this site.';
+
 /**
- * The form that turns a picked element into a shortcut: click or focus, a name, and keys typed or recorded, with
- * conflicts shown as the keys change. A modal dialog in AnyKey's shadow root, in the corner so the page stays in
- * view. Keys reach it through the picker's mode (rules in docs/design.md, "In-page UI"), never as key events.
+ * The form that turns a picked element into a shortcut: click or focus, a name, and keys, recorded from the moment
+ * it opens or typed, with conflicts shown as the keys change. A modal dialog in AnyKey's shadow root, in the corner
+ * so the page stays in view. Keys reach it through the picker's mode (rules in docs/design.md, "Picker"), never as
+ * key events.
  */
 export async function openPickerPanel(options: PanelOptions): Promise<PickerPanel> {
   const container = await options.root.container();
@@ -74,10 +80,10 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   });
   const recordButton = h('button', { type: 'button', class: 'ak-button', 'aria-pressed': 'false' }, 'Record keys');
   const recordStatus = h('span', { class: 'ak-sr-only', role: 'status' });
+  const hint = h('p', { id: 'ak-picker-keys-hint', class: 'ak-hint' }, RECORDING_HINT);
   const notes = h('ul', { id: 'ak-picker-notes', class: 'ak-notes' });
   const error = h('p', { class: 'ak-error', role: 'alert' });
   const saveButton = h('button', { type: 'submit', class: 'ak-button ak-primary' }, 'Save');
-  const againButton = h('button', { type: 'button', class: 'ak-button' }, 'Pick again');
   const cancelButton = h('button', { type: 'button', class: 'ak-button' }, 'Cancel');
 
   const form = h(
@@ -97,15 +103,11 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
       { class: 'ak-field' },
       h('label', { for: keysInput.id }, 'Keys'),
       h('div', { class: 'ak-row' }, keysInput, recordButton, recordStatus),
-      h(
-        'p',
-        { id: 'ak-picker-keys-hint', class: 'ak-hint' },
-        'Type keys such as g s or shift+s, or record them. Works on every page of this site.',
-      ),
+      hint,
       notes,
     ),
     error,
-    h('div', { class: 'ak-actions' }, againButton, cancelButton, saveButton),
+    h('div', { class: 'ak-actions' }, cancelButton, saveButton),
   );
   const dialog = h(
     'dialog',
@@ -116,10 +118,17 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   );
 
   let recorder: Recorder | null = null;
+  /**
+   * Whether the recording is the one the panel opened with. Esc leaves the panel while that one holds no keys, and
+   * starts it over once it does; Esc cancels a recording started with Record keys, as on the settings page.
+   */
+  let opening = false;
   let beforeRecording = '';
   let timer: number | undefined;
   /** The name the shortcut gets when the field is left as it is; it follows the action until the user edits it. */
   let defaultLabel = '';
+  /** How many conflicts the keys in the field have. */
+  let conflicts = 0;
   let saving = false;
   let closed = false;
 
@@ -151,9 +160,10 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
           enabled: true,
         }
       : null;
-    const conflicts =
+    const found =
       shortcut === null ? [] : (findConflicts([...options.pageShortcuts, shortcut], options.isMac).get(NEW_ID) ?? []);
-    notes.replaceChildren(...conflicts.map((conflict) => h('li', {}, describeConflict(conflict))));
+    conflicts = found.length;
+    notes.replaceChildren(...found.map((conflict) => h('li', {}, describeConflict(conflict))));
   }
 
   function showError(message: string): void {
@@ -164,11 +174,24 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     recordStatus.textContent = message;
   }
 
+  function startRecording(fromOpening: boolean): void {
+    clearTimeout(timer);
+    recorder = createRecorder({ mode: 'key', isMac: options.isMac });
+    opening = fromOpening;
+    beforeRecording = keysInput.value;
+    keysInput.value = '';
+    keysInput.placeholder = 'Press keys…';
+    recordButton.setAttribute('aria-pressed', 'true');
+    hint.textContent = RECORDING_HINT;
+    update();
+  }
+
   function record(step: RecorderStep): void {
     clearTimeout(timer);
     const { state } = step;
     if (state.status === 'recording') {
       keysInput.value = state.keys;
+      if (state.keys !== '') showError('');
       const active = recorder;
       if (step.wait !== null && active !== null) {
         timer = options.ctx.setTimeout(() => {
@@ -178,16 +201,46 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
       return;
     }
     recorder = null;
+    opening = false;
     recordButton.setAttribute('aria-pressed', 'false');
     keysInput.placeholder = '';
+    hint.textContent = TYPING_HINT;
     if (state.status === 'cancelled' || state.keys === '') {
       keysInput.value = beforeRecording;
       say(state.status === 'cancelled' ? 'Recording cancelled.' : 'Nothing recorded.');
     } else {
       keysInput.value = state.keys;
-      say(`Recorded ${state.keys}.`);
+      say(`Recorded ${inWords(state.keys)}.`);
     }
     update();
+  }
+
+  /** Esc during the recording the panel opened with: leave the panel if it holds no keys, or else start it over. */
+  function escapeOpening(): void {
+    if (keysInput.value === '') {
+      close({ type: 'cancelled' });
+      return;
+    }
+    keysInput.value = beforeRecording;
+    startRecording(true);
+    say('Cleared. Press the keys again.');
+  }
+
+  /** Enter finished a recording: save, unless the keys need a look first. */
+  function enterFinished(fromOpening: boolean): void {
+    const keys = keysInput.value.trim();
+    if (keys === '') {
+      startRecording(fromOpening);
+      showError('Press the keys for this shortcut first.');
+    } else if (conflicts > 0) {
+      say(`Recorded ${inWords(keys)}. Check the ${conflicts === 1 ? 'warning' : 'warnings'}, then press Enter to save.`);
+    } else {
+      void submit();
+    }
+  }
+
+  function inWords(keys: string): string {
+    return keysInWords(keys, 'key', options.isMac) || keys;
   }
 
   function close(result: PanelResult): void {
@@ -229,11 +282,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
 
   recordButton.addEventListener('click', (event) => {
     if (recorder === null) {
-      recorder = createRecorder({ mode: 'key', isMac: options.isMac });
-      beforeRecording = keysInput.value;
-      keysInput.value = '';
-      keysInput.placeholder = 'Press keys…';
-      recordButton.setAttribute('aria-pressed', 'true');
+      startRecording(false);
       say('Recording. Press the keys, then pause. Esc cancels.');
     } else if (event.detail > 0) {
       // A mouse click stops recording. Keyboard clicks can't: Space and Enter are keys to record or finish with.
@@ -251,9 +300,6 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     event.preventDefault();
     void submit();
   });
-  againButton.addEventListener('click', () => {
-    close({ type: 'again' });
-  });
   cancelButton.addEventListener('click', () => {
     close({ type: 'cancelled' });
   });
@@ -263,23 +309,33 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     close({ type: 'cancelled' });
   });
 
-  update();
+  // Most people want to press the keys they have in mind, so the panel opens recording them.
+  startRecording(true);
   container.append(dialog);
   dialog.showModal();
 
   return {
     keyDown(event) {
+      const bare = !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
       if (recorder !== null) {
         const input = keyInput(event);
         if (input === null || event.isComposing) return 'consume';
+        if (bare && event.key === 'Escape' && opening) {
+          if (!event.repeat) escapeOpening();
+          return 'consume';
+        }
+        const fromOpening = opening;
         const step = recorder.keyDown(input, event.repeat);
         record(step);
+        if (bare && event.key === 'Enter' && step.state.status === 'done') enterFinished(fromOpening);
         return step.consume ? 'consume' : 'isolate';
       }
-      if (event.key === 'Escape' && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
+      if (bare && event.key === 'Escape') {
         if (!event.repeat) close({ type: 'cancelled' });
         return 'consume';
       }
+      // A held Enter mustn't save keys whose warning the first press just brought up.
+      if (event.key === 'Enter' && event.repeat) return 'consume';
       // Everything else works as in any form: typing, Tab, Enter to save, Space and arrows on the controls. The
       // fields are read again once the key's default action has run.
       options.ctx.setTimeout(() => {

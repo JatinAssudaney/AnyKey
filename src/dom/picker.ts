@@ -1,4 +1,5 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
+import { keysInWords } from '../core/keys';
 import type { PickedShortcut } from '../core/messages';
 import type { Shortcut } from '../core/schema';
 import { truncate } from '../core/text';
@@ -20,11 +21,10 @@ export interface PickerOptions {
   popMode: (mode: Mode) => void;
   /** The shortcuts that apply to the page now, for the new shortcut's conflict check. */
   pageShortcuts: () => readonly Shortcut[];
-  /** Saves the new shortcut. Resolves to an error message, or null once it is saved. */
+  /** Saves a new shortcut. Resolves to an error message, or null once it is saved. */
   save: (shortcut: PickedShortcut) => Promise<string | null>;
-  saved: (shortcut: PickedShortcut) => void;
-  /** The picker closed without saving. */
-  cancelled: () => void;
+  /** The picker closed, having saved these shortcuts (none when the user saved nothing). */
+  closed: (saved: readonly PickedShortcut[]) => void;
 }
 
 export interface Picker {
@@ -38,7 +38,7 @@ const PROMOTE_DEPTH = 6;
 /**
  * The element picker (rules in docs/design.md, "Picker"). While it is open the page gets no presses or clicks, and
  * the element under the pointer, or reached with Tab and the arrow keys, is outlined. Picking one opens the panel
- * that makes it a shortcut.
+ * that makes it a shortcut; the picker stays open afterwards, for the next element, until Esc or Done.
  */
 export function createPicker(options: PickerOptions): Picker {
   const { ctx, ui } = options;
@@ -52,6 +52,8 @@ export function createPicker(options: PickerOptions): Picker {
   let overlay: PickerOverlay | null = null;
   let panel: PickerPanel | null = null;
   let frame: number | undefined;
+  /** Shortcuts saved since the picker opened. */
+  let saved: PickedShortcut[] = [];
 
   const mode: Mode = {
     keyDown(event) {
@@ -84,7 +86,7 @@ export function createPicker(options: PickerOptions): Picker {
     if (event.repeat && (event.key === 'Escape' || event.key === 'Enter')) return 'consume';
     switch (event.key) {
       case 'Escape':
-        cancel();
+        finish();
         break;
       case 'Enter':
         if (current !== null) pick(current);
@@ -173,14 +175,14 @@ export function createPicker(options: PickerOptions): Picker {
       save: options.save,
       onClose(result) {
         panel = null;
-        if (result.type === 'again') {
-          phase = 'picking';
-          overlay?.showBanner(true);
-          return;
-        }
-        stop();
-        if (result.type === 'saved') options.saved(result.shortcut);
-        else options.cancelled();
+        // Back to picking either way, so the next element can get a shortcut too.
+        phase = 'picking';
+        overlay?.showBanner(true);
+        if (result.type !== 'saved') return;
+        const { shortcut } = result;
+        saved.push(shortcut);
+        const keys = keysInWords(shortcut.keys, shortcut.keyMode, options.isMac);
+        overlay?.confirm(`Saved "${shortcut.label}" (${keys}). Pick another element, or press Esc when you're done.`);
       },
     }).then(
       (opened) => {
@@ -189,7 +191,7 @@ export function createPicker(options: PickerOptions): Picker {
       },
       (error: unknown) => {
         console.error('AnyKey: the picker panel failed to open.', error);
-        cancel();
+        finish();
       },
     );
   }
@@ -219,23 +221,26 @@ export function createPicker(options: PickerOptions): Picker {
     options.popMode(mode);
   }
 
-  function cancel(): void {
+  /** Closes the picker: Esc or the banner's button while picking. */
+  function finish(): void {
     if (phase === 'idle') return;
+    const done = saved;
     stop();
-    options.cancelled();
+    options.closed(done);
   }
 
   return {
     start() {
       if (phase !== 'idle') return;
       phase = 'picking';
+      saved = [];
       options.pushMode(mode);
       // Someone who tabbed to an element before opening the popup starts on it.
       if (!ui.owns(document.activeElement)) {
         const focused = deepActiveElement();
         if (focused !== null && !isPage(focused)) setCurrent(focused, false);
       }
-      createPickerOverlay(ui, cancel).then(
+      createPickerOverlay(ui, finish).then(
         (created) => {
           if (phase === 'idle') {
             created.remove();
@@ -246,7 +251,7 @@ export function createPicker(options: PickerOptions): Picker {
         },
         (error: unknown) => {
           console.error('AnyKey: the picker failed to open.', error);
-          cancel();
+          finish();
         },
       );
     },

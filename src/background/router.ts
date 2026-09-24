@@ -9,7 +9,7 @@ import type { Shortcut } from '../core/schema';
 import { isHost, siteMatch } from '../core/url';
 import { errorMessage } from '../messaging';
 import type { Writer } from '../storage/writer';
-import { endSession, saveInSession, startPicker } from './picker';
+import { endSession, hasSession, startPicker } from './picker';
 import { openTab, runTabOp } from './tabs';
 
 /**
@@ -56,9 +56,11 @@ async function handle(message: BackgroundMessage, sender: Browser.runtime.Messag
       return;
     case 'addSiteShortcut': {
       const { tabId, host } = pickerPage(sender);
-      await saveInSession(tabId, host, () =>
-        writer.submit({ op: 'saveShortcut', shortcut: siteShortcut(message.shortcut, host), site: host }),
-      );
+      // The session stays open after a save: the picker saves a shortcut for each element the user picks.
+      if (!(await hasSession(tabId, host))) {
+        throw new Error("To add a shortcut, start again from AnyKey's button in the toolbar.");
+      }
+      await writer.submit({ op: 'saveShortcut', shortcut: siteShortcut(message.shortcut, host), site: host });
       return;
     }
     case 'pickerDone':

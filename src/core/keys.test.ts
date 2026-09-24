@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalKeys, keycapLabels, parseKeys, sequenceTokens } from './keys';
+import { canonicalKeys, keycapLabels, keysInWords, parseKeys, sequenceTokens } from './keys';
 
 describe('parseKeys', () => {
   it.each([
@@ -84,5 +84,18 @@ describe('keycapLabels', () => {
   it('shows physical keys by their US-layout character', () => {
     expect(keycapLabels('alt+KeyK', 'code', false)).toEqual([['Alt', 'K']]);
     expect(keycapLabels('Digit1 BracketLeft Numpad4', 'code', false)).toEqual([['1'], ['['], ['Num 4']]);
+  });
+});
+
+describe('keysInWords', () => {
+  it('joins chords with "then", and keys within a chord as each platform writes them', () => {
+    expect(keysInWords('g s', 'key', false)).toBe('g then s');
+    expect(keysInWords('mod+shift+k', 'key', false)).toBe('Ctrl+Shift+K');
+    expect(keysInWords('mod+shift+k', 'key', true)).toBe('⇧⌘K');
+    expect(keysInWords('?', 'key', true)).toBe('?');
+  });
+
+  it('says nothing for notation that does not parse', () => {
+    expect(keysInWords('shift+/', 'key', false)).toBe('');
   });
 });

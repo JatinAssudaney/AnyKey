@@ -108,7 +108,7 @@ describe('the picker', () => {
     expect(await session(tab.id)).toBeUndefined();
   });
 
-  it('saves one shortcut for the site of the page that sent it, then ends the session', async () => {
+  it('saves shortcuts for the site of the page that sent them, for as long as the picker is open', async () => {
     await deliver({ type: 'startPicker', tabId: tab.id, host: 'github.com' }, popup());
     expect(await deliver(add, page())).toEqual({ ok: true });
     expect(submit).toHaveBeenCalledExactlyOnceWith({
@@ -122,11 +122,11 @@ describe('the picker', () => {
       },
       site: 'github.com',
     });
-    expect(await session(tab.id)).toBeUndefined();
-    expect(await deliver(add, page())).toEqual({
-      ok: false,
-      error: "To add a shortcut, start again from AnyKey's button in the toolbar.",
-    });
+    // The next element the user picks saves as a shortcut of its own.
+    expect(await deliver(add, page('https://github.com/wxt-dev/wxt/issues'))).toEqual({ ok: true });
+    const ids = submit.mock.calls.map(([mutation]) => (mutation.op === 'saveShortcut' ? mutation.shortcut.id : ''));
+    expect(new Set(ids).size).toBe(2);
+    expect(await session(tab.id)).toEqual({ startedAt: expect.any(Number) as number, host: 'github.com' });
   });
 
   it('refuses a shortcut unless this tab has a picker open for this site', async () => {
@@ -153,13 +153,6 @@ describe('the picker', () => {
     expect(submit).not.toHaveBeenCalled();
   });
 
-  it('saves once when a page sends many shortcuts at the same time', async () => {
-    await deliver({ type: 'startPicker', tabId: tab.id, host: 'github.com' }, popup());
-    const answers = await Promise.all([deliver(add, page()), deliver(add, page()), deliver(add, page())]);
-    expect(answers.filter((answer) => answer.ok)).toHaveLength(1);
-    expect(submit).toHaveBeenCalledOnce();
-  });
-
   it('keeps the session when saving fails, so the user can try again', async () => {
     await deliver({ type: 'startPicker', tabId: tab.id, host: 'github.com' }, popup());
     submit.mockRejectedValue(new Error('Your shortcuts for github.com are full.'));
@@ -171,5 +164,10 @@ describe('the picker', () => {
     await deliver({ type: 'startPicker', tabId: tab.id, host: 'github.com' }, popup());
     expect(await deliver({ type: 'pickerDone' }, page())).toEqual({ ok: true });
     expect(await session(tab.id)).toBeUndefined();
+    expect(await deliver(add, page())).toEqual({
+      ok: false,
+      error: "To add a shortcut, start again from AnyKey's button in the toolbar.",
+    });
+    expect(submit).not.toHaveBeenCalled();
   });
 });

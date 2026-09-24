@@ -49,8 +49,14 @@ test('a picked button becomes a shortcut that clicks it, across route changes', 
   // The picker keeps the click from the page.
   expect(await clicks(page)).toEqual({ like: 0, play: 0 });
   await expect.poll(() => uiText(page, 'ak-panel')).toContain('New shortcut for 127.0.0.1');
-  await page.keyboard.type('g l');
+  // The panel records keys from the start, and Enter saves.
+  await page.keyboard.press('g');
+  await page.keyboard.press('l');
   await page.keyboard.press('Enter');
+  await expect
+    .poll(() => uiText(page, 'ak-banner-status'))
+    .toBe(`Saved "Click Like" (g then l). Pick another element, or press Esc when you're done.`);
+  await page.keyboard.press('Escape');
   await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved "Click Like". Press g then l to use it.');
 
   const storage = await extensionPage(extensionContext, extensionId);
@@ -103,11 +109,16 @@ test('a picked button becomes a shortcut that clicks it, across route changes', 
   await storage.close();
 });
 
-test('Esc closes the picker, and the page gets its clicks back', async ({ page, extensionContext, extensionId }) => {
+test('Esc steps back: from the panel to picking, then out of the picker', async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
   await page.goto(PICKER);
   const storage = await extensionPage(extensionContext, extensionId);
   const tabId = await tabIdOf(storage, PICKER);
-  const session = async (): Promise<unknown> => (await storage.evaluate(() => chrome.storage.session.get(null)))[`picker:${tabId}`];
+  const session = async (): Promise<unknown> =>
+    (await storage.evaluate(() => chrome.storage.session.get(null)))[`picker:${tabId}`];
 
   await startPicker(page, extensionContext, extensionId);
   expect(await session()).toMatchObject({ host: '127.0.0.1' });
@@ -117,18 +128,83 @@ test('Esc closes the picker, and the page gets its clicks back', async ({ page, 
   await page.locator('#like').click();
   expect(await clicks(page)).toEqual({ like: 1, play: 0 });
 
-  // Esc in the panel ends the picker too, without saving.
+  // Esc in the panel goes back to picking, where Esc closes the picker without saving anything.
   await startPicker(page, extensionContext, extensionId);
   await page.locator('#like').click();
   await expect.poll(() => uiText(page, 'ak-panel')).toContain('New shortcut for 127.0.0.1');
-  await page.keyboard.type('g l');
   await page.keyboard.press('Escape');
   await expect.poll(() => uiText(page, 'ak-panel')).toBeNull();
+  expect(await session()).toMatchObject({ host: '127.0.0.1' });
+  await page.keyboard.press('Escape');
+  await expect.poll(() => uiText(page, 'ak-banner')).toBeNull();
   await expect.poll(session).toBeUndefined();
+  expect(await uiText(page, 'ak-toast')).toBeNull();
   await page.locator('#like').click();
   expect(await clicks(page)).toEqual({ like: 2, play: 0 });
   expect(await stored(storage)).toEqual({});
   await storage.close();
+});
+
+test('the picker stays open to give several elements shortcuts', async ({ page, extensionContext, extensionId }) => {
+  await page.goto(PICKER);
+  await startPicker(page, extensionContext, extensionId);
+
+  await page.keyboard.press('Tab');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toBe('Button "Like"');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain('Button "Like"');
+  // After a wrong key, Esc starts the recording over.
+  await page.keyboard.press('z');
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('q');
+  await page.keyboard.press('Enter');
+  await expect
+    .poll(() => uiText(page, 'ak-banner-status'))
+    .toBe(`Saved "Click Like" (q). Pick another element, or press Esc when you're done.`);
+
+  await page.keyboard.press('Tab');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toBe('Link "Docs"');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain('Open the link in a new tab');
+  // Keys can be typed too: Tab ends the recording, and Shift+Tab comes back to the field.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.type('g d');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toContain('Saved "Click Docs" (g then d).');
+  await page.keyboard.press('Escape');
+  await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved 2 shortcuts for this site.');
+
+  const storage = await extensionPage(extensionContext, extensionId);
+  expect(await stored(storage)).toMatchObject({
+    'site:127.0.0.1': { shortcuts: [{ keys: 'q', label: 'Click Like' }, { keys: 'g d', label: 'Click Docs' }] },
+  });
+  await storage.close();
+  await pressUntil(page, ['q'], async () => (await clicks(page))?.like === 1);
+  await page.keyboard.press('g');
+  await page.keyboard.press('d');
+  await expect(page).toHaveURL(`${FIXTURE_ORIGIN}/basic.html`);
+});
+
+test('keys that clash with another shortcut wait for a second Enter', async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
+  await page.goto(PICKER);
+  await startPicker(page, extensionContext, extensionId);
+
+  await page.locator('#like').click();
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain('New shortcut for 127.0.0.1');
+  await page.keyboard.press('j');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain(`"Scroll down" doesn't run, because this shortcut uses its keys.`);
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toContain('Saved "Click Like" (j).');
+  await page.keyboard.press('Escape');
+
+  // On this site, j now clicks Like instead of scrolling.
+  await pressUntil(page, ['j'], async () => (await clicks(page))?.like === 1);
 });
 
 test('a picked text field becomes a shortcut that focuses it', async ({ page, extensionContext, extensionId }) => {
@@ -139,31 +215,16 @@ test('a picked text field becomes a shortcut that focuses it', async ({ page, ex
   await expect.poll(() => uiText(page, 'ak-highlight-label')).toBe('Text field "Search the docs"');
   await page.keyboard.press('Enter');
   await expect.poll(() => uiText(page, 'ak-panel')).toContain('Focus it, to type in it');
-  await page.keyboard.type('s');
+  await page.keyboard.press('s');
   await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toContain('Saved "Focus Search the docs" (s).');
+  await page.keyboard.press('Escape');
   await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved "Focus Search the docs". Press s to use it.');
 
   await pressUntil(page, ['s'], () => page.evaluate(() => document.activeElement?.id === 'search'));
   // Once the field has focus, s is typed into it.
   await page.keyboard.type('sort');
   await expect(page.locator('#search')).toHaveValue('sort');
-});
-
-test('Tab and Enter pick a link, and the shortcut follows it', async ({ page, extensionContext, extensionId }) => {
-  await page.goto(PICKER);
-  await startPicker(page, extensionContext, extensionId);
-
-  await page.keyboard.press('Tab');
-  await expect.poll(() => uiText(page, 'ak-banner-status')).toBe('Button "Like"');
-  await page.keyboard.press('Tab');
-  await expect.poll(() => uiText(page, 'ak-banner-status')).toBe('Link "Docs"');
-  await page.keyboard.press('Enter');
-  await expect.poll(() => uiText(page, 'ak-panel')).toContain('Open the link in a new tab');
-  await page.keyboard.type('g d');
-  await page.keyboard.press('Enter');
-  await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved "Click Docs". Press g then d to use it.');
-
-  await pressUntil(page, ['g', 'd'], () => Promise.resolve(page.url() === `${FIXTURE_ORIGIN}/basic.html`));
 });
 
 test('the picker reaches into closed shadow roots', async ({ page, extensionContext, extensionId }) => {
@@ -173,9 +234,11 @@ test('the picker reaches into closed shadow roots', async ({ page, extensionCont
   // Playwright can't see inside the closed root, but the player's box is its button's.
   await page.locator('video-player').click();
   await expect.poll(() => uiText(page, 'ak-panel')).toContain('Button "Play"');
-  await page.keyboard.type('g p');
+  await page.keyboard.press('g');
+  await page.keyboard.press('p');
   await page.keyboard.press('Enter');
-  await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved "Click Play". Press g then p to use it.');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toContain('Saved "Click Play" (g then p).');
+  await page.keyboard.press('Escape');
   expect(await clicks(page)).toEqual({ like: 0, play: 0 });
 
   const storage = await extensionPage(extensionContext, extensionId);
