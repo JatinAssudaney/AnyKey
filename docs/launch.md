@@ -51,7 +51,7 @@ Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing
 - [x] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI: five, on a made-up recipe site (`store/demo.html`) and AnyKey's own pages. Made again after M8, without Unverified badges.
 - [x] Small promo tile, 440×280 (required): no text, saturated colors, clear at half size.
 - [x] Marquee, 1400×560: optional, but the store's carousel shows only items that have one.
-- [ ] A short demo video on YouTube (recommended): made in `store/video` (Remotion) from stills of AnyKey on the demo page, 40 seconds, and rendered after M8 into `store/video/out/anykey-demo.mp4`. Upload it to YouTube and put its link in the listing.
+- [x] A short demo video on YouTube (recommended): made in `store/video` (Remotion) from stills of AnyKey on the demo page, 40 seconds, and rendered after M8 into `store/video/out/anykey-demo.mp4`. On YouTube at https://youtu.be/DBxblfXS87c, in the listing.
 
 Text, ready to paste in `store/listing.md`:
 
@@ -81,7 +81,7 @@ Registering is quick, but the email checks take a while. From [Register your dev
 
 ### Submit (by hand)
 
-- [ ] Upload the demo video to YouTube (public or unlisted), and send me its link for `store/listing.md`.
+- [x] Upload the demo video to YouTube (public or unlisted), and send me its link for `store/listing.md`.
 - [ ] In the dashboard: Add new item, then upload the zip from `pnpm zip` (`dist/anykey-1.0.0-chrome.zip`).
 - [ ] Store listing tab: paste the text from `store/listing.md`, upload the images from `store/images`, and add the video's link.
 - [ ] Privacy tab: as `store/listing.md` says (single purpose, the permission justifications, no remote code, the data use boxes, and PRIVACY.md's URL).

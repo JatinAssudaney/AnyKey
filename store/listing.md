@@ -38,7 +38,7 @@ AnyKey collects no data and makes no network requests. Your shortcuts stay in yo
 | Screenshots, 1280×800, in this order | `screenshot-1-hints.png`, `screenshot-2-picker.png`, `screenshot-3-popup.png`, `screenshot-4-cheatsheet.png`, `screenshot-5-presets.png` |
 | Small promo tile, 440×280 | `promo-small.png` |
 | Marquee promo tile, 1400×560 | `promo-marquee.png` |
-| YouTube video | none yet: render one from `video/` and upload it (see `docs/launch.md`) |
+| YouTube video | https://youtu.be/DBxblfXS87c (made in `video/`) |
 
 **Homepage URL:** https://github.com/JatinAssudaney/AnyKey
 
