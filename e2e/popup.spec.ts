@@ -9,6 +9,18 @@ test("the popup says when AnyKey isn't running in a tab", async ({ page, extensi
   await expect(page.getByRole('button', { name: 'Open settings' })).toBeVisible();
 });
 
+test('the popup teaches the key that opens it, as the browser writes it', async ({ page, extensionId }) => {
+  await page.goto(`chrome-extension://${extensionId}/popup.html?tab=999999`);
+  const commands = await page.evaluate(() => chrome.commands.getAll());
+  // The browser gave the command its suggested key: Alt+Shift+K, which macOS writes ⌥⇧K.
+  expect(commands.find(({ name }) => name === '_execute_action')?.shortcut).toMatch(/^(⌥⇧K|Alt\+Shift\+K)$/);
+  await expect(page.getByText('to open this panel from any tab.').locator('kbd')).toHaveText([
+    /^(⌥|Alt)$/,
+    /^(⇧|Shift)$/,
+    'K',
+  ]);
+});
+
 test('the popup turns AnyKey off and on for a site', async ({ page, extensionContext, extensionId }) => {
   await page.goto(PICKER);
   const popup = await extensionContext.newPage();

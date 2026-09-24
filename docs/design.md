@@ -179,6 +179,7 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - For a web page it shows the site, a switch for AnyKey on the site (by exact host), the site shortcuts that apply to the page, and "Add shortcut for this site", which starts the picker and closes the popup so the page is in view.
 - It teaches the keys that work on the page, as `resolve()` finds them there, so a rekeyed or disabled default shows as it is: the cheatsheet key, and hint mode with the key that shows hints (what labels are for, and that keys pick labels until one is picked or Esc). A line goes when its action has no key.
 - On a site with a preset, a section lists the preset's shortcuts for the page (noting any that are off, or replaced by the user's on the same keys) and names the built-in keys that go to the site's own shortcuts on the page.
+- Alt+Shift+K (⌥⇧K on macOS) opens it: the manifest's `_execute_action` command, which works in every tab, even where the content script can't run. A command isn't a permission and brings no install warning. The browser holds the key: it gives the suggested key only when nothing else has it, and people change it at `chrome://extensions/shortcuts`. So the popup and the options page's Shortcuts section read the key from `commands.getAll()` (the options page again when it gets focus back, after a change there), show it as keycaps split from the browser's own text (`commandKeycaps`), and offer to set one when there is none.
 
 ## Picker
 

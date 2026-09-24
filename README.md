@@ -9,6 +9,7 @@ A Chrome extension that makes any website keyboard-navigable: bind a key to any 
 - **Bind a key to anything on a page.** Click AnyKey's toolbar button, then **Add shortcut for this site**. Point at a button, link or field and click it (or press Tab to move and Enter to pick), then press the keys you want, such as `g` then `s`, and Enter. Pick the next element the same way, and press Esc when you're done. The shortcuts work on every page of that site.
 - **Presets for GitHub, YouTube and Reddit** add shortcuts those sites lack, such as `g r` for a GitHub repository's releases and `g l` to like a YouTube video, and leave the sites' own keys to them: on a YouTube video, `j` and `k` seek and pause as YouTube intends, and scroll everywhere else. The popup lists what applies to the page, and the settings let you change or switch off any preset shortcut, or keep AnyKey's own key on a site. Your shortcuts always win over a preset's.
 - **Turn AnyKey off for a site** with the switch in the toolbar popup, so every key goes to the site.
+- **Open the popup from the keyboard** with Alt+Shift+K (⌥⇧K on a Mac), in any tab. The browser keeps this key: if another extension already has it, or to pick another, set it at `chrome://extensions/shortcuts` (Settings links there).
 - **Settings** (in the popup, **Open settings**) change the built-in keys, add shortcuts for every site or one site, and import or export everything.
 
 ## Development

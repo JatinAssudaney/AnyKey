@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { keycapLabels } from '@/core/keys';
+import { commandKeycaps, keycapLabels } from '@/core/keys';
 import type { KeyMode } from '@/core/schema';
 import { isMac } from './platform';
 
@@ -7,6 +7,15 @@ import { isMac } from './platform';
 export function KeyCaps({ keys, mode }: { keys: string; mode: KeyMode }) {
   const chords = keycapLabels(keys, mode, isMac);
   if (chords === null) return <span className="text-sm text-stone-600 dark:text-stone-400">{keys}</span>;
+  return <Caps chords={chords} />;
+}
+
+/** The key that opens AnyKey's panel, a browser command, as keycaps drawn like the rest. */
+export function CommandKeyCaps({ shortcut }: { shortcut: string }) {
+  return <Caps chords={[commandKeycaps(shortcut, isMac)]} />;
+}
+
+function Caps({ chords }: { chords: readonly (readonly string[])[] }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1 text-sm">
       {chords.map((labels, i) => (

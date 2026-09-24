@@ -4,6 +4,8 @@ test('manifest keeps the permission footprint minimal', async ({ serviceWorker }
   const manifest = await serviceWorker.evaluate(() => chrome.runtime.getManifest());
   expect(manifest.name).toBe('AnyKey');
   expect(manifest.permissions).toEqual(['storage']);
+  // A key for the popup. Commands are not permissions, so no install warning comes with it.
+  expect(manifest.commands).toEqual({ _execute_action: { suggested_key: { default: 'Alt+Shift+K' } } });
   expect(manifest.host_permissions ?? []).toEqual([]);
   expect(manifest.content_scripts).toEqual([
     expect.objectContaining({ matches: ['<all_urls>'], run_at: 'document_start' }),

@@ -1,9 +1,10 @@
 import { Fragment, useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import iconUrl from '@/assets/icon.svg';
-import { KeyCaps } from '@/components/KeyCaps';
+import { CommandKeyCaps, KeyCaps } from '@/components/KeyCaps';
 import { isMac } from '@/components/platform';
-import { checkbox, errorText, hintText, primaryButton, secondaryButton } from '@/components/styles';
+import { checkbox, errorText, hintText, linkButton, primaryButton, secondaryButton } from '@/components/styles';
+import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { usePresets } from '@/components/usePresets';
 import { useSync } from '@/components/useSync';
 import type { PageInfo, PageRequest } from '@/core/messages';
@@ -125,7 +126,30 @@ export function App() {
       >
         Open settings
       </button>
+      <PanelKey />
     </main>
+  );
+}
+
+/** The key that opens this panel from any tab, which the browser holds. */
+function PanelKey() {
+  const key = usePanelKey();
+  if (key === null) return null;
+  return (
+    <p className={`${hintText} mt-3`}>
+      {key === '' ? (
+        <>
+          No key opens this panel.{' '}
+          <button type="button" onClick={openShortcutsPage} className={linkButton}>
+            Set one
+          </button>
+        </>
+      ) : (
+        <>
+          Press <CommandKeyCaps shortcut={key} /> to open this panel from any tab.
+        </>
+      )}
+    </p>
   );
 }
 

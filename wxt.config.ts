@@ -18,6 +18,11 @@ export default defineConfig({
     name: APP_NAME,
     description: APP_DESCRIPTION,
     permissions: ['storage'],
+    // A key for the popup, which works in every tab, even where the content script can't run. The browser gives it
+    // the key only when nothing else has that key, and people change it on the browser's extension shortcuts page.
+    commands: {
+      _execute_action: { suggested_key: { default: 'Alt+Shift+K' } },
+    },
   },
   // Branded Chrome no longer loads unpacked extensions from the command line, so load dist/ by hand.
   webExt: { disabled: true },

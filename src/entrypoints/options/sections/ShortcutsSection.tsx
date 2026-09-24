@@ -2,7 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { focusAfterRender } from '@/components/focus';
 import { isMac } from '@/components/platform';
-import { card, hintText, linkButton, primaryButton, sectionHeading } from '@/components/styles';
+import { CommandKeyCaps } from '@/components/KeyCaps';
+import { card, hintText, linkButton, primaryButton, secondaryButton, sectionHeading } from '@/components/styles';
+import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { findConflicts } from '@/core/conflicts';
 import type { SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
@@ -22,6 +24,7 @@ export function ShortcutsSection({ data, presets, mutate }: ShortcutsSectionProp
   const [editing, setEditing] = useState<Editing | null>(null);
   const [deleting, setDeleting] = useState<Shortcut | null>(null);
   const addButton = useRef<HTMLButtonElement>(null);
+  const panelKey = usePanelKey();
   const { state } = data;
   const defaults = useMemo(() => effectiveDefaults(state), [state]);
   const conflicts = useMemo(
@@ -106,6 +109,26 @@ export function ShortcutsSection({ data, presets, mutate }: ShortcutsSectionProp
       >
         Add shortcut
       </button>
+
+      {panelKey !== null && (
+        <>
+          <h3 className="mt-8 text-sm font-semibold">AnyKey&apos;s panel</h3>
+          <p className={hintText}>
+            {panelKey === '' ? (
+              <>No key opens the panel from AnyKey&apos;s toolbar button.</>
+            ) : (
+              <>
+                Press <CommandKeyCaps shortcut={panelKey} /> in any tab to open the panel from AnyKey&apos;s toolbar
+                button, even on pages where AnyKey&apos;s other shortcuts can&apos;t run.
+              </>
+            )}{' '}
+            The browser holds the key, so it is set on the browser&apos;s page for extension shortcuts.
+          </p>
+          <button type="button" onClick={openShortcutsPage} className={`${secondaryButton} mt-3`}>
+            {panelKey === '' ? 'Set a key' : 'Change the key'}
+          </button>
+        </>
+      )}
 
       {editing !== null && (
         <ShortcutDialog

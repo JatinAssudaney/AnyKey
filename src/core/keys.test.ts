@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalKeys, keycapLabels, keysInWords, parseKeys, sequenceTokens } from './keys';
+import { canonicalKeys, commandKeycaps, keycapLabels, keysInWords, parseKeys, sequenceTokens } from './keys';
 
 describe('parseKeys', () => {
   it.each([
@@ -107,5 +107,19 @@ describe('keysInWords', () => {
 
   it('says nothing for notation that does not parse', () => {
     expect(keysInWords('shift+/', 'key', false)).toBe('');
+  });
+});
+
+describe('commandKeycaps', () => {
+  it("splits a browser command's shortcut into keycaps, as each platform writes it", () => {
+    expect(commandKeycaps('⌥⇧K', true)).toEqual(['⌥', '⇧', 'K']);
+    expect(commandKeycaps('⇧⌘Space', true)).toEqual(['⇧', '⌘', 'Space']);
+    expect(commandKeycaps('Alt+Shift+K', false)).toEqual(['Alt', 'Shift', 'K']);
+    expect(commandKeycaps('Strg+Umschalt+K', false)).toEqual(['Strg', 'Umschalt', 'K']);
+  });
+
+  it('gives no keycaps when the command has no key', () => {
+    expect(commandKeycaps('', true)).toEqual([]);
+    expect(commandKeycaps('', false)).toEqual([]);
   });
 });

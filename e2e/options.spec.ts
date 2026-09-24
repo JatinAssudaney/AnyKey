@@ -262,3 +262,19 @@ test('a site shortcut added in settings clicks an element on that site', async (
   await expect.poll(() => stored(options)).toEqual({});
   await options.close();
 });
+
+test("the panel's key shows with a way to change it on the browser's shortcuts page", async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
+  await openOptions(page, extensionId);
+  await expect(page.getByText('in any tab to open the panel').locator('kbd')).toHaveText([
+    /^(⌥|Alt)$/,
+    /^(⇧|Shift)$/,
+    'K',
+  ]);
+  const opened = extensionContext.waitForEvent('page');
+  await page.getByRole('button', { name: 'Change the key' }).click();
+  expect((await opened).url()).toBe('chrome://extensions/shortcuts');
+});
