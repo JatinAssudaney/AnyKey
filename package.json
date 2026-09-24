@@ -17,6 +17,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "wxt build && playwright test",
+    "test:live": "wxt build && playwright test -c playwright.live.config.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm lint:text && pnpm test && pnpm build",
     "postinstall": "wxt prepare"
   },

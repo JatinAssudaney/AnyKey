@@ -13,7 +13,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M5 | Hint mode | done |
 | M6 | Presets, overrides, conflict warnings | done |
 | M7 | Welcome page on install, where AnyKey's keys work on the page itself | done |
-| M8 | Presets checked on the live sites, signed in and signed out, and marked verified | planned |
+| M8 | Presets checked on the live sites, signed in and signed out, and marked verified | in progress |
 | M9 | Store listing: store icon, screenshots, promo tiles, description, privacy policy | planned |
 | M10 | Release 1.0: release checks as E2E tests, Windows and Chrome test pass, publish, Featured badge nomination | planned |
 
@@ -280,7 +280,7 @@ User shortcuts never give way. Only keys that equal a built-in shortcut's are ma
 | Site and pages | Keys that give way | The site's own shortcut |
 |---|---|---|
 | GitHub, repository pages | `g g` | Go to the Discussions tab |
-| GitHub, issue and pull request lists | `u` | Filter by author |
+| GitHub, issue and pull request lists | `j` `k` `u` `x` | Move the focus through the list, filter by author, select the focused item |
 | GitHub, issue and pull request pages | `x` | Link an issue or pull request (AnyKey's `x` would close the tab there) |
 | GitHub, Actions pages | `g f` | Go to the workflow file |
 | GitHub, the network graph | `j` `k` `H` `L` `J` `K` | Scroll the graph |
@@ -288,7 +288,7 @@ User shortcuts never give way. Only keys that equal a built-in shortcut's are ma
 | Reddit, every page | `j` `k` `x` | Next and previous post or comment, expand a post in compact view |
 | Reddit, the mod queue (`/mod/*`) | `d` | Remove |
 
-These stay AnyKey's although the site uses them: `?` on all three sites (AnyKey's cheatsheet lists the site's keys too); `F` on GitHub's Actions run pages, whose full-screen logs also answer to `f`; `J` in GitHub's code view, where it only highlights the line at the cursor; and `d` on YouTube, which uses it only in 360° videos. YouTube reads most letters with or without Shift, so AnyKey's `F`, `J`, `K` and `L` also take keys from it; its reserved list names only the keys YouTube documents. On YouTube Shorts `k` does nothing and AnyKey doesn't use the arrow keys, so nothing gives way there.
+These stay AnyKey's although the site uses them: `?` on all three sites (AnyKey's cheatsheet lists the site's keys too); `F` on GitHub's Actions run pages, whose full-screen logs also answer to `f`; `J` in GitHub's code view, where it only highlights the line at the cursor, and `L` there, which GitHub also takes for jumping to a line (`l`); `d` on GitHub's issue pages, which edits the linked issues; `j` and `k` on a repository's code pages, where GitHub moves the focus through the file list, since scrolling is what people press them for there (GitHub's list of keys leaves them out: a pattern for code pages would also cover the issue lists, where they give way); and `d` on YouTube, which uses it only in 360° videos. YouTube reads most letters with or without Shift, so AnyKey's `F`, `J`, `K` and `L` also take keys from it; its reserved list names only the keys YouTube documents. On YouTube Shorts `k` does nothing and AnyKey doesn't use the arrow keys, so nothing gives way there.
 
 **Clashes with the site's keys** (`findConflicts` with the site's keys):
 - A key-mode shortcut whose keys equal a site key, or the start of one, takes it, so the site's shortcut doesn't run (`takesNative`).
@@ -299,6 +299,8 @@ These stay AnyKey's although the site uses them: `?` on all three sites (AnyKey'
 **The cheatsheet** starts with "<Site>'s own keys": the site's keys that work on the page and that no active shortcut takes (`nativeKeysLeft`). They come first because on a site with a preset they are what its pages are built around. AnyKey's groups follow, starting with Page elements, which holds the preset's shortcuts and the ones picked on the site. Keys with the same label share a row ("k or Space"), and past 24 rows the dialog widens to fit more columns.
 
 **Checking.** Every preset shortcut ships with `verified: false`, which the options page shows as Unverified, until it is checked on the live site with `docs/preset-checklist.md`; it then becomes `verified: true` in the preset's next version. Preset shortcuts use keys that none of the site's own shortcuts use on any of its pages, which a test checks.
+
+`pnpm test:live` (`e2e/live/`, with a config of its own) checks the GitHub and YouTube presets on the live sites, signed out: each shortcut finds what it clicks, and each key that gives way reaches the site. It stays out of `pnpm test:e2e`, since the sites change without notice and a failure there says the preset needs a look, not that AnyKey broke. Live pages go on loading after their load event (GitHub fetches its sidebar, then sets up its keys), so the tests wait for the network to go quiet and press keys until the site answers. Reddit shows automated browsers a reCAPTCHA page, so its preset is checked by hand, as is everything that needs an account.
 
 ## Security
 

@@ -104,6 +104,16 @@ export async function pageKeys(page: Page): Promise<string[]> {
   return page.evaluate(() => window.pageKeys ?? []);
 }
 
+/** Waits until the background has installed the bundled presets, which it does as AnyKey starts. */
+export async function waitForPresets(context: BrowserContext, extensionId: string): Promise<void> {
+  const page = await context.newPage();
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  await expect
+    .poll(() => page.evaluate(async () => Object.keys(await chrome.storage.local.get('presets')).length))
+    .toBe(1);
+  await page.close();
+}
+
 /** Everything in sync storage, read from an extension page. */
 export function stored(extensionPage: Page): Promise<Record<string, unknown>> {
   return extensionPage.evaluate(() => chrome.storage.sync.get(null));

@@ -2,6 +2,8 @@
 
 How to check a preset on the live site. Every preset shortcut ships with `verified: false` (the options page marks it Unverified) until it passes these checks. Sites change their pages, so check again when a shortcut stops finding its element: AnyKey then shows a toast that names it.
 
+`pnpm test:live` runs the GitHub and YouTube checks that work signed out (`e2e/live/`). The rest is checked by hand: every site signed in (rows marked "signed in" work only then), GitHub's `g e` on a repository you administer, and all of Reddit, which shows automated browsers a reCAPTCHA page.
+
 ## Setup
 
 1. Build with `pnpm build` and load `dist/chrome-mv3` unpacked: `brave://extensions` (or `chrome://extensions`), Developer mode on, Load unpacked. After a rebuild, press the reload button on AnyKey's card, then reload the site's tabs.
@@ -32,15 +34,15 @@ How to check a preset on the live site. Every preset shortcut ships with `verifi
 |---|---|---|---|
 | `g e` | Go to the Settings tab | A repository you administer | Its Settings tab opens |
 | `g r` | Go to Releases | A repository with releases | Its Releases page opens |
-| `g d` | Go to your dashboard | Any page | github.com opens |
 | `S` | Star or unstar the repository | Any repository page | The star toggles (signed out: GitHub asks you to sign in) |
 | `C` | Open the Code menu to clone | A repository's Code tab | The green Code menu opens |
 
 | Keys | Where they give way | What GitHub does |
 |---|---|---|
 | `g g` | A repository with Discussions on | The Discussions tab opens. On github.com itself, `g g` scrolls to the top. |
-| `u` | A repository's issue list or pull request list | The author filter opens |
-| `x` | An issue or a pull request | GitHub offers to link an issue or pull request. The tab stays open. |
+| `j` `k` `u` `x` | A repository's issue list or pull request list | `j` and `k` move the focus from item to item, `u` opens the author filter, `x` selects the focused item. The tab stays open. |
+| `x` | An issue or a pull request, signed in | GitHub offers to link an issue or pull request. The tab stays open. On an issue, note which of `x` and `d` does this. |
+| `j` `k` `x` | Your notifications (`/notifications`), signed in | If GitHub moves through or selects notifications, the preset should give way here too: note it. |
 | `g f` | A workflow run under the Actions tab | The workflow file opens |
 | `j` `k` `H` `L` `J` `K` | A repository's network graph (`/network`) | The graph scrolls |
 

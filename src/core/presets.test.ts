@@ -156,7 +156,10 @@ describe('bundled presets', () => {
     };
     expect(yielded('https://github.com/')).toEqual([]);
     expect(yielded('https://github.com/owner/repo')).toEqual(['g g']);
-    expect(yielded('https://github.com/owner/repo/issues?q=is%3Aopen')).toEqual(['u', 'g g']);
+    // GitHub's lists take j and k to move their focus, and x to select the focused item.
+    expect(yielded('https://github.com/owner/repo/issues?q=is%3Aopen')).toEqual(['j', 'k', 'u', 'g g', 'x']);
+    expect(yielded('https://github.com/owner/repo/pulls')).toEqual(['j', 'k', 'u', 'g g', 'x']);
+    expect(yielded('https://github.com/owner/repo/issues/5')).toEqual(['g g', 'x']);
     expect(yielded('https://github.com/owner/repo/pull/12/files')).toEqual(['g g', 'x']);
     expect(yielded('https://github.com/owner/repo/actions/runs/1')).toEqual(['g g', 'g f']);
     expect(yielded('https://github.com/owner/repo/network')).toEqual(['j', 'k', 'g g', 'H', 'L', 'J', 'K']);

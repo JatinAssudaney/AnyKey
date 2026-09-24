@@ -108,9 +108,12 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
             to have AnyKey&apos;s run there instead.
           </p>
           <ul className="mt-3 space-y-3">
-            {yields.map(({ shortcut, native: key }) => {
+            {yields.map(({ shortcut, natives }) => {
               const kept = siteState?.globals.get(shortcut.id) === true;
               const noteId = `${ids}-${shortcut.id}-note`;
+              const labels = [...new Set(natives.map(({ label }) => label))];
+              const one = labels.length === 1;
+              const own = `${preset.name}'s own ${quoted(labels)}`;
               return (
                 <li key={shortcut.id}>
                   <label className="flex flex-wrap items-center gap-2 text-sm">
@@ -134,8 +137,8 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
                   </label>
                   <p id={noteId} className={`${hintText} ml-6`}>
                     {kept
-                      ? `AnyKey keeps the keys on ${host}, so ${preset.name}'s own "${key.label}" doesn't run.`
-                      : `${preset.name}'s own "${key.label}" gets the keys where it works.`}
+                      ? `AnyKey keeps the keys on ${host}, so ${own} ${one ? "doesn't" : "don't"} run.`
+                      : `${own} ${one ? 'gets' : 'get'} the keys where ${one ? 'it works' : 'they work'}.`}
                   </p>
                 </li>
               );
@@ -208,6 +211,13 @@ function Count({ n }: { n: number }) {
       {n}
     </span>
   );
+}
+
+/** Names in a sentence, each in quotes: "a", "a" and "b", "a", "b" and "c". */
+function quoted(names: readonly string[]): string {
+  const all = names.map((name) => `"${name}"`);
+  const last = all.at(-1) ?? '';
+  return all.length < 2 ? last : `${all.slice(0, -1).join(', ')} and ${last}`;
 }
 
 /** Where a site key works: every page, or the path part of each of its match patterns (what follows the host). */

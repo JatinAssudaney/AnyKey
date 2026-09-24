@@ -315,6 +315,19 @@ describe('presetYields', () => {
       ['default:tab-close', false],
     ]);
   });
+
+  it('names every site key a default gives way to, on whichever pages', () => {
+    const lists: Preset = {
+      ...tube,
+      reserved: [...tube.reserved, { keys: 'j', label: 'Next video', yield: true, matches: ['*://tube.example/list*'] }],
+    };
+    const [down] = presetYields(EMPTY_STATE, lists);
+    expect(down?.shortcut.id).toBe('default:scroll-down');
+    expect(down?.natives.map(({ label, matches }) => [label, matches])).toEqual([
+      ['Go back 10 seconds', ['*://tube.example/watch*']],
+      ['Next video', ['*://tube.example/list*']],
+    ]);
+  });
 });
 
 describe('shortcutsOnSite', () => {

@@ -39,6 +39,7 @@ Checked on 2026-09-24:
 
 ## Presets (M8)
 
+- [x] `pnpm test:live` checks the GitHub and YouTube presets on the live sites, signed out.
 - [ ] Every preset shortcut passes `docs/preset-checklist.md` on its live site, signed in and signed out, and is marked `verified: true`, so no Unverified badge is left for a reviewer to see.
 
 ## Store listing (M9)

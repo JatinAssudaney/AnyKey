@@ -1,6 +1,16 @@
 import path from 'node:path';
 import type { BrowserContext, Page } from '@playwright/test';
-import { expect, openCheatsheetText, pageKeys, pressUntil, scrollY, stored, tabIdOf, test } from './harness.ts';
+import {
+  expect,
+  openCheatsheetText,
+  pageKeys,
+  pressUntil,
+  scrollY,
+  stored,
+  tabIdOf,
+  test,
+  waitForPresets,
+} from './harness.ts';
 
 const WATCH = 'https://www.youtube.com/watch?v=abc';
 const HOME = 'https://www.youtube.com/';
@@ -9,12 +19,7 @@ const FIXTURE = path.resolve(import.meta.dirname, 'fixtures/youtube.html');
 /** Serves the fixture as every page of www.youtube.com, once the background has installed the presets. */
 async function fakeYouTube(page: Page, extensionContext: BrowserContext, extensionId: string): Promise<void> {
   await page.route('https://www.youtube.com/**', (route) => route.fulfill({ path: FIXTURE }));
-  const extensionPage = await extensionContext.newPage();
-  await extensionPage.goto(`chrome-extension://${extensionId}/popup.html`);
-  await expect
-    .poll(() => extensionPage.evaluate(async () => Object.keys(await chrome.storage.local.get('presets')).length))
-    .toBe(1);
-  await extensionPage.close();
+  await waitForPresets(extensionContext, extensionId);
 }
 
 async function likes(page: Page): Promise<number> {

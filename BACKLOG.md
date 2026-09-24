@@ -28,6 +28,12 @@ GitHub's `g r` clicks the Releases link, which only a repository's home page sho
 
 **Why it waits.** Templates are a new part of the action schema, with their own checks (what a template may take from the URL, and that the result stays on the site), and they need a way to write them in the options page. The one preset shortcut that needs them works from the page people start from.
 
+## Site keys that skip some pages
+
+A preset's list of a site's keys says where each works with match patterns, which can include pages but not leave any out. GitHub's code view keys (`t`, `w`, `y`) match every repository page, so the cheatsheet and options page also list them on issue pages, and `j` and `k`, which move through a repository's file list, are left out of the list altogether: a pattern for code pages would also cover the issue lists, where GitHub's `j` and `k` do something else and AnyKey gives way. An `excludeMatches` field on each key, as content scripts have, would place them exactly.
+
+**Why it waits.** Only the reference lists and clash warnings are off: which keys give way is right on every page the tests cover, and a key listed on a page where it does nothing costs a line in the cheatsheet, or a warning the user can ignore. It adds a field to the preset schema, and each preset would need its pages mapped again.
+
 ## Keys for YouTube Shorts
 
 The YouTube preset has nothing for Shorts: Shorts use the arrow keys, which AnyKey leaves alone, and `k` did nothing there when tested, so no built-in key gives way either.

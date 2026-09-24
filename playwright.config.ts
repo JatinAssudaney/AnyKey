@@ -4,6 +4,8 @@ import { FIXTURE_ORIGIN } from './e2e/constants.ts';
 // Run with `pnpm test:e2e`, which builds dist/chrome-mv3 first.
 export default defineConfig({
   testDir: './e2e',
+  // The live sites have a config of their own: playwright.live.config.ts.
+  testIgnore: 'live/**',
   // All tests in a worker share one Chromium profile with the extension loaded.
   workers: 1,
   forbidOnly: Boolean(process.env.CI),

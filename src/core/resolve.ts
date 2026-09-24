@@ -212,15 +212,23 @@ function nativeKey(preset: Preset, key: ReservedKey): NativeKey {
   return { keys: key.keys, label: key.label, site: preset.name, ...(key.matches === undefined ? {} : { matches: key.matches }) };
 }
 
+/** A built-in shortcut that gives way somewhere on a preset's site. */
+export interface PresetYield {
+  /** As the user has it everywhere else. */
+  shortcut: Shortcut;
+  /** Every site key it gives way to, each on its own pages: GitHub's `j` moves through lists and the network graph. */
+  natives: NativeKey[];
+}
+
 /**
  * The built-in shortcuts that give way to the site's own keys on some page of a preset's site, as the user has them
  * everywhere else: for the options page, which lets the user keep them on the site instead. A shortcut the user
  * turned off everywhere gives way to nothing, so it is left out, unless the site has a switch of its own for it.
  */
-export function presetYields(state: SyncState, preset: Preset, site?: SiteState): Yielded[] {
+export function presetYields(state: SyncState, preset: Preset, site?: SiteState): PresetYield[] {
   return effectiveDefaults(state).flatMap((shortcut) => {
     if (!shortcut.enabled && site?.globals.has(shortcut.id) !== true) return [];
-    const key = preset.reserved.find((reserved) => yieldsTo(reserved, shortcut));
-    return key === undefined ? [] : [{ shortcut, native: nativeKey(preset, key) }];
+    const natives = preset.reserved.filter((key) => yieldsTo(key, shortcut)).map((key) => nativeKey(preset, key));
+    return natives.length === 0 ? [] : [{ shortcut, natives }];
   });
 }
