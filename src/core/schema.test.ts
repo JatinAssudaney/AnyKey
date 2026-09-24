@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ActionSchema, ShortcutSchema } from './schema';
+import { ActionSchema, LIMITS, ShortcutSchema, storedKeys } from './schema';
 
 const base = {
   id: 'user:1',
@@ -25,6 +25,18 @@ describe('ShortcutSchema', () => {
 
   it('rejects invalid match patterns', () => {
     expect(ShortcutSchema.safeParse({ ...base, scope: { type: 'site', match: 'github.com' } }).success).toBe(false);
+  });
+});
+
+describe('storedKeys', () => {
+  it('returns the canonical notation', () => {
+    expect(storedKeys('Cmd+K  g', 'key')).toEqual({ ok: true, keys: 'meta+k g' });
+  });
+
+  it('checks the length of the stored form, which can be longer than what was typed', () => {
+    const keys = Array.from({ length: 4 }, () => 'cmd+shift+pgdn').join(' ');
+    expect(keys.length).toBeLessThanOrEqual(LIMITS.keys);
+    expect(storedKeys(keys, 'key')).toEqual({ ok: false, error: 'These keys are too long to save. Use fewer keys.' });
   });
 });
 

@@ -25,7 +25,13 @@ interface WorkerFixtures {
   extensionId: string;
 }
 
-export const test = base.extend<{ page: Page }, WorkerFixtures>({
+interface TestFixtures {
+  page: Page;
+  /** Runs before every test: clears AnyKey's storage, so no test sees another's settings. */
+  freshStorage: undefined;
+}
+
+export const test = base.extend<TestFixtures, WorkerFixtures>({
   extensionContext: [
     // eslint-disable-next-line no-empty-pattern -- Playwright requires an object pattern here.
     async ({}, use) => {
@@ -46,6 +52,21 @@ export const test = base.extend<{ page: Page }, WorkerFixtures>({
       await use(new URL(serviceWorker.url()).host);
     },
     { scope: 'worker' },
+  ],
+  freshStorage: [
+    async ({ extensionContext, extensionId }, use) => {
+      // An extension page rather than the service worker, which Chrome may have stopped for being idle.
+      const page = await extensionContext.newPage();
+      await page.goto(`chrome-extension://${extensionId}/popup.html`);
+      await page.evaluate(async () => {
+        // Sync storage counts every clear against its write quota, so clear only when there is something to clear.
+        if (Object.keys(await chrome.storage.sync.get(null)).length > 0) await chrome.storage.sync.clear();
+        await chrome.storage.local.clear();
+      });
+      await page.close();
+      await use(undefined);
+    },
+    { auto: true },
   ],
   page: async ({ extensionContext }, use) => {
     const page = await extensionContext.newPage();

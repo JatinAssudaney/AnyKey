@@ -1,29 +1,48 @@
-import { z } from 'zod';
-import { parseKeys } from './keys';
+import { z } from 'zod/mini';
+import { chordText, parseKeys } from './keys';
 import { parseMatchPattern } from './matchPattern';
 import { isSafeUrl, MAX_URL_LENGTH } from './url';
 
 // Schemas for every trust boundary: stored data, imported JSON, presets and runtime messages. Types are inferred
-// from them. Code that runs on every page imports only types from here, which keeps zod out of the content script
-// until it has data to validate.
+// from them. They use zod/mini, whose functions tree-shake: the content script validates stored shortcuts on every
+// page, and classic zod would add about 85 kB to it. zod/mini ships no English messages, so every check a user can
+// fail in the options page carries its own.
 
 export const LIMITS = { id: 100, label: 100, selector: 500, keys: 64 } as const;
+
+/** A non-empty string of at most `max` characters. */
+function bounded(max: number, emptyMessage?: string) {
+  return z.string().check(z.minLength(1, emptyMessage), z.maxLength(max));
+}
+
+export const IdSchema = bounded(LIMITS.id);
+
+/** Shortcut notation. `parseKeys` checks the content, so an empty string gets its message ("Enter a key."). */
+export const KeysSchema = z.string().check(z.maxLength(LIMITS.keys, `Use at most ${LIMITS.keys} characters.`));
 
 export const KeyModeSchema = z.enum(['key', 'code']);
 export type KeyMode = z.infer<typeof KeyModeSchema>;
 
+/**
+ * Keys as AnyKey stores them: in canonical notation (`meta+pagedown` for `cmd+pgdn`), which must fit the length limit
+ * too. Writers store this form and the reader checks it, so a saved shortcut always reads back.
+ */
+export function storedKeys(keys: string, keyMode: KeyMode): { ok: true; keys: string } | { ok: false; error: string } {
+  const parsed = parseKeys(keys, keyMode);
+  if (!parsed.ok) return parsed;
+  const text = parsed.chords.map(chordText).join(' ');
+  if (text.length > LIMITS.keys) return { ok: false, error: 'These keys are too long to save. Use fewer keys.' };
+  return { ok: true, keys: text };
+}
+
 export const ElementTargetSchema = z.object({
   /** CSS selector; " >>> " steps into an element's shadow root. */
-  selector: z.string().min(1).max(LIMITS.selector),
-  fallbacks: z.array(z.string().min(1).max(LIMITS.selector)).max(3).optional(),
+  selector: bounded(LIMITS.selector),
+  fallbacks: z.optional(z.array(bounded(LIMITS.selector)).check(z.maxLength(3))),
   /** Visible text or aria-label, the last-resort match. */
-  text: z.string().min(1).max(LIMITS.label).optional(),
+  text: z.optional(bounded(LIMITS.label)),
   /** Restricts the text match to one element type, such as "button". */
-  tag: z
-    .string()
-    .regex(/^[a-z][a-z\d-]*$/)
-    .max(32)
-    .optional(),
+  tag: z.optional(z.string().check(z.maxLength(32), z.regex(/^[a-z][a-z\d-]*$/))),
 });
 export type ElementTarget = z.infer<typeof ElementTargetSchema>;
 
@@ -34,16 +53,21 @@ export const TabOpSchema = z.enum(['next', 'prev', 'close', 'duplicate']);
 export type TabOp = z.infer<typeof TabOpSchema>;
 
 export const ActionSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('click'), target: ElementTargetSchema, newTab: z.boolean().optional() }),
+  z.object({ type: z.literal('click'), target: ElementTargetSchema, newTab: z.optional(z.boolean()) }),
   z.object({ type: z.literal('focus'), target: ElementTargetSchema }),
   z.object({ type: z.literal('scroll'), direction: ScrollDirectionSchema }),
   z.object({ type: z.literal('history'), op: z.enum(['back', 'forward']) }),
   z.object({
     type: z.literal('navigate'),
-    url: z.string().max(MAX_URL_LENGTH).refine(isSafeUrl, 'Use an http(s) or relative URL.'),
-    newTab: z.boolean().optional(),
+    url: z
+      .string()
+      .check(
+        z.maxLength(MAX_URL_LENGTH, 'Use a shorter URL.'),
+        z.refine(isSafeUrl, 'Use a web address starting with https://, or a path such as /notifications.'),
+      ),
+    newTab: z.optional(z.boolean()),
   }),
-  z.object({ type: z.literal('hints'), newTab: z.boolean().optional() }),
+  z.object({ type: z.literal('hints'), newTab: z.optional(z.boolean()) }),
   z.object({ type: z.literal('tab'), op: TabOpSchema }),
   z.object({ type: z.literal('cheatsheet') }),
 ]);
@@ -55,8 +79,10 @@ export const ScopeSchema = z.discriminatedUnion('type', [
     type: z.literal('site'),
     match: z
       .string()
-      .max(MAX_URL_LENGTH)
-      .refine((pattern) => parseMatchPattern(pattern) !== null, 'Use a match pattern such as *://github.com/*.'),
+      .check(
+        z.maxLength(MAX_URL_LENGTH),
+        z.refine((pattern) => parseMatchPattern(pattern) !== null, 'Use a match pattern such as *://github.com/*.'),
+      ),
   }),
 ]);
 export type Scope = z.infer<typeof ScopeSchema>;
@@ -64,38 +90,48 @@ export type Scope = z.infer<typeof ScopeSchema>;
 export const ShortcutSchema = z
   .object({
     /** "default:scroll-down", "preset:github:releases" or "user:<uuid>". */
-    id: z.string().min(1).max(LIMITS.id),
+    id: IdSchema,
     /** Notation parsed by `parseKeys`: "g i", "ctrl+shift+k", "mod+k", "?". */
-    keys: z.string().min(1).max(LIMITS.keys),
+    keys: KeysSchema,
     keyMode: KeyModeSchema,
     action: ActionSchema,
     scope: ScopeSchema,
     /** Shown in the cheatsheet and settings. */
-    label: z.string().min(1).max(LIMITS.label),
-    allowInInputs: z.boolean().optional(),
+    label: bounded(LIMITS.label, 'Enter a name.'),
+    allowInInputs: z.optional(z.boolean()),
     source: z.enum(['default', 'preset', 'user']),
     /** Presets only: whether the preset shortcut was checked against the live site. */
-    verified: z.boolean().optional(),
+    verified: z.optional(z.boolean()),
     enabled: z.boolean(),
   })
-  .superRefine((shortcut, ctx) => {
-    const parsed = parseKeys(shortcut.keys, shortcut.keyMode);
-    if (!parsed.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: parsed.error });
-  });
+  .check(
+    z.superRefine((shortcut, ctx) => {
+      const stored = storedKeys(shortcut.keys, shortcut.keyMode);
+      if (!stored.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: stored.error });
+    }),
+  );
 export type Shortcut = z.infer<typeof ShortcutSchema>;
+
+/** A whole number from `min` to `max`. */
+function between(min: number, max: number) {
+  const message = `Use a whole number from ${min} to ${max}.`;
+  return z.int(message).check(z.gte(min, message), z.lte(max, message));
+}
 
 export const SettingsSchema = z.object({
   /** How long a multi-key sequence waits for its next key. */
-  sequenceTimeoutMs: z.number().int().min(200).max(5000),
+  sequenceTimeoutMs: between(200, 5000),
   /** Pixels per scroll-up/down press. */
-  scrollStep: z.number().int().min(10).max(1000),
+  scrollStep: between(10, 1000),
   smoothScroll: z.boolean(),
   /** Characters used for link-hint labels. */
   hintChars: z
     .string()
-    .min(2)
-    .max(40)
-    .refine((chars) => new Set(chars).size === chars.length, 'Use each hint character once.'),
+    .check(
+      z.minLength(2, 'Use at least 2 characters.'),
+      z.maxLength(40, 'Use at most 40 characters.'),
+      z.refine((chars) => new Set(chars).size === chars.length, 'Use each hint character once.'),
+    ),
   /** Links opened in a new tab (F hints, new-tab shortcuts) open behind the current tab. */
   newTabInBackground: z.boolean(),
 });

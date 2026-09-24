@@ -45,11 +45,25 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
     h('footer', { class: 'ak-cheatsheet-footer' }, 'AnyKey. Press Esc to close.'),
   );
 
+  let closed = false;
+  /**
+   * Leaves the key stack at once. The dialog's own close event comes later, as a queued task, and input outranks
+   * queued tasks: a key pressed right after Esc could otherwise still reach the closed cheatsheet.
+   */
+  function close(): void {
+    if (closed) return;
+    closed = true;
+    options.popMode(mode);
+    dialog.close();
+    dialog.remove();
+    if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+  }
+
   const mode: Mode = {
     keyDown(event, token) {
       if (token === 'escape' || (token !== null && options.closeTokens.includes(token))) {
         // Auto-repeats are the same press: holding "?" a little long must not close what it just opened.
-        if (!event.repeat) dialog.close();
+        if (!event.repeat) close();
         return 'consume';
       }
       if (token === 'j' || token === 'k') {
@@ -61,25 +75,16 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
     },
   };
 
-  closeButton.addEventListener('click', () => {
-    dialog.close();
-  });
+  closeButton.addEventListener('click', close);
   // A click on the backdrop targets the dialog itself, outside its box.
   dialog.addEventListener('click', (event) => {
     const box = dialog.getBoundingClientRect();
     const inside =
       event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
-    if (event.target === dialog && !inside) dialog.close();
+    if (event.target === dialog && !inside) close();
   });
-  dialog.addEventListener(
-    'close',
-    () => {
-      options.popMode(mode);
-      dialog.remove();
-      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
-    },
-    { once: true },
-  );
+  // Any other way the dialog closes.
+  dialog.addEventListener('close', close, { once: true });
 
   container.append(dialog);
   dialog.showModal();

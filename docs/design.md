@@ -8,7 +8,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 |---|---|---|
 | M1 | Scaffold: WXT + React + TS + Tailwind, lint, tests, E2E harness, icons, docs | done |
 | M2 | Key engine, global scroll/history/tab shortcuts, cheatsheet | done |
-| M3 | Storage layer, options editor with key recorder, import/export | planned |
+| M3 | Storage layer, options editor with key recorder, import/export | done |
 | M4 | Element picker, per-site shortcuts from the popup | planned |
 | M5 | Hint mode | planned |
 | M6 | Presets, overrides, conflict warnings | planned |
@@ -67,26 +67,33 @@ type Settings = {
 
 Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` hints (added with hint mode in M5), `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
 
-## Storage (M3)
+## Storage
 
-`chrome.storage.sync` (102,400 bytes total; 8,192 per item counted as UTF-8 bytes of key + JSON value; 120 writes/min, 1,800/hour; one multi-key `set()` is one write):
+`chrome.storage.sync` (102,400 bytes total; 8,192 per item, counted as the UTF-8 bytes of the key plus the value as Chrome's JSON writer writes it, which escapes `<` as `\u003C`; 512 items; 120 writes a minute and 1,800 an hour, where one multi-key `set()` is one write):
 
 | Key | Contents |
 |---|---|
-| `settings` | `Settings` |
+| `settings` | The settings that differ from their defaults |
 | `global` | `{ shortcuts: user global shortcuts, overrides: Record<defaultId, { keys?, keyMode?, enabled? }> }` |
 | `site:<host>` | `{ disabled?, shortcuts: user site shortcuts, globals?: Record<defaultId, { enabled }> }` |
-| `preset:<presetId>` | `{ overrides: Record<presetShortcutId, PresetOverride> }` |
+| `preset:<presetId>` | `{ overrides: Record<presetShortcutId, PresetOverride> }` (M6) |
 
-Every doc carries a version field `v` and stays under 8KB (about 20 to 25 picker shortcuts per site). A doc is never split across items: Chrome sync delivers items independently, so a split doc could be read half-updated. Any stored-format change bumps `v`.
+- Every doc carries a version field `v` and stays under 8KB (about 20 to 25 picker shortcuts per site). A doc is never split across items: Chrome sync delivers items independently, so a split doc could be read half-updated. Any stored-format change bumps `v` (`DOC_VERSION` in `src/core/docs.ts`).
+- Storage stays sparse: a setting equal to its default and an override equal to the built-in shortcut are left out, and a doc left empty is removed, so a later version can improve the defaults. Keys are stored in canonical notation (`ctrl+k`, never `Ctrl+K`).
+- `chrome.storage.local` holds `backup` (below) and, from M6, `presets` (validated bundled presets, written by the background on install and update).
 
-`chrome.storage.local`: `presets` (validated bundled presets, written by the background on install and update) and the pre-import backup.
+**Reading.** The content script and the options page read every sync item and read again after each change; an older read never overwrites a newer one. `parseSync` never throws: an entry that fails its schema is skipped, and its doc is reported as damaged, or as newer when its `v` is above this version's. No shortcut runs in a page until storage has loaded.
 
-**Single writer.** The popup, options page and content script read storage (all sync docs, then `storage.onChanged`) and send typed mutation messages to the background. The background re-reads the affected docs, applies the pure reducers in `src/storage/mutations.ts`, validates and size-checks the result, coalesces writes into one `set()` (about 300ms window, at most one write per 500ms, backing off on quota errors) and acks so the UI can show Saved or the error. Options text fields commit on blur or Enter.
+**Single writer.** Only the background writes (`src/storage/writer.ts`). Pages send typed mutations (`src/core/messages.ts`), and in M3 the background accepts them only from AnyKey's own pages (the sender URL is under the extension's origin): a page could otherwise drive its content script to rewrite settings. The writer:
 
-**Bad or newer docs.** A doc that fails validation or carries a newer `v` stays readable (its valid shortcuts still work) and is never written back; the options page offers a reset for it.
+1. collects mutations for 300ms, and starts a save at least 1000ms after the last one (a save writes at most a `set` and a `remove`, so at most 120 writes a minute);
+2. reads all of sync storage fresh and applies the pure reducers in `src/storage/mutations.ts` in order; a mutation that fails is rejected on its own and the rest still save;
+3. checks the result before writing: it fits the quotas, and the reader takes every doc it writes back whole (a doc the reader flags would be locked as damaged). Keys are checked in their stored, canonical form (`storedKeys` in `src/core/schema.ts`), which can be longer than what was typed (`cmd` is stored as `meta`). It then writes only the docs whose JSON changed;
+4. answers each sender once its change is saved, or with the reason it failed. A quota error from the browser fails the batch with a message and is never retried.
 
-**Import/export.** Export is a versioned dump of all sync docs. Import replaces everything after a preview, and saves the previous data to `storage.local` so it can be restored.
+**Docs with problems.** A damaged or newer doc stays readable (its valid shortcuts keep working) and is never written back by an ordinary change, which fails with a message instead. Three things may replace it: an import, a restore, and Repair on the options page, which rewrites the doc with only what this version can read.
+
+**Import and export.** Export writes every sync item, unknown keys included, as `{ format: "anykey-settings", version: 1, exportedAt, items }`. Import checks the file (at most 1 MB, the right format, not a newer `version`), previews what it holds, and then replaces every doc this version knows: `settings`, `global` and each `site:<host>`. Unknown keys, such as a newer version's docs, stay as they are, and entries this version can't read are left out. First the sync items as they stood become the `backup` in `chrome.storage.local` (`{ savedAt, items }`); if the sync write then fails, the previous backup goes back, since nothing was replaced. Restoring the backup swaps the two, putting the backup's docs back exactly as they were (even what this version can't read), so a second restore undoes the first.
 
 ## Resolution
 
@@ -98,7 +105,7 @@ Pure `resolve()` in `src/core/resolve.ts` computes the shortcuts for one URL and
 4. User global shortcuts, then user site shortcuts whose `match` includes the URL (from every site doc, so a scope edited to another host still works).
 5. Precedence: user site > user global > preset > default. For identical key sequences the higher one wins and the rest are shadowed; within a rank the first wins, and M3's conflict checks warn about the duplicate. A higher-precedence sequence also shadows lower-precedence sequences that start with it (a user's `g` shadows a preset's `g e`); same-rank prefixes stay active and wait for the timeout. Sequences are compared as match tokens, after `mod` resolves for the platform.
 
-Step 5 and the defaults layer are built (M2). With M3 the content script caches the result by `location.href`; when the URL changes it re-resolves and clears the key buffer.
+Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrives with presets (M6). The content script resolves again whenever storage changes, and at the next keydown after the URL changes (single-page apps navigate without a reload). A change to only the `#` part doesn't count: match patterns ignore it, and some sites rewrite it as you scroll. When the resolved shortcuts differ, the key buffer starts empty; otherwise a sequence in progress goes on.
 
 ## Key engine
 
@@ -118,6 +125,7 @@ Step 5 and the defaults layer are built (M2). With M3 the content script caches 
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
 - A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet now; hint mode and picker mode later). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened (hint mode needs the same for `f`).
+- A mode leaves the stack the moment it closes, never in a `<dialog>`'s `close` event: Chrome fires that event as a queued task, and input outranks queued tasks, so a key pressed right after Esc would still go to the closed mode.
 
 ## Scrolling
 
@@ -129,6 +137,13 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - Overlays live in the top layer (modal `<dialog>`, `popover`) so they show above page modals and fullscreen video.
 - Keydown, keypress and focus events from inside the host are handed to AnyKey's UI by the window capture listener, then stopped with `stopImmediatePropagation()` and no `preventDefault`: text still types, while page hotkeys and focus traps never see the events.
 - The content script sets `noScriptStartedPostMessage`, so WXT never posts messages to the page.
+
+## Options page
+
+- Built-in shortcuts can be rekeyed, switched off and reset; the user's own global shortcuts can be added, edited, switched off and deleted (site shortcuts arrive with the picker in M4). A change shows at once and saves in the background: the header's status says "Saving…" then "Saved.", and a failure appears in an alert. Text fields save on blur or Enter.
+- Conflict warnings come from `src/core/conflicts.ts`: a shortcut that doesn't run because another takes its keys (and the one that takes them), a key that waits for the sequence timeout because a longer shortcut that still runs starts with it, keys the browser keeps for itself on this platform, and a shortcut that also runs in text fields on a key that types.
+- The key recorder (`src/core/recorder.ts`, shared with the picker's recorder in M4) never traps focus. Esc cancels, and its keydown is cancelled so the dialog around it stays open. Tab finishes and moves focus on as usual. Enter, a 1-second pause, or a fourth chord finishes. Auto-repeats and lone modifiers don't count as keys. The platform's command key is recorded as `mod`, so a shortcut recorded on a Mac works on Windows. Key mode records characters (`?`), code mode records physical keys (`shift+Slash`).
+- When a change removes the focused control, focus moves to the nearest control that stays, never back to the top of the page: Reset to the row's Edit button, Delete to Add shortcut, Repair to the next Repair button or else Export.
 
 ## Picker (M4)
 
@@ -150,5 +165,5 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 ## Security
 
 - Navigate and new-tab URLs must be http(s) or relative, so imported JSON cannot carry `javascript:` URLs.
-- The background validates every message with zod and accepts messages only from AnyKey's own contexts. Labels and selectors have length caps.
-- Code that runs on every page imports only types from `src/core/schema.ts` and `src/core/messages.ts`, which keeps zod out of the content script bundle until it has data to validate (M3).
+- The background validates every message with zod and accepts messages only from AnyKey's own contexts, and setting changes only from its own pages. Labels and selectors have length caps.
+- The content script validates stored data before using it. Schemas use `zod/mini`, whose functions tree-shake, so the content script carries only the schemas it parses with (about 26 kB, where classic zod would add about 85 kB), and none of the reducers, import or export code.

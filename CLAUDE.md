@@ -13,16 +13,16 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 - `src/components/`: React components shared by the popup and options page.
 - `presets/`: bundled preset JSON. `e2e/`: Playwright specs, harness and fixture pages.
 
-Imports flow one way: entrypoints, then dom / background / storage / components, then `messaging.ts`, then core. Core imports from no other layer.
+Imports flow one way: entrypoints, then dom / background / components, then storage, then `messaging.ts`, then core. Core imports from no other layer.
 
 **Before changing key handling, shortcut resolution, storage, presets, the picker or hints, read `docs/design.md`.** It holds the rules those areas must keep: when a key is consumed, the single-writer storage model, preset yield rules, and more. Update it in the same change when a rule changes.
 
 ## Conventions
 
-- TypeScript strict; `any` is a lint error. Validate every trust boundary with zod: stored data, imported JSON, presets, runtime messages.
+- TypeScript strict; `any` is a lint error. Validate every trust boundary with zod: stored data, imported JSON, presets, runtime messages. Schemas use `zod/mini` (`z.string().check(z.maxLength(n, message))`), which has no default messages, so any check a user can fail carries its own.
 - Explicit imports (auto-imports are off): `browser` from `wxt/browser`, WXT helpers from `wxt/utils/...`. Call extension APIs through `browser.*`, which tests fake with `fakeBrowser`.
 - In-page UI is vanilla TypeScript + plain CSS in px units, rendered in the one shared shadow root, with text set through `textContent` (the `h()` helper in `src/dom/ui/h.ts`). React and Tailwind belong to the popup and options page.
-- The content script loads on every page, so keep it small: `src/dom/` imports only types from zod-backed modules (`core/schema.ts`, `core/messages.ts`), and validation lives in the background. Check `content.js` in the `pnpm build` output when adding dependencies (M2: 33 kB, 12.6 kB gzipped).
+- The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (M3: 66 kB, 22.8 kB gzipped; zod/mini is about 26 kB of that).
 - Permissions stay at `storage` plus the `<all_urls>` content script, so people aren't put off installing. Adding one needs the user's approval and updates to PERMISSIONS.md and `e2e/extension.spec.ts` (which pins the manifest). Deferred ideas go in `BACKLOG.md`, with why they wait.
 - The popup and options page are keyboard-first: every control reachable with Tab in visual order, visible `focus-visible` rings, a label on every input, native `<dialog>` for modals, `aria-live` for status. jsx-a11y runs in strict mode.
 - Tests sit next to the code as `*.test.ts(x)`. Pure logic gets unit tests; DOM tests opt in with `// @vitest-environment happy-dom`; real-browser behavior gets a Playwright spec in `e2e/`.
@@ -38,6 +38,7 @@ Imports flow one way: entrypoints, then dom / background / storage / components,
 - Background message listeners answer with `sendResponse` + `return true`; promise-returning listeners need Chrome 148+ and break under fakeBrowser.
 - E2E can't see into AnyKey's closed shadow root with locators or `page.evaluate`: read it through the DevTools protocol (`DOM.getDocument` with `pierce: true`), as `openCheatsheetText` in `e2e/harness.ts` does.
 - After `chrome.runtime.reload()` the new service worker starts only when an event needs it, so E2E waits for the old worker's `close` event, never for a new `serviceworker` event.
+- E2E tests share one browser profile per worker. The harness clears storage before each test, so a test that changes settings must wait until storage holds the change (the writer saves up to about a second later), or the write lands in the next test.
 
 ## Milestone loop
 

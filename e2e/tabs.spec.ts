@@ -15,7 +15,8 @@ test('J and K switch tabs, and x closes the tab', async ({ extensionContext }) =
   await expect.poll(() => visible(first)).toBe('visible');
 
   const closed = second.waitForEvent('close');
-  await second.keyboard.press('x');
+  // x acts on keydown, and the tab can be gone before a keyup could be sent.
+  await second.keyboard.down('x');
   await closed;
   await first.close();
 });

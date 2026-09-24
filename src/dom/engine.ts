@@ -11,6 +11,8 @@ export interface EngineOptions {
   ui: UiRoot;
   isMac: boolean;
   sequenceTimeoutMs: () => number;
+  /** Runs before a keydown reaches the shortcuts, which may then be replaced (they depend on the page's URL). */
+  beforeMatch: () => void;
   run: (shortcut: Shortcut, repeat: boolean) => void;
 }
 
@@ -28,6 +30,8 @@ export interface Engine {
 export function startEngine(options: EngineOptions): Engine {
   const { ctx, ui, isMac } = options;
   let matcher: Matcher<Shortcut> = createMatcher([], options.sequenceTimeoutMs());
+  /** What the matcher was built from, as JSON. */
+  let built = '';
   let timer: number | undefined;
   const modes: Mode[] = [];
   /** Where the first keydown of each key still held went, by physical key. Its keyup goes the same way. */
@@ -88,6 +92,7 @@ export function startEngine(options: EngineOptions): Engine {
       return;
     }
 
+    options.beforeMatch();
     const step = matcher.keyDown(
       {
         key: keyToken(input, isMac),
@@ -135,8 +140,13 @@ export function startEngine(options: EngineOptions): Engine {
 
   return {
     setShortcuts(shortcuts) {
+      const timeoutMs = options.sequenceTimeoutMs();
+      // Most storage changes and page navigations leave the shortcuts as they were: a sequence in progress goes on.
+      const next = JSON.stringify([timeoutMs, shortcuts]);
+      if (next === built) return;
+      built = next;
       stopTimer();
-      matcher = createMatcher(compileBindings(shortcuts, isMac), options.sequenceTimeoutMs());
+      matcher = createMatcher(compileBindings(shortcuts, isMac), timeoutMs);
     },
     pushMode(mode) {
       stopTimer();

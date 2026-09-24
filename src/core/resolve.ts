@@ -1,5 +1,9 @@
+import { DEFAULT_SHORTCUTS } from './defaults';
+import type { SiteState, SyncState } from './docs';
 import { sequenceTokens } from './keys';
+import { matchesPattern } from './matchPattern';
 import type { Shortcut } from './schema';
+import type { UrlParts } from './url';
 
 export interface Shadowed {
   shortcut: Shortcut;
@@ -55,4 +59,36 @@ function startsWith(tokens: readonly string[], prefix: readonly string[]): boole
 
 function sameTokens(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && startsWith(a, b);
+}
+
+/** The built-in shortcuts with the user's changes: global overrides, then the host's own on/off switches. */
+export function effectiveDefaults(state: SyncState, site?: SiteState): Shortcut[] {
+  return DEFAULT_SHORTCUTS.map((shortcut) => {
+    const override = state.global.overrides.get(shortcut.id);
+    const enabled = site?.globals.get(shortcut.id) ?? override?.enabled ?? shortcut.enabled;
+    if (override === undefined && enabled === shortcut.enabled) return shortcut;
+    return {
+      ...shortcut,
+      keys: override?.keys ?? shortcut.keys,
+      keyMode: override?.keyMode ?? shortcut.keyMode,
+      enabled,
+    };
+  });
+}
+
+/**
+ * Every shortcut that applies to a page, ready for `resolve()` (steps 1, 2 and 4 of docs/design.md, "Resolution"):
+ * nothing on a switched-off host; otherwise the defaults, the user's global shortcuts, and the user's site shortcuts
+ * from every site doc whose match pattern takes the URL.
+ */
+export function shortcutsForUrl(state: SyncState, url: UrlParts | null): Shortcut[] {
+  const site = url === null ? undefined : state.sites.get(url.host);
+  if (site?.disabled === true) return [];
+  const siteShortcuts =
+    url === null
+      ? []
+      : [...state.sites.values()].flatMap((doc) =>
+          doc.shortcuts.filter((shortcut) => shortcut.scope.type === 'site' && matchesPattern(shortcut.scope.match, url)),
+        );
+  return [...effectiveDefaults(state, site), ...state.global.shortcuts, ...siteShortcuts];
 }

@@ -23,6 +23,19 @@ test.describe('scrolling', () => {
     await expect.poll(() => scrollY(page)).toBe(0);
   });
 
+  test('g g still works when the page rewrites the # part between the keys', async ({ page }) => {
+    await page.goto(LONG);
+    await page.keyboard.press('Shift+G');
+    await expect.poll(() => scrollY(page)).toBeGreaterThan(0);
+    await page.keyboard.press('g');
+    // Some sites keep the # part in step with the section in view.
+    await page.evaluate(() => {
+      history.replaceState(null, '', '#part-2');
+    });
+    await page.keyboard.press('g');
+    await expect.poll(() => scrollY(page)).toBe(0);
+  });
+
   test('a held key keeps scrolling', async ({ page }) => {
     await page.goto(LONG);
     await page.keyboard.down('j');

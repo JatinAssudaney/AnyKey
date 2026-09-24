@@ -216,7 +216,8 @@ export function tokenOf(mods: Modifiers, key: string): string {
   return token + key;
 }
 
-function resolveMod(chord: Chord, isMac: boolean): Modifiers {
+/** The modifiers a chord holds on this platform: `mod` becomes Meta on macOS and Ctrl elsewhere. */
+export function resolveMod(chord: Chord, isMac: boolean): Modifiers {
   return {
     ctrl: chord.ctrl || (chord.mod && !isMac),
     alt: chord.alt,

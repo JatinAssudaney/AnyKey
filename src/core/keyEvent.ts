@@ -1,4 +1,5 @@
-import { CODE_NAME, isCased, isPrintable, MODIFIER_CODES, namedKey, tokenOf } from './keys';
+import { CODE_NAME, isCased, isPrintable, MODIFIER_CODES, namedKey, tokenOf, type Chord } from './keys';
+import type { KeyMode } from './schema';
 
 /** The KeyboardEvent fields shortcuts depend on. `altGraph` is `event.getModifierState('AltGraph')`. */
 export interface KeyInput {
@@ -67,32 +68,43 @@ function usLayoutChar(code: string, shift: boolean): string | undefined {
 }
 
 /**
- * The key-mode match token for a keydown, or null when it can't be part of a shortcut (modifier-only, dead keys,
- * IME processing, media keys). Mirrors the notation rules in `parseKeys`.
+ * The chord a keydown makes in `mode`, or null when it can't be part of a shortcut (modifier-only, dead keys, IME
+ * processing, media keys). Mirrors the notation rules in `parseKeys`; `mod` stays false.
  */
-export function keyToken(input: KeyInput, isMac: boolean): string | null {
+export function eventChord(input: KeyInput, mode: KeyMode, isMac: boolean): Chord | null {
   if (isModifierOnly(input)) return null;
+  if (mode === 'code') {
+    if (!CODE_NAME.test(input.code)) return null;
+    const { ctrlKey: ctrl, altKey: alt, shiftKey: shift, metaKey: meta } = input;
+    return { mod: false, ctrl, alt, shift, meta, key: input.code };
+  }
   // AltGr reports Ctrl+Alt on Windows while typing characters such as "@"; the character already reflects it.
   const ctrl = input.ctrlKey && !input.altGraph;
   const alt = input.altKey && !input.altGraph;
-  const mods = { ctrl, alt, shift: input.shiftKey, meta: input.metaKey };
+  const chord = { mod: false, ctrl, alt, shift: input.shiftKey, meta: input.metaKey };
   // macOS Option turns letters into symbols (Option+K types "˚"), so Option chords use the US-layout character.
   const key = isMac && alt ? (usLayoutChar(input.code, input.shiftKey) ?? input.key) : input.key;
 
   const named = namedKey(key);
   // Named keys keep Shift (Shift+Tab), except "plus": the "+" character, which Shift already produced.
-  if (named !== undefined) return tokenOf(named === 'plus' ? { ...mods, shift: false } : mods, named);
+  if (named !== undefined) return { ...chord, shift: named !== 'plus' && chord.shift, key: named };
   if (!isPrintable(key)) return null;
   if (isCased(key)) {
-    if (ctrl || alt || input.metaKey) return tokenOf(mods, key.toLowerCase());
+    if (ctrl || alt || input.metaKey) return { ...chord, key: key.toLowerCase() };
     // Letter case follows Shift, so Caps Lock never changes which shortcut a letter triggers.
-    return tokenOf({ ...mods, shift: false }, input.shiftKey ? key.toUpperCase() : key.toLowerCase());
+    return { ...chord, shift: false, key: input.shiftKey ? key.toUpperCase() : key.toLowerCase() };
   }
-  return tokenOf({ ...mods, shift: false }, key);
+  return { ...chord, shift: false, key };
+}
+
+/** The key-mode match token for a keydown, or null when it can't be part of a shortcut. */
+export function keyToken(input: KeyInput, isMac: boolean): string | null {
+  const chord = eventChord(input, 'key', isMac);
+  return chord === null ? null : tokenOf(chord, chord.key);
 }
 
 /** The code-mode match token for a keydown: the physical key plus every held modifier. */
 export function codeToken(input: KeyInput): string | null {
-  if (isModifierOnly(input) || !CODE_NAME.test(input.code)) return null;
-  return tokenOf({ ctrl: input.ctrlKey, alt: input.altKey, shift: input.shiftKey, meta: input.metaKey }, input.code);
+  const chord = eventChord(input, 'code', false);
+  return chord === null ? null : tokenOf(chord, chord.key);
 }

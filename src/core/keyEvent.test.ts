@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { codeToken, isModifierOnly, keyToken, type KeyInput } from './keyEvent';
-import { sequenceTokens } from './keys';
+import { codeToken, eventChord, isModifierOnly, keyToken, type KeyInput } from './keyEvent';
+import { chordText, sequenceTokens } from './keys';
 
 function press(key: string, code: string, mods: Partial<KeyInput> = {}): KeyInput {
   return { key, code, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false, altGraph: false, ...mods };
@@ -87,5 +87,26 @@ describe('isModifierOnly', () => {
     expect(isModifierOnly(press('CapsLock', 'CapsLock'))).toBe(true);
     expect(isModifierOnly(press('AltGraph', 'AltRight'))).toBe(true);
     expect(isModifierOnly(press('a', 'KeyA'))).toBe(false);
+  });
+});
+
+describe('eventChord', () => {
+  const text = (input: KeyInput, mode: 'key' | 'code', isMac = false): string | null => {
+    const chord = eventChord(input, mode, isMac);
+    return chord === null ? null : chordText(chord);
+  };
+
+  it('writes the notation that parseKeys reads back', () => {
+    expect(text(press('G', 'KeyG', { shiftKey: true }), 'key')).toBe('G');
+    expect(text(press('K', 'KeyK', { ctrlKey: true, shiftKey: true }), 'key')).toBe('ctrl+shift+k');
+    expect(text(press('+', 'Equal', { shiftKey: true }), 'key')).toBe('plus');
+    expect(text(press('Tab', 'Tab', { shiftKey: true }), 'key')).toBe('shift+tab');
+    expect(text(press('?', 'Slash', { shiftKey: true }), 'code')).toBe('shift+Slash');
+  });
+
+  it('returns null for keys that cannot be part of a shortcut', () => {
+    expect(eventChord(press('Shift', 'ShiftLeft', { shiftKey: true }), 'key', false)).toBeNull();
+    expect(eventChord(press('Dead', 'Quote'), 'key', false)).toBeNull();
+    expect(eventChord(press('Process', ''), 'code', false)).toBeNull();
   });
 });
