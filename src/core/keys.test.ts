@@ -111,15 +111,14 @@ describe('keysInWords', () => {
 });
 
 describe('commandKeycaps', () => {
-  it("splits a browser command's shortcut into keycaps, as each platform writes it", () => {
-    expect(commandKeycaps('⌥⇧K', true)).toEqual(['⌥', '⇧', 'K']);
-    expect(commandKeycaps('⇧⌘Space', true)).toEqual(['⇧', '⌘', 'Space']);
-    expect(commandKeycaps('Alt+Shift+K', false)).toEqual(['Alt', 'Shift', 'K']);
-    expect(commandKeycaps('Strg+Umschalt+K', false)).toEqual(['Strg', 'Umschalt', 'K']);
+  it("splits a browser command's shortcut into keycaps, in the form each platform writes it", () => {
+    expect(commandKeycaps('⌥⇧K')).toEqual(['⌥', '⇧', 'K']);
+    expect(commandKeycaps('⇧⌘Space')).toEqual(['⇧', '⌘', 'Space']);
+    expect(commandKeycaps('Alt+Shift+K')).toEqual(['Alt', 'Shift', 'K']);
+    expect(commandKeycaps('Strg+Umschalt+K')).toEqual(['Strg', 'Umschalt', 'K']);
   });
 
   it('gives no keycaps when the command has no key', () => {
-    expect(commandKeycaps('', true)).toEqual([]);
-    expect(commandKeycaps('', false)).toEqual([]);
+    expect(commandKeycaps('')).toEqual([]);
   });
 });

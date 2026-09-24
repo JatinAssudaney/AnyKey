@@ -12,7 +12,7 @@ export function KeyCaps({ keys, mode }: { keys: string; mode: KeyMode }) {
 
 /** The key that opens AnyKey's panel, a browser command, as keycaps drawn like the rest. */
 export function CommandKeyCaps({ shortcut }: { shortcut: string }) {
-  return <Caps chords={[commandKeycaps(shortcut, isMac)]} />;
+  return <Caps chords={[commandKeycaps(shortcut)]} />;
 }
 
 function Caps({ chords }: { chords: readonly (readonly string[])[] }) {

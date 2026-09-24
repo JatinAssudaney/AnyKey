@@ -9,19 +9,32 @@ import {
   type Page,
   type Worker,
 } from '@playwright/test';
+import type { Platform } from './constants.ts';
 
 export { expect } from '@playwright/test';
-export { FIXTURE_ORIGIN } from './constants.ts';
+export { FIXTURE_ORIGIN, type Platform } from './constants.ts';
 
 const EXTENSION_PATH = path.resolve(import.meta.dirname, '../dist/chrome-mv3');
 
-/** A fresh Chromium profile with the built extension loaded. The options size its pages (the store images). */
+const WINDOWS_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
+
+/**
+ * A fresh Chromium profile with the built extension loaded. The options size its pages (the store images), and
+ * `backForwardCache` turns the cache back on, which Playwright turns off so pages load the same way every time.
+ */
 export async function launchExtensionContext(
-  options: Pick<BrowserContextOptions, 'viewport' | 'deviceScaleFactor'> = {},
+  options: Pick<BrowserContextOptions, 'viewport' | 'deviceScaleFactor'> & {
+    platform?: Platform;
+    backForwardCache?: boolean;
+  } = {},
 ): Promise<BrowserContext> {
+  const { platform = 'host', backForwardCache = false, ...contextOptions } = options;
   // Branded Chrome 137+ ignores --load-extension, so this uses Playwright's bundled Chromium.
   return chromium.launchPersistentContext('', {
-    ...options,
+    ...contextOptions,
+    ...(platform === 'windows' ? { userAgent: WINDOWS_USER_AGENT } : {}),
+    ...(backForwardCache ? { ignoreDefaultArgs: ['--disable-back-forward-cache'] } : {}),
     channel: 'chromium',
     args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
   });
@@ -63,6 +76,7 @@ export async function welcomePage(context: BrowserContext): Promise<Page> {
 }
 
 interface WorkerFixtures {
+  platform: Platform;
   extensionContext: BrowserContext;
   serviceWorker: Worker;
   extensionId: string;
@@ -75,10 +89,10 @@ interface TestFixtures {
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
+  platform: ['host', { scope: 'worker', option: true }],
   extensionContext: [
-    // eslint-disable-next-line no-empty-pattern -- Playwright requires an object pattern here.
-    async ({}, use) => {
-      const context = await launchExtensionContext();
+    async ({ platform }, use) => {
+      const context = await launchExtensionContext({ platform });
       // Tests start without the page that installing AnyKey opens, so none finds a tab it didn't open.
       await (await welcomePage(context)).close();
       await use(context);

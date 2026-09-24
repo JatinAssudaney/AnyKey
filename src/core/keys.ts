@@ -306,12 +306,13 @@ export function keysInWords(keys: string, mode: KeyMode, isMac: boolean): string
 
 /**
  * Keycap labels for a browser command's shortcut, as `commands.getAll()` writes it: "⌥⇧K" on macOS, and "Alt+Shift+K"
- * elsewhere, with the modifiers named in the browser's language. Empty when the command has no key.
+ * elsewhere, with the modifiers named in the browser's language. The text shows which form it is in, so this reads
+ * the form rather than guess the platform. Empty when the command has no key.
  */
-export function commandKeycaps(shortcut: string, isMac: boolean): string[] {
-  if (!isMac) return shortcut.split('+').filter((label) => label !== '');
-  // The modifier symbols come first, one character each.
+export function commandKeycaps(shortcut: string): string[] {
   const symbols: readonly string[] = Object.values(MAC_MODIFIERS);
+  if (!symbols.includes(shortcut.charAt(0))) return shortcut.split('+').filter((label) => label !== '');
+  // The modifier symbols come first, one character each.
   const labels: string[] = [];
   let rest = shortcut;
   while (symbols.includes(rest.charAt(0))) {

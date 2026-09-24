@@ -22,7 +22,7 @@ pnpm build          # production build in dist/chrome-mv3
 pnpm dev            # watch build in dist/chrome-mv3-dev
 ```
 
-Load the build in Chrome: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `dist/chrome-mv3` (or `dist/chrome-mv3-dev` while `pnpm dev` runs). After a rebuild, click the reload icon on the AnyKey card and reload any open tabs.
+Load the build in Chrome: open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick `dist/chrome-mv3` (or `dist/chrome-mv3-dev` while `pnpm dev` runs). After a rebuild, click the reload icon on the AnyKey card: AnyKey starts again in the tabs already open, without reloading them.
 
 ## Checks
 
@@ -31,6 +31,7 @@ pnpm check          # typecheck, lint, em-dash check, unit tests, build
 pnpm test:e2e       # Playwright against the built extension
 pnpm test:live      # the GitHub and YouTube presets on the live sites, signed out
 pnpm store:images   # the Chrome Web Store images, into store/images, and the demo video's stills
+pnpm zip            # the upload for the Chrome Web Store, dist/anykey-<version>-chrome.zip
 ```
 
 The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chromium`.

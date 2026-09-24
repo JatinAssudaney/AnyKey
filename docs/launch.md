@@ -29,7 +29,7 @@ Checked on 2026-09-24:
 - [x] A page where AnyKey was used (scrolled, cheatsheet opened) still goes into the back/forward cache: AnyKey has no `unload` handler and keeps no port open.
 - [x] No errors or warnings in the console of a web page, the popup, the options page or the service worker.
 - [x] End-to-end tests (Playwright) as well as unit tests.
-- [ ] M10: the back/forward cache and console checks run as E2E tests, so no later change undoes them.
+- [x] M10: the back/forward cache and console checks run as E2E tests (`e2e/release.spec.ts`), so no later change undoes them.
 
 ## Onboarding (M7)
 
@@ -64,10 +64,10 @@ Text, ready to paste in `store/listing.md`:
 
 ## Release (M10)
 
-- [ ] Version 1.0.0.
+- [x] Version 1.0.0.
 - [ ] A manual test pass in Google Chrome on macOS (so far: Brave): install Chrome, load `dist/chrome-mv3` unpacked at `chrome://extensions`, and go through the manual lists.
-- [ ] Windows, without a Windows machine: an E2E run with a Windows user agent, which takes AnyKey's own Windows paths (Ctrl where a Mac has Cmd, the keycaps, the key recorder). What only Windows itself shows stays unchecked: AltGr keyboards, and the keys Chrome on Windows keeps (Ctrl+W, Ctrl+Tab and the rest listed in `src/core/conflicts.ts`). A friend's PC for a quarter of an hour, or a Windows virtual machine on the Mac (UTM or Parallels), would cover them; otherwise Issues will.
-- [ ] `pnpm zip`, for the upload.
+- [x] Windows, without a Windows machine: every E2E test also runs as Windows (the `windows` project in `playwright.config.ts`), with a Windows user agent, which takes AnyKey's own Windows paths (Ctrl where a Mac has Cmd, the keycaps, the key recorder). What only Windows itself shows stays unchecked: AltGr keyboards, and the keys Chrome on Windows keeps (Ctrl+W, Ctrl+Tab and the rest listed in `src/core/conflicts.ts`). A friend's PC for a quarter of an hour, or a Windows virtual machine on the Mac (UTM or Parallels), would cover them; otherwise Issues will.
+- [x] `pnpm zip`, for the upload: `dist/anykey-1.0.0-chrome.zip`, about 200 kB.
 
 ### Developer account (by hand, start early)
 
