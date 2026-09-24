@@ -89,9 +89,11 @@ test('settings keep a built-in shortcut on the site, rekey a preset shortcut, an
   await page.goto(WATCH);
   const options = await extensionContext.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
+  await options.getByRole('button', { name: 'www.youtube.com', exact: true }).click();
   const youtube = options.getByRole('region', { name: 'www.youtube.com', exact: true });
   await expect(youtube.getByRole('rowheader', { name: /^Like the video/ })).toContainText('Unverified');
 
+  await youtube.getByText('Built-in shortcuts that give way to YouTube').click();
   await youtube.getByRole('switch', { name: /^Keep "Scroll down"/ }).check();
   await youtube.getByRole('button', { name: 'Edit Like the video', exact: true }).click();
   const dialog = options.getByRole('dialog', { name: 'Edit "Like the video"' });

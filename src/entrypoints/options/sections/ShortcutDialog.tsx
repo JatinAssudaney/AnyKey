@@ -184,8 +184,13 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
     if (Object.keys(found).length > 0) return;
     onSave(mutation);
     onClose();
-    // Saving can move the shortcut to another table (to another site, or between a site and every site).
-    if (original !== null && !keysOnly) focusAfterRender(() => document.getElementById(editButtonId(shortcut)));
+    // Focus follows the shortcut when it may not be where the dialog was opened: saving can move it to another table
+    // (to another site, or between a site and every site), and a new one can go to another site than the one it was
+    // added from, or come from "Add a site shortcut", which sits above every site.
+    const savedSite = where === 'site' ? site : undefined;
+    if (!keysOnly && (original !== null || savedSite !== originalSite)) {
+      focusAfterRender(() => document.getElementById(editButtonId(shortcut)));
+    }
   }
 
   // Conflicts as if the shortcut were on, among the shortcuts that can run together with it, and for a shortcut on

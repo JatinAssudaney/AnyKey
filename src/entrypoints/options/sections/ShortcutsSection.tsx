@@ -18,9 +18,11 @@ interface ShortcutsSectionProps {
   data: SyncData;
   presets: readonly Preset[];
   mutate: (mutation: Mutation) => Promise<string | null>;
+  /** Opens a site in the Sites section, for a shortcut saved to it here. */
+  onShowSite: (host: string) => void;
 }
 
-export function ShortcutsSection({ data, presets, mutate }: ShortcutsSectionProps) {
+export function ShortcutsSection({ data, presets, mutate, onShowSite }: ShortcutsSectionProps) {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [deleting, setDeleting] = useState<Shortcut | null>(null);
   const addButton = useRef<HTMLButtonElement>(null);
@@ -135,7 +137,10 @@ export function ShortcutsSection({ data, presets, mutate }: ShortcutsSectionProp
           editing={editing}
           data={data}
           presets={presets}
-          onSave={send}
+          onSave={(mutation) => {
+            if (mutation.op === 'saveShortcut' && mutation.site !== undefined) onShowSite(mutation.site);
+            send(mutation);
+          }}
           onClose={() => {
             setEditing(null);
           }}

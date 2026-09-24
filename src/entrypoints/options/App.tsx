@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import iconUrl from '@/assets/icon.svg';
 import { focusRing } from '@/components/styles';
 import { DataSection } from './sections/DataSection';
@@ -10,6 +11,8 @@ import { useSync } from '@/components/useSync';
 export function App() {
   const { data, backup, status, mutate } = useSync();
   const presets = usePresets();
+  // Which site's settings show: a save in either section that puts a shortcut on a site opens it.
+  const [openSite, setOpenSite] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
@@ -50,8 +53,8 @@ export function App() {
                 .
               </p>
             )}
-            <ShortcutsSection data={data} presets={presets} mutate={mutate} />
-            <SitesSection data={data} presets={presets} mutate={mutate} />
+            <ShortcutsSection data={data} presets={presets} mutate={mutate} onShowSite={setOpenSite} />
+            <SitesSection data={data} presets={presets} mutate={mutate} openSite={openSite} onOpenSite={setOpenSite} />
             <SettingsSection data={data} mutate={mutate} />
             <DataSection data={data} backup={backup} mutate={mutate} />
           </div>

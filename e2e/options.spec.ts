@@ -250,7 +250,9 @@ test('a site shortcut added in settings clicks an element on that site', async (
       ],
     },
   });
+  // The new site opens, with focus on the shortcut, since the button that added it sits above every site.
   await expect(site.getByRole('table', { name: 'Shortcuts for 127.0.0.1' })).toBeVisible();
+  await expect(site.getByRole('button', { name: /^Edit / })).toBeFocused();
 
   await page.bringToFront();
   await pressUntil(page, ['q'], async () => (await page.evaluate(() => window.clicks?.like)) === 1);
@@ -261,6 +263,76 @@ test('a site shortcut added in settings clicks an element on that site', async (
   await expect(options.getByRole('button', { name: 'Add shortcut for 127.0.0.1' })).toBeFocused();
   await expect.poll(() => stored(options)).toEqual({});
   await options.close();
+});
+
+test('sites show one at a time, the clicked row keeping its place, and the search finds one', async ({
+  page,
+  extensionId,
+}) => {
+  await openOptions(page, extensionId);
+  const row = (host: string) => page.getByRole('button', { name: host, exact: true });
+  const site = (host: string) => page.getByRole('region', { name: host, exact: true });
+  await expect(row('github.com')).toHaveAccessibleDescription('GitHub preset');
+  await expect(row('github.com')).toHaveAttribute('aria-expanded', 'false');
+  await expect(site('github.com')).toHaveCount(0);
+
+  await row('github.com').click();
+  await expect(site('github.com').getByRole('table', { name: 'GitHub preset shortcuts' })).toBeVisible();
+  // GitHub's settings above close as YouTube's open, and YouTube's row stays where it was clicked.
+  await row('www.youtube.com').scrollIntoViewIfNeeded();
+  const before = await row('www.youtube.com').boundingBox();
+  await row('www.youtube.com').click();
+  await expect(site('www.youtube.com')).toBeVisible();
+  await expect(site('github.com')).toHaveCount(0);
+  const after = await row('www.youtube.com').boundingBox();
+  expect(Math.abs((after?.y ?? 0) - (before?.y ?? Infinity))).toBeLessThan(1);
+  await row('www.youtube.com').click();
+  await expect(site('www.youtube.com')).toHaveCount(0);
+
+  // Tab goes from the search to Add, then down the list: each site's button, then its switch.
+  const search = page.getByLabel('Find a site');
+  await search.focus();
+  for (const next of [
+    page.getByRole('button', { name: 'Add a site shortcut' }),
+    row('github.com'),
+    page.getByRole('switch', { name: 'Use AnyKey on github.com' }),
+    row('www.reddit.com'),
+  ]) {
+    await page.keyboard.press('Tab');
+    await expect(next).toBeFocused();
+  }
+
+  await search.fill('redd');
+  await expect(page.getByText('1 of 3 sites')).toBeVisible();
+  await expect(row('github.com')).toHaveCount(0);
+  await search.press('Enter');
+  await expect(row('www.reddit.com')).toBeFocused();
+  await expect(site('www.reddit.com')).toBeVisible();
+  await search.fill('https://www.youtube.com/watch?v=abc');
+  await expect(row('www.youtube.com')).toBeVisible();
+  await expect(row('www.reddit.com')).toHaveCount(0);
+  await search.fill('nothing');
+  await expect(page.getByText('No site matches "nothing".')).toBeVisible();
+
+  await search.fill('');
+  await page.getByRole('switch', { name: 'Use AnyKey on www.reddit.com' }).uncheck();
+  await expect.poll(() => stored(page)).toEqual({ 'site:www.reddit.com': { v: 1, disabled: true, shortcuts: [] } });
+});
+
+test('a shortcut the Shortcuts section adds for a site opens that site, with focus on the shortcut', async ({
+  page,
+  extensionId,
+}) => {
+  await openOptions(page, extensionId);
+  await page.getByRole('button', { name: 'Add shortcut', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Add a shortcut' });
+  await dialog.getByLabel('Works on').selectOption('site');
+  await dialog.getByLabel('Site', { exact: true }).fill('example.com');
+  await dialog.getByLabel('Keys', { exact: true }).fill('n');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  const site = page.getByRole('region', { name: 'example.com', exact: true });
+  await expect(site.getByRole('button', { name: 'Edit Scroll down', exact: true })).toBeFocused();
+  await expect.poll(() => stored(page)).toMatchObject({ 'site:example.com': { shortcuts: [{ keys: 'n' }] } });
 });
 
 test("the panel's key shows with a way to change it on the browser's shortcuts page", async ({

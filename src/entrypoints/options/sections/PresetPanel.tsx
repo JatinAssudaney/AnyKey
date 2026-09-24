@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { Chevron } from '@/components/Chevron';
 import { focusAfterRender } from '@/components/focus';
 import { KeyCaps } from '@/components/KeyCaps';
 import { checkbox, focusRing, hintText, linkButton, secondaryButton } from '@/components/styles';
@@ -10,6 +11,8 @@ import { presetYields, type NativeKey, type SiteShortcuts } from '@/core/resolve
 import type { Shortcut } from '@/core/schema';
 import type { Editing } from './ShortcutDialog';
 import { editButtonId, ShortcutTable } from './ShortcutTable';
+
+const summaryClass = `flex w-fit cursor-pointer list-none items-center gap-2 rounded text-sm font-semibold ${focusRing}`;
 
 interface PresetPanelProps {
   preset: Preset;
@@ -27,7 +30,8 @@ interface PresetPanelProps {
 
 /**
  * A preset on one of its sites: its shortcuts with the user's changes, the built-in shortcuts that give way to the
- * site's own keys (each with a switch to keep it on the site), and a reference of the site's keys.
+ * site's own keys (each with a switch to keep it on the site), and a reference of the site's keys. The last two can
+ * run long (GitHub has dozens of keys), so they start closed.
  */
 export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit, onReset }: PresetPanelProps) {
   const ids = useId();
@@ -93,8 +97,12 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
       />
 
       {yields.length > 0 && (
-        <div className="mt-6">
-          <h5 className="text-sm font-semibold">Built-in shortcuts that give way to {preset.name}</h5>
+        <details className="group mt-6">
+          <summary className={summaryClass}>
+            <Chevron className="group-open:rotate-90" />
+            Built-in shortcuts that give way to {preset.name}
+            <Count n={yields.length} />
+          </summary>
           <p className={hintText}>
             Where {preset.name} uses one of these keys itself, AnyKey leaves the key to {preset.name}. Keep a shortcut
             to have AnyKey&apos;s run there instead.
@@ -133,12 +141,14 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
               );
             })}
           </ul>
-        </div>
+        </details>
       )}
 
-      <details className="mt-6">
-        <summary className={`cursor-pointer rounded text-sm font-semibold ${focusRing}`}>
+      <details className={`group ${yields.length > 0 ? 'mt-4' : 'mt-6'}`}>
+        <summary className={summaryClass}>
+          <Chevron className="group-open:rotate-90" />
           {preset.name}&apos;s own keys
+          <Count n={native.length} />
         </summary>
         <p className={hintText}>
           What {preset.name} does with its keys, as far as AnyKey knows. AnyKey passes them to {preset.name}, except
@@ -188,6 +198,15 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
         </button>
       )}
     </section>
+  );
+}
+
+/** How many entries a collapsed list holds, next to its summary. */
+function Count({ n }: { n: number }) {
+  return (
+    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300">
+      {n}
+    </span>
   );
 }
 
