@@ -1,0 +1,8 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Renders, and the stills `pnpm store:images` makes from the extension.
+out
+public/frames

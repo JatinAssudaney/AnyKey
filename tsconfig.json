@@ -5,6 +5,7 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  // e2e/ has its own tsconfig: its code runs in Node and inside the extension's service worker.
-  "exclude": ["node_modules", "dist", "e2e"]
+  // e2e/ has its own tsconfig: its code runs in Node and inside the extension's service worker. store/video is a
+  // Remotion project with its own packages and config.
+  "exclude": ["node_modules", "dist", "e2e", "store/video"]
 }

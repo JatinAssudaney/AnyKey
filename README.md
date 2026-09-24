@@ -30,7 +30,7 @@ Load the build in Chrome: open `chrome://extensions`, turn on **Developer mode**
 pnpm check          # typecheck, lint, em-dash check, unit tests, build
 pnpm test:e2e       # Playwright against the built extension
 pnpm test:live      # the GitHub and YouTube presets on the live sites, signed out
-pnpm store:images   # the Chrome Web Store images, into store/images
+pnpm store:images   # the Chrome Web Store images, into store/images, and the demo video's stills
 ```
 
 The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chromium`.
@@ -43,4 +43,5 @@ The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chr
 - [PERMISSIONS.md](PERMISSIONS.md): why each permission is requested
 - [PRIVACY.md](PRIVACY.md): the privacy policy
 - [store/listing.md](store/listing.md): the Chrome Web Store listing, field by field
+- [store/video/README.md](store/video/README.md): the demo video, and how to make it
 - [BACKLOG.md](BACKLOG.md): ideas left for later, and why they wait

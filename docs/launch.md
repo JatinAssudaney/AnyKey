@@ -50,7 +50,7 @@ Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing
 - [x] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI: five, on a made-up recipe site (`store/demo.html`) and AnyKey's own pages. Make them again once M8 clears the Unverified badges from the settings screenshot.
 - [x] Small promo tile, 440×280 (required): no text, saturated colors, clear at half size.
 - [x] Marquee, 1400×560: optional, but the store's carousel shows only items that have one.
-- [ ] A short demo video on YouTube (recommended): recorded by hand on the demo page (`python3 -m http.server -d store`, then http://localhost:8000/demo.html), showing hints, then giving a button a key, then pressing it.
+- [ ] A short demo video on YouTube (recommended): made in `store/video` (Remotion) from stills of AnyKey on the demo page, 40 seconds. Render it, upload it to YouTube and put its link in the listing. Its settings scene shows the Unverified badges too, so make the stills again after M8 as well.
 
 Text, ready to paste in `store/listing.md`:
 

@@ -240,5 +240,30 @@
         </div>
       </aside>
     </div>
+    <script>
+      // Each recipe in the sidebar opens with its own title (all paths serve this page), and Save shows that it saved:
+      // the demo video follows a link hint to another recipe, and clicks Save with a shortcut.
+      const RECIPES = {
+        'tomato-rice': ['One-pan tomato rice', '🍅🍚', '30 minutes', 'Rice baked in a spiced tomato broth, all in one pan.'],
+        'green-curry': ['Quick green curry', '🥦🍛', '20 minutes', 'A fragrant curry with whatever greens the fridge holds.'],
+        'miso-salmon': ['Miso glazed salmon', '🐟🍚', '15 minutes', 'Salmon brushed with miso and honey, blistered under a hot grill, on rice.'],
+        'chickpea-stew': ['Smoky chickpea stew', '🥘🌶️', '35 minutes', 'Chickpeas simmered with smoked paprika, tomatoes and greens.'],
+      };
+      const recipe = RECIPES[location.pathname.split('/').pop()];
+      if (recipe !== undefined) {
+        const [title, hero, time, intro] = recipe;
+        document.title = `${title} · Pantry Notes`;
+        document.querySelector('h1').textContent = title;
+        document.querySelector('.hero').textContent = hero;
+        document.querySelector('.meta span').textContent = time;
+        document.querySelector('main > p').textContent = intro;
+      }
+      document.querySelector('[data-testid="save"]').addEventListener('click', (event) => {
+        const button = event.currentTarget;
+        const saved = button.getAttribute('aria-pressed') !== 'true';
+        button.setAttribute('aria-pressed', String(saved));
+        button.textContent = saved ? 'Saved ✓' : 'Save recipe';
+      });
+    </script>
   </body>
 </html>

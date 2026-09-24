@@ -6,7 +6,8 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores(['dist/', '.wxt/', 'playwright-report/', 'test-results/']),
+  // store/video is a Remotion project, linted with its own config.
+  globalIgnores(['dist/', '.wxt/', 'playwright-report/', 'test-results/', 'store/video/']),
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
