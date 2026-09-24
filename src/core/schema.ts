@@ -140,13 +140,17 @@ export const SettingsSchema = z.object({
   /** Pixels per scroll-up/down press. */
   scrollStep: between(10, 1000),
   smoothScroll: z.boolean(),
-  /** Characters used for link-hint labels. */
+  /** Characters link hint labels are made of, the most comfortable first. Hints ignore case. */
   hintChars: z
     .string()
     .check(
-      z.minLength(2, 'Use at least 2 characters.'),
+      z.refine((chars) => Array.from(chars).length >= 2, 'Use at least 2 characters.'),
       z.maxLength(40, 'Use at most 40 characters.'),
-      z.refine((chars) => new Set(chars).size === chars.length, 'Use each hint character once.'),
+      z.refine((chars) => !/\s/u.test(chars), 'Leave out spaces.'),
+      z.refine((chars) => {
+        const list = Array.from(chars.toLowerCase());
+        return new Set(list).size === list.length;
+      }, 'Use each character once. Capital and small letters count as the same.'),
     ),
   /** Links opened in a new tab (F hints, new-tab shortcuts) open behind the current tab. */
   newTabInBackground: z.boolean(),

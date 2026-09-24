@@ -13,7 +13,7 @@ export interface UiRoot {
 }
 
 /**
- * The one shadow root for all in-page UI (cheatsheet, toasts, and later hints and the picker). It is closed, so
+ * The one shadow root for all in-page UI (cheatsheet, toasts, link hints and the picker). It is closed, so
  * page scripts can't reach inside, and its CSS goes in as text, so no stylesheet is web-accessible for pages to
  * probe. The host sits on <html>, which survives pages that replace <body>. Overlays inside use the top layer.
  */

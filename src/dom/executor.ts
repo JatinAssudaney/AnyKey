@@ -3,6 +3,7 @@ import type { Settings, Shortcut } from '../core/schema';
 import { isSafeUrl } from '../core/url';
 import { sendToBackground } from '../messaging';
 import { clickElement, focusElement, linkOf } from './click';
+import { isEditable } from './editable';
 import type { Scroller } from './scroll';
 import { findTarget } from './targets';
 
@@ -11,6 +12,8 @@ export interface ExecutorOptions {
   scroller: Scroller;
   isMac: boolean;
   openCheatsheet: () => void;
+  /** Shows link hints. Typing one runs `activate` on its element. */
+  openHints: (activate: (element: Element) => void) => void;
   toast: (message: string) => void;
 }
 
@@ -38,6 +41,29 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
     }
     if (newTab) void request({ type: 'openUrl', url: resolved.href, background: settings.newTabInBackground });
     else location.assign(resolved.href);
+  }
+
+  /**
+   * A click. For a new tab, a link opens through the background, which can place the tab, and anything else gets
+   * a Ctrl or Cmd click.
+   */
+  function click(element: Element, newTab: boolean, settings: Settings): void {
+    const link = newTab ? linkOf(element) : null;
+    if (link !== null) navigate(link.href, true, settings);
+    else clickElement(element, { modifier: newTab, isMac: options.isMac });
+  }
+
+  /** What typing a hint does: a text field or list takes focus (a list opens too), and anything else is clicked. */
+  function activate(element: Element, newTab: boolean): void {
+    if (!element.isConnected) {
+      toast('That element is gone from the page.');
+      return;
+    }
+    if (isEditable(element) && focusElement(element)) {
+      if (element instanceof HTMLSelectElement) showPicker(element);
+      return;
+    }
+    click(element, newTab, options.settings());
   }
 
   return ({ action, label }, repeat) => {
@@ -68,10 +94,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
           toast(notFound(label));
           return;
         }
-        const link = action.newTab === true ? linkOf(element) : null;
-        // A link opens through the background, which can place the tab; anything else gets a Ctrl or Cmd click.
-        if (link !== null) navigate(link.href, true, settings);
-        else clickElement(element, { modifier: action.newTab === true, isMac: options.isMac });
+        click(element, action.newTab === true, settings);
         return;
       }
       case 'focus': {
@@ -80,14 +103,26 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
         else if (!focusElement(element)) toast(`"${label}" found an element that can't take focus.`);
         return;
       }
-      case 'hints':
-        // Hints arrive with M5; no shortcut can hold this action yet.
-        toast('This version of AnyKey cannot run this shortcut yet.');
+      case 'hints': {
+        const newTab = action.newTab === true;
+        options.openHints((element) => {
+          activate(element, newTab);
+        });
         return;
+      }
     }
   };
 }
 
 function notFound(label: string): string {
   return `Couldn't find the element for "${label}" on this page.`;
+}
+
+/** Opens a list's options, as a click would. Only a key press or click just before allows it. */
+function showPicker(select: HTMLSelectElement): void {
+  try {
+    select.showPicker();
+  } catch {
+    // Focused is enough: the arrow keys and typing still choose an option.
+  }
 }

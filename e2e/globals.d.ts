@@ -12,5 +12,7 @@ declare global {
     closedInputValue?: () => string;
     /** How often the picker fixture's buttons were clicked. */
     clicks?: { like: number; play: number };
+    /** The hints fixture's clicks, as the id of the element clicked, with "mod+" before it for Ctrl or Cmd clicks. */
+    clickLog?: string[];
   }
 }

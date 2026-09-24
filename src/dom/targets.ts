@@ -3,8 +3,8 @@ import { normalizeText, sameText } from '../core/text';
 import { deepElements, shadowRootOf } from './shadow';
 import { UI_HOST } from './ui/root';
 
-/** Elements people click, pick or type into: what the picker moves between and the text match looks through. */
-export const INTERACTIVE = [
+/** Elements people click, pick or type into, apart from those a tabindex alone makes focusable. */
+export const CONTROLS = [
   'a[href]',
   'button',
   'input:not([type="hidden"])',
@@ -26,9 +26,11 @@ export const INTERACTIVE = [
   '[role="searchbox"]',
   '[role="treeitem"]',
   '[contenteditable]:not([contenteditable="false"])',
-  '[tabindex]:not([tabindex="-1"])',
   '[onclick]',
 ].join(', ');
+
+/** Elements people click, pick or type into: what the picker moves between and the text match looks through. */
+export const INTERACTIVE = `${CONTROLS}, [tabindex]:not([tabindex="-1"])`;
 
 /** Separates the steps of a selector that enter shadow roots: "reddit-search-large >>> input". */
 const SHADOW_STEP = /\s*>>>\s*/;

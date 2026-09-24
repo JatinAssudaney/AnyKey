@@ -480,3 +480,40 @@
 .ak-actions > :first-child {
   margin-right: auto;
 }
+
+/* Link hints: a layer over the viewport that lets the pointer through, with a label on each target */
+
+.ak-link-hints {
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.ak-link-hint {
+  position: absolute;
+  padding: 1px 4px;
+  border: 1px solid #b45309;
+  border-radius: 4px;
+  color: #1c1917;
+  background: #fcd34d;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  font: 700 12px/14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ak-link-hint[hidden] {
+  display: none;
+}
+
+.ak-link-hint-typed {
+  color: #b45309;
+}

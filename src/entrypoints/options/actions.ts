@@ -1,6 +1,6 @@
 import type { Action, ElementTarget, ScrollDirection, TabOp } from '@/core/schema';
 
-// The actions the options page can create, as <select> choices. Link hints come with M5.
+// The actions the options page can create, as <select> choices.
 
 export interface ActionChoice {
   /** The <option> value, such as "scroll:down". */
@@ -51,6 +51,8 @@ export const ACTION_GROUPS: readonly { label: string; choices: readonly ActionCh
   {
     label: 'Page elements',
     choices: [
+      { value: 'hints', name: 'Show link hints', action: { type: 'hints' } },
+      { value: 'hints:newTab', name: 'Show link hints to open in a new tab', action: { type: 'hints', newTab: true } },
       { value: CLICK, name: 'Click an element', action: null },
       { value: FOCUS, name: 'Focus an element', action: null },
     ],
@@ -77,7 +79,9 @@ export function choiceValue(action: Action): string | null {
       ? `scroll:${action.direction}`
       : action.type === 'history' || action.type === 'tab'
         ? `${action.type}:${action.op}`
-        : action.type;
+        : action.type === 'hints' && action.newTab === true
+          ? 'hints:newTab'
+          : action.type;
   return CHOICES.has(value) ? value : null;
 }
 
@@ -108,8 +112,6 @@ export function describeAction(action: Action): string {
       return `Click ${action.target.text ?? action.target.selector}`;
     case 'focus':
       return `Focus ${action.target.text ?? action.target.selector}`;
-    case 'hints':
-      return action.newTab === true ? 'Show link hints to open in a new tab' : 'Show link hints';
     default: {
       const value = choiceValue(action);
       return (value === null ? undefined : findChoice(value)?.name) ?? action.type;

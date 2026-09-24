@@ -5,7 +5,7 @@
  */
 export type Disposition = 'consume' | 'isolate';
 
-/** A UI that takes over the keyboard while open: the cheatsheet and the picker (later: hints). */
+/** A UI that takes over the keyboard while open: the cheatsheet, the picker and link hints. */
 export interface Mode {
   /** `token` is the key-mode match token (see `keyToken`), or null for keys that have none. */
   keyDown(event: KeyboardEvent, token: string | null): Disposition;

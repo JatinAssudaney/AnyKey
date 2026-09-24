@@ -21,7 +21,7 @@ function defaultShortcut(name: string, keys: string, label: string, action: Acti
   };
 }
 
-/** Global shortcuts that work on every site. Users can rekey or disable each one; `f` and `F` arrive with hints. */
+/** Global shortcuts that work on every site. Users can rekey or disable each one. */
 export const DEFAULT_SHORTCUTS: readonly Shortcut[] = [
   defaultShortcut('scroll-down', 'j', 'Scroll down', { type: 'scroll', direction: 'down' }),
   defaultShortcut('scroll-up', 'k', 'Scroll up', { type: 'scroll', direction: 'up' }),
@@ -29,6 +29,8 @@ export const DEFAULT_SHORTCUTS: readonly Shortcut[] = [
   defaultShortcut('scroll-half-up', 'u', 'Scroll up half a page', { type: 'scroll', direction: 'halfUp' }),
   defaultShortcut('scroll-top', 'g g', 'Scroll to the top', { type: 'scroll', direction: 'top' }),
   defaultShortcut('scroll-bottom', 'G', 'Scroll to the bottom', { type: 'scroll', direction: 'bottom' }),
+  defaultShortcut('hints', 'f', 'Click a link or button', { type: 'hints' }),
+  defaultShortcut('hints-new-tab', 'F', 'Open a link in a new tab', { type: 'hints', newTab: true }),
   defaultShortcut('history-back', 'H', 'Go back', { type: 'history', op: 'back' }),
   defaultShortcut('history-forward', 'L', 'Go forward', { type: 'history', op: 'forward' }),
   defaultShortcut('tab-prev', 'J', 'Previous tab', { type: 'tab', op: 'prev' }),

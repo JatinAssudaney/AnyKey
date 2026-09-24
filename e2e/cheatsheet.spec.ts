@@ -7,7 +7,7 @@ test('? opens the cheatsheet, which keeps keys from the page until Esc closes it
   await page.keyboard.press('?');
   await expect.poll(() => openCheatsheetText(page)).toContain('Keyboard shortcuts');
   const text = await openCheatsheetText(page);
-  for (const label of ['Scroll down', 'Scroll to the top', 'Go back', 'Next tab', 'Close tab']) {
+  for (const label of ['Scroll down', 'Scroll to the top', 'Click a link or button', 'Go back', 'Next tab', 'Close tab']) {
     expect(text).toContain(label);
   }
 

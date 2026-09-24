@@ -10,7 +10,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M2 | Key engine, global scroll/history/tab shortcuts, cheatsheet | done |
 | M3 | Storage layer, options editor with key recorder, import/export | done |
 | M4 | Element picker, per-site shortcuts from the popup | done |
-| M5 | Hint mode | planned |
+| M5 | Hint mode | done |
 | M6 | Presets, overrides, conflict warnings | planned |
 
 ## Data model
@@ -65,7 +65,7 @@ type Settings = {
 };
 ```
 
-Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` hints (added with hint mode in M5), `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
+Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half page, `g g` top, `G` bottom, `f`/`F` link hints (click, or open in a new tab), `H`/`L` history back/forward, `J`/`K` previous/next tab, `x` close tab, `?` cheatsheet. All remappable and disableable.
 
 ## Storage
 
@@ -125,7 +125,7 @@ Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrive
   - Shift is dropped for other characters (`?`); notation such as `shift+/` is an error. `+` is written `plus`.
   - macOS Option chords read the US-layout character of `event.code` (`alt+k`, not `˚`). The Ctrl+Alt that AltGr reports while typing a character is dropped.
   - `mod` is Meta on macOS and Ctrl elsewhere. When a key-mode and a code-mode shortcut match the same press, key mode wins.
-- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet and the picker; hint mode in M5). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened (hint mode needs the same for `f`).
+- A mode stack routes keys: normal shortcuts, then UI modes (the cheatsheet, the picker and link hints). While a UI mode is on top, every keydown goes to it and never reaches the page. Modes treat auto-repeats as the same press: holding `?` a little long must not close the cheatsheet it just opened, and holding `f` must not type the hint labeled F.
 - A mode leaves the stack the moment it closes, never in a `<dialog>`'s `close` event: Chrome fires that event as a queued task, and input outranks queued tasks, so a key pressed right after Esc would still go to the closed mode.
 
 ## Scrolling
@@ -147,6 +147,7 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - Sites lists every site with a doc: a switch for AnyKey on the site, and its shortcuts to switch off, edit and delete. "Add a site shortcut" and each site's "Add shortcut for <host>" take any action; click and focus take a typed selector (" >>> " steps into shadow roots) and optional text. The site field accepts a pasted address and keeps its host; the pages follow the site (`*://<host>/*`) until edited. A site changed on the page stays listed while it holds nothing, so no control vanishes while in use.
 - Conflict warnings come from `src/core/conflicts.ts`: a shortcut that doesn't run because another takes its keys (and the one that takes them), a key that waits for the sequence timeout because a longer shortcut that still runs starts with it, keys the browser keeps for itself on this platform, and a shortcut that also runs in text fields on a key that types.
 - The key recorder (`src/core/recorder.ts`, shared with the picker's panel) never traps focus. Esc cancels, and its keydown is cancelled so the dialog around it stays open. Tab finishes and moves focus on as usual. Enter, a 1-second pause, or a fourth chord finishes. Auto-repeats and lone modifiers don't count as keys. The platform's command key is recorded as `mod`, so a shortcut recorded on a Mac works on Windows. Key mode records characters (`?`), code mode records physical keys (`shift+Slash`).
+- Settings save on blur or Enter once they pass the settings schema; a failure shows as an alert under the field. Hint characters are saved in small letters, since hints ignore case.
 - When a change removes the focused control, focus moves to the nearest control that stays, never back to the top of the page: Reset to the row's Edit button, Delete to Add shortcut (a site shortcut's Delete to its site's Add button), Repair to the next Repair button or else Export.
 
 ## Popup
@@ -185,10 +186,32 @@ Each candidate must match only the element within its own document or shadow roo
 
 **Running** (`src/dom/click.ts`). Click sends pointer and mouse events to the element's center, then a click, so menus that open on `pointerdown` or `mousedown` open too. A click with `newTab` on a link opens the link through the background, as navigate does. Focus focuses the element, or the first focusable element inside it, with the caret at the end; when nothing takes focus, a toast says so.
 
-## Hints (M5)
+## Hints
 
-- Candidates: links, buttons, `role=button|link|...`, inputs, `[onclick]`, `tabindex >= 0`, and `cursor: pointer` elements whose parent is not also pointer (checked only for elements in the viewport). Filtered by `checkVisibility()` and an `elementFromPoint` occlusion check that follows the shadow-host chain.
-- Prefix-free labels from `hintChars`. Typing narrows by label letters; Backspace and Esc work. `F` opens links in a new tab through the background (background tab when `newTabInBackground`); non-links get a mod-click.
+`f` puts a label on everything in view that can be clicked or typed into, and typing a label picks that element; `F` does the same to open links in a new tab (`src/dom/hints.ts`, labels from `src/core/hintLabels.ts`). Hints cover the top frame only, where the content script runs.
+
+**Targets**, in document order through open and closed shadow roots:
+- the interactive elements the picker moves between (links, buttons, form fields, ARIA widget roles, contenteditable, `[onclick]`, `tabindex` 0 and up) that aren't `:disabled`;
+- elements that only a pointer cursor marks as clickable, as on sites that handle clicks in script: the outermost element with `cursor: pointer`, unless it sits inside a control. Styles are read only for elements in view, since reading them is slow.
+
+A target must be in the viewport, rendered (`checkVisibility` with `visibility` checked but not opacity: a transparent file input laid over a button is what takes the click), and uncovered: the element hit at the middle of its box in view, or at one of four points around the middle, is the target or inside it. Content made inert by a modal dialog fails that check. An element with no box of its own (a link around a floated image) is placed by its first child's box in view.
+
+Hints that would repeat others go. A target inside another target with the same box (each side within 4 px) takes that one's hint: a link that fills a menu item. An element that only its pointer cursor or tabindex marks as clickable gets no hint when a target sits inside it: a wrapper around a button, a scrolling region of links.
+
+**Labels** come from `hintChars`, which the settings schema keeps to 2 or more characters, none repeated (capital and small letters count as the same) and no spaces. No label is the start of another, so a label is picked the moment it is complete. Labels are as short as they can be: all have the same length or one more, as few as possible are longer, and the longer ones start with the least comfortable characters, so the first targets in the page get the most comfortable single keys. Labels show in capitals and typing ignores case, so Shift and Caps Lock don't matter.
+
+**Keys** while hints show (none reach the page):
+- A hint character narrows the hints to the labels that go on with it, and picks the target once only one is left. A character that no label goes on with does nothing.
+- Backspace takes back the last character. Esc closes the hints.
+- Keys with Ctrl, Alt or Meta go to the browser, as in the picker. Every other key does nothing, and auto-repeats are ignored.
+
+A press anywhere (`pointerdown` or `mousedown`), the window losing focus, or the extension going away also closes the hints; the press still reaches the page.
+
+**Drawing.** One popover layer over the viewport, in the top layer, lets the pointer through (`pointer-events: none`) and is `aria-hidden`. Each label sits on its target's top left corner (moved in from the viewport's top and left edges) and follows the target when the page or any scroller scrolls and when the window resizes. A label whose target left the view or the page hides.
+
+**Picking** (`activate` in `src/dom/executor.ts`). A text field (whatever `isEditable` covers) takes focus with the caret at the end, and a `<select>` also opens its list. Anything else gets the same click as a click shortcut. With `F`, a link opens in a new tab through the background (behind the current tab when `newTabInBackground` is on), and anything else gets a Ctrl or Cmd click. A target that left the page since the hints appeared gets a toast, and so does a page with nothing to hint.
+
+Targets are collected when the key is pressed, before the layer mounts, so keys typed right after `f` are never lost. The scan reads every element's box: about 20 ms for 13,000 elements on a fast machine, growing linearly.
 
 ## Presets (M6)
 

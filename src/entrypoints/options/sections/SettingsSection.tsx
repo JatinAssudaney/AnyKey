@@ -5,7 +5,8 @@ import { effectiveSettings, type SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
 import { SettingsSchema, type Settings } from '@/core/schema';
 
-type NumberSetting = 'sequenceTimeoutMs' | 'scrollStep';
+/** What was typed into a setting's field: the value to save, or why it can't be saved. */
+type Checked<T> = { value: T } | { error: string };
 
 interface SettingsSectionProps {
   data: SyncData;
@@ -24,22 +25,33 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
         Settings
       </h2>
       <div className="mt-4 space-y-5">
-        <NumberField
-          name="sequenceTimeoutMs"
+        <SettingField
+          numeric
           label="Time to finish a key sequence (milliseconds)"
           hint={`How long AnyKey waits for the next key of a sequence such as g g. Default: ${DEFAULT_SETTINGS.sequenceTimeoutMs}.`}
           value={settings.sequenceTimeoutMs}
+          check={(draft) => checkSetting('sequenceTimeoutMs', toNumber(draft))}
           onCommit={(value) => {
             save({ sequenceTimeoutMs: value });
           }}
         />
-        <NumberField
-          name="scrollStep"
+        <SettingField
+          numeric
           label="Scroll distance (pixels)"
           hint={`How far one press of Scroll up or Scroll down moves. Default: ${DEFAULT_SETTINGS.scrollStep}.`}
           value={settings.scrollStep}
+          check={(draft) => checkSetting('scrollStep', toNumber(draft))}
           onCommit={(value) => {
             save({ scrollStep: value });
+          }}
+        />
+        <SettingField
+          label="Hint characters"
+          hint={`The keys that link hints are labeled with, the easiest to reach first. Default: ${DEFAULT_SETTINGS.hintChars}.`}
+          value={settings.hintChars}
+          check={(draft) => checkSetting('hintChars', draft.trim().toLowerCase())}
+          onCommit={(value) => {
+            save({ hintChars: value });
           }}
         />
         <label className="flex items-center gap-2 text-sm">
@@ -69,16 +81,25 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
   );
 }
 
-interface NumberFieldProps {
-  name: NumberSetting;
+interface SettingFieldProps<T extends number | string> {
   label: string;
   hint: string;
-  value: number;
-  onCommit: (value: number) => void;
+  value: T;
+  check: (draft: string) => Checked<T>;
+  onCommit: (value: T) => void;
+  /** A whole number rather than text. */
+  numeric?: boolean;
 }
 
-/** A whole-number setting, saved when focus leaves the field or Enter is pressed. */
-function NumberField({ name, label, hint, value, onCommit }: NumberFieldProps) {
+/** A setting typed into a field, saved when focus leaves the field or Enter is pressed. */
+function SettingField<T extends number | string>({
+  label,
+  hint,
+  value,
+  check,
+  onCommit,
+  numeric = false,
+}: SettingFieldProps<T>) {
   const id = useId();
   /** What the user typed, until it is saved; null shows the stored value. */
   const [draft, setDraft] = useState<string | null>(null);
@@ -86,14 +107,14 @@ function NumberField({ name, label, hint, value, onCommit }: NumberFieldProps) {
 
   function commit(): void {
     if (draft === null) return;
-    const result = SettingsSchema.shape[name].safeParse(draft.trim() === '' ? Number.NaN : Number(draft));
-    if (!result.success) {
-      setError(result.error.issues[0]?.message ?? 'Enter a whole number.');
+    const checked = check(draft);
+    if ('error' in checked) {
+      setError(checked.error);
       return;
     }
     setError('');
     setDraft(null);
-    if (result.data !== value) onCommit(result.data);
+    if (checked.value !== value) onCommit(checked.value);
   }
 
   return (
@@ -103,9 +124,11 @@ function NumberField({ name, label, hint, value, onCommit }: NumberFieldProps) {
       </label>
       <input
         id={id}
-        type="number"
-        inputMode="numeric"
-        step={1}
+        type={numeric ? 'number' : 'text'}
+        inputMode={numeric ? 'numeric' : undefined}
+        step={numeric ? 1 : undefined}
+        autoComplete="off"
+        spellCheck={false}
         value={draft ?? String(value)}
         onChange={(event) => {
           setDraft(event.target.value);
@@ -116,7 +139,7 @@ function NumberField({ name, label, hint, value, onCommit }: NumberFieldProps) {
         }}
         aria-invalid={error !== ''}
         aria-describedby={`${id}-hint${error === '' ? '' : ` ${id}-error`}`}
-        className={`${textInput} mt-1 max-w-32`}
+        className={`${textInput} mt-1 ${numeric ? 'max-w-32' : 'max-w-64 font-mono'}`}
       />
       <p id={`${id}-hint`} className={hintText}>
         {hint}
@@ -129,4 +152,19 @@ function NumberField({ name, label, hint, value, onCommit }: NumberFieldProps) {
       )}
     </div>
   );
+}
+
+/** An empty field is no number, rather than 0. */
+function toNumber(draft: string): number {
+  return draft.trim() === '' ? Number.NaN : Number(draft);
+}
+
+/** Checks a typed value against the setting's schema. */
+function checkSetting<K extends 'sequenceTimeoutMs' | 'scrollStep' | 'hintChars'>(
+  name: K,
+  value: unknown,
+): Checked<Settings[K]> {
+  const result = SettingsSchema.shape[name].safeParse(value);
+  if (result.success) return { value: result.data as Settings[K] };
+  return { error: result.error.issues[0]?.message ?? 'Check this value.' };
 }

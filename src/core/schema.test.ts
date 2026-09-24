@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ActionSchema, LIMITS, ShortcutSchema, storedKeys } from './schema';
+import { ActionSchema, LIMITS, SettingsSchema, ShortcutSchema, storedKeys } from './schema';
 
 const base = {
   id: 'user:1',
@@ -48,5 +48,24 @@ describe('ActionSchema', () => {
 
   it('rejects unknown action types', () => {
     expect(ActionSchema.safeParse({ type: 'script', code: 'alert(1)' }).success).toBe(false);
+  });
+});
+
+describe('SettingsSchema', () => {
+  const hintChars = SettingsSchema.shape.hintChars;
+  const message = (chars: string): string | undefined => hintChars.safeParse(chars).error?.issues[0]?.message;
+
+  it('takes hint characters that make at least two different labels', () => {
+    expect(hintChars.safeParse('sadfjklewcmpgh').success).toBe(true);
+    expect(hintChars.safeParse('QWER;').success).toBe(true);
+    expect(message('a')).toBe('Use at least 2 characters.');
+    // One character outside the Basic Multilingual Plane is two UTF-16 code units.
+    expect(message('\u{1F600}')).toBe('Use at least 2 characters.');
+    expect(message('as df')).toBe('Leave out spaces.');
+  });
+
+  it('refuses a hint character used twice, counting capital and small letters as the same', () => {
+    expect(message('asa')).toBe('Use each character once. Capital and small letters count as the same.');
+    expect(message('aSs')).toBe('Use each character once. Capital and small letters count as the same.');
   });
 });

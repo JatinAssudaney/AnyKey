@@ -122,6 +122,7 @@ export async function tabIdOf(extensionPage: Page, url: string): Promise<number>
 
 /** The fields of a DevTools protocol DOM node that the helpers below read. */
 interface DomNode {
+  nodeId: number;
   nodeType: number;
   nodeName: string;
   nodeValue: string;
@@ -148,6 +149,40 @@ export async function uiText(page: Page, className: string): Promise<string | nu
   return node === undefined ? null : textOf(node).replace(/\s+/g, ' ').trim();
 }
 
+/** A link hint showing on the page: its whole label, and where its top left corner shows in the viewport. */
+export interface ShownHint {
+  label: string;
+  x: number;
+  y: number;
+}
+
+/**
+ * The link hints showing, in the order they were made: the ones that go on with what was typed, and whose elements
+ * are in view. Read through the DevTools protocol, as `uiText` is, with where each hint is drawn.
+ */
+export async function shownHints(page: Page): Promise<ShownHint[]> {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const hints: DomNode[] = [];
+    const visit = (node: DomNode): void => {
+      const hidden = attribute(node, 'hidden') !== null || (attribute(node, 'style') ?? '').includes('hidden');
+      if (classesOf(node).includes('ak-link-hint') && !hidden) hints.push(node);
+      for (const child of [...(node.shadowRoots ?? []), ...(node.children ?? [])]) visit(child);
+    };
+    visit((await cdp.send('DOM.getDocument', { depth: -1, pierce: true })).root);
+    return await Promise.all(
+      hints.map(async (node) => {
+        // The border box as four corners, x and y each, starting top left.
+        const { model } = await cdp.send('DOM.getBoxModel', { nodeId: node.nodeId });
+        const [x = Number.NaN, y = Number.NaN] = model.border;
+        return { label: textOf(node).replace(/\s+/g, ''), x, y };
+      }),
+    );
+  } finally {
+    await cdp.detach();
+  }
+}
+
 /** The whole document, shadow roots included, as the DevTools protocol sees it. */
 async function pierceDocument(page: Page): Promise<DomNode> {
   const cdp = await page.context().newCDPSession(page);
@@ -158,13 +193,17 @@ async function pierceDocument(page: Page): Promise<DomNode> {
   }
 }
 
-function classesOf(node: DomNode): string[] {
+function attribute(node: DomNode, name: string): string | null {
   const attributes = node.attributes ?? [];
   // Attributes come as a flat list of names and values.
   for (let i = 0; i < attributes.length; i += 2) {
-    if (attributes[i] === 'class') return (attributes[i + 1] ?? '').split(/\s+/);
+    if (attributes[i] === name) return attributes[i + 1] ?? '';
   }
-  return [];
+  return null;
+}
+
+function classesOf(node: DomNode): string[] {
+  return (attribute(node, 'class') ?? '').split(/\s+/);
 }
 
 function find(node: DomNode, predicate: (node: DomNode) => boolean): DomNode | undefined {

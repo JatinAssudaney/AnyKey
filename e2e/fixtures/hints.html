@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hints fixture</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+      main {
+        position: relative;
+        min-height: 3000px;
+        padding: 16px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        margin: 0 0 16px;
+      }
+      .card {
+        padding: 4px 8px;
+        border: 1px solid #a8a29e;
+        cursor: pointer;
+      }
+      #covered-box {
+        position: relative;
+      }
+      #cover {
+        position: absolute;
+        inset: -4px;
+        background: #e7e5e4;
+      }
+      #below {
+        position: absolute;
+        top: 2000px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Hints fixture</h1>
+      <div class="row">
+        <a id="docs" href="/basic.html">Docs</a>
+        <button id="like" type="button">Like</button>
+        <button id="off" type="button" disabled>Off</button>
+        <input id="search" type="search" aria-label="Search" />
+        <label><input id="agree" type="checkbox" /> Agree</label>
+        <!-- A switch drawn by its label: the checkbox itself is never shown. -->
+        <label id="switch" class="card"><input type="checkbox" style="display: none" /> Switch</label>
+      </div>
+      <div class="row">
+        <!-- Clickable only as far as its pointer cursor shows, as on sites that handle clicks in script. -->
+        <div id="card" class="card">Card</div>
+        <div id="wrapper" class="card"><button id="wrapped" type="button">Wrapped</button></div>
+        <a id="styled-link" href="/long.html"><span class="card">Styled link</span></a>
+        <div id="item" role="menuitem"><a id="item-link" href="/long.html" style="display: block">Menu link</a></div>
+        <video-player id="player"></video-player>
+      </div>
+      <div class="row">
+        <a id="gone" href="/basic.html" style="display: none">Not displayed</a>
+        <a id="invisible" href="/basic.html" style="visibility: hidden">Invisible</a>
+        <div id="covered-box"><button id="covered" type="button">Covered</button><div id="cover"></div></div>
+      </div>
+      <div class="row">
+        <div id="region" tabindex="0" style="padding: 12px">
+          <a id="region-link" href="/long.html">Link in a region</a>
+          <span id="region-card" class="card">Card in a region</span>
+        </div>
+        <div id="focusable" tabindex="0">Focusable</div>
+      </div>
+      <div id="more" class="row"></div>
+      <a id="below" href="/basic.html">Below the fold</a>
+    </main>
+    <script>
+      // Stands in for a site's own handlers.
+      window.pageKeys = [];
+      for (const type of ['keydown', 'keyup']) {
+        document.addEventListener(type, (event) => {
+          window.pageKeys.push(`${type}:${event.key}`);
+        });
+      }
+      window.clickLog = [];
+      document.addEventListener('click', (event) => {
+        const id = event.target.closest('[id]')?.id ?? '';
+        window.clickLog.push(event.ctrlKey || event.metaKey ? `mod+${id}` : id);
+      });
+
+      // ?many=30 adds 30 buttons, for two-letter labels.
+      const many = Number(new URLSearchParams(location.search).get('many') ?? 0);
+      for (let i = 1; i <= many; i++) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.id = `more-${i}`;
+        button.textContent = String(i);
+        document.getElementById('more').append(button);
+      }
+
+      // A button inside a closed shadow root: clicks on it reach the page as clicks on the host.
+      customElements.define(
+        'video-player',
+        class extends HTMLElement {
+          constructor() {
+            super();
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = 'Play';
+            this.attachShadow({ mode: 'closed' }).append(button);
+          }
+        },
+      );
+    </script>
+  </body>
+</html>

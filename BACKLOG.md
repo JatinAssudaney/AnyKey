@@ -16,3 +16,9 @@ Browsers add content scripts only to pages that load after AnyKey is installed, 
 - **Start AnyKey in every open tab** on install and update. Needs `scripting` and host access to all sites. The install warning stays the same, since the content script already runs on all sites, but it adds two permissions to justify in Web Store review, and the background could read every tab's URL.
 
 No option reaches pages where extensions can't run: browser pages such as `brave://extensions`, the new tab page, the Web Store and other extensions' pages.
+
+## Link hints inside frames
+
+AnyKey's content script runs only in each page's top frame, so links and buttons inside frames (embedded players, comment widgets, some web apps' panes) get no hints, and `f` does nothing while a frame has focus.
+
+**Why it waits.** It needs the content script in every frame (`all_frames`, which adds no permission but runs AnyKey inside every ad and widget frame too) and a protocol between frames: the top frame collects each frame's targets and places, hands out labels that are unique across frames, and routes typed keys to the frame that owns the picked label. Most sites keep their controls in the top frame, so it isn't worth that yet.

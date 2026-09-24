@@ -10,6 +10,7 @@ import { sendToBackground } from '../messaging';
 import { watchSync } from '../storage/read';
 import { startEngine } from './engine';
 import { createExecutor } from './executor';
+import { openHints } from './hints';
 import { createPicker } from './picker';
 import { isMac } from './platform';
 import { createScroller } from './scroll';
@@ -77,6 +78,21 @@ export function startAnyKey(ctx: ContentScriptContext): void {
       }).catch((error: unknown) => {
         cheatsheetOpen = false;
         console.error('AnyKey: the cheatsheet failed to open.', error);
+      });
+    },
+    openHints: (activate) => {
+      openHints({
+        ctx,
+        ui,
+        chars: settings.hintChars,
+        pushMode: (mode) => {
+          engine.pushMode(mode);
+        },
+        popMode: (mode) => {
+          engine.popMode(mode);
+        },
+        activate,
+        toast,
       });
     },
   });

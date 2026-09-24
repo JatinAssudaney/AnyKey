@@ -12,7 +12,7 @@ describe('defaults', () => {
 
   it('bind the documented keys, in canonical form, each once', () => {
     const keys = DEFAULT_SHORTCUTS.map((shortcut) => shortcut.keys);
-    expect(keys).toEqual(['j', 'k', 'd', 'u', 'g g', 'G', 'H', 'L', 'J', 'K', 'x', '?']);
+    expect(keys).toEqual(['j', 'k', 'd', 'u', 'g g', 'G', 'f', 'F', 'H', 'L', 'J', 'K', 'x', '?']);
     for (const shortcut of DEFAULT_SHORTCUTS) expect(canonicalKeys(shortcut.keys, shortcut.keyMode)).toBe(shortcut.keys);
   });
 

@@ -5,6 +5,7 @@ A Chrome extension that makes any website keyboard-navigable: bind a key to any 
 ## Using it
 
 - **Scroll and move around** on any page: `j`/`k` scroll, `d`/`u` half a page, `g g` and `G` the top and bottom, `H`/`L` back and forward, `J`/`K` the previous and next tab, `x` closes the tab. `?` shows every shortcut that works on the page.
+- **Click without the mouse.** Press `f` and every link, button and field in view gets a label; type a label to click it (or to type into the field). `F` opens the link in a new tab instead. Esc closes the labels, and the characters they use can be changed in the settings.
 - **Bind a key to anything on a page.** Click AnyKey's toolbar button, then **Add shortcut for this site**. Point at a button, link or field and click it (or press Tab to move and Enter to pick), then press the keys you want, such as `g` then `s`, and Enter. Pick the next element the same way, and press Esc when you're done. The shortcuts work on every page of that site.
 - **Turn AnyKey off for a site** with the switch in the toolbar popup, so every key goes to the site.
 - **Settings** (in the popup, **Open settings**) change the built-in keys, add shortcuts for every site or one site, and import or export everything.
