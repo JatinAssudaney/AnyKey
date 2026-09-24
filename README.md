@@ -1,4 +1,4 @@
-# AnyKey: Keyboard Shortcuts for Any Website
+# AnyKey
 
 A Chrome extension that makes any website keyboard-navigable: bind a key to any element, use Vimium-style link hints and scroll keys everywhere, and get shortcut presets for popular sites. Your settings always override presets.
 

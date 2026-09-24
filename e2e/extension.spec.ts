@@ -2,8 +2,7 @@ import { expect, FIXTURE_ORIGIN, test } from './harness.ts';
 
 test('manifest keeps the permission footprint minimal', async ({ serviceWorker }) => {
   const manifest = await serviceWorker.evaluate(() => chrome.runtime.getManifest());
-  expect(manifest.name).toBe('AnyKey: Keyboard Shortcuts for Any Website');
-  expect(manifest.short_name).toBe('AnyKey');
+  expect(manifest.name).toBe('AnyKey');
   expect(manifest.permissions).toEqual(['storage']);
   expect(manifest.host_permissions ?? []).toEqual([]);
   expect(manifest.content_scripts).toEqual([
