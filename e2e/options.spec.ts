@@ -59,7 +59,7 @@ test('the key recorder records a sequence, and Esc cancels it without closing th
   extensionId,
 }) => {
   await openOptions(page, extensionId);
-  await page.getByRole('button', { name: 'Add shortcut' }).click();
+  await page.getByRole('button', { name: 'Add shortcut', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Add a shortcut' });
   const keys = dialog.getByLabel('Keys', { exact: true });
   const record = dialog.getByRole('button', { name: 'Record keys' });
@@ -82,7 +82,7 @@ test('the key recorder records a sequence, and Esc cancels it without closing th
 
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Add shortcut' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Add shortcut', exact: true })).toBeFocused();
 });
 
 test('focus moves on when the focused control goes away with a change', async ({ page, extensionId }) => {
@@ -96,14 +96,14 @@ test('focus moves on when the focused control goes away with a change', async ({
   await expect.poll(() => stored(page)).toEqual({});
 
   // Deleting a shortcut removes its row, so Add shortcut takes focus. An empty name describes the action.
-  await page.getByRole('button', { name: 'Add shortcut' }).click();
+  await page.getByRole('button', { name: 'Add shortcut', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Add a shortcut' });
   await dialog.getByLabel('Keys', { exact: true }).fill('n');
   await dialog.getByRole('button', { name: 'Save' }).click();
   await expect.poll(() => stored(page)).toMatchObject({ global: { shortcuts: [{ label: 'Scroll down', keys: 'n' }] } });
   await page.getByRole('button', { name: 'Delete Scroll down' }).click();
   await page.getByRole('dialog', { name: 'Delete "Scroll down"?' }).getByRole('button', { name: 'Delete' }).click();
-  await expect(page.getByRole('button', { name: 'Add shortcut' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Add shortcut', exact: true })).toBeFocused();
   await expect.poll(() => stored(page)).toEqual({});
 });
 
@@ -131,7 +131,7 @@ test('a new shortcut that opens a web address works in open tabs', async ({ page
   const options = await extensionContext.newPage();
   await openOptions(options, extensionId);
 
-  await options.getByRole('button', { name: 'Add shortcut' }).click();
+  await options.getByRole('button', { name: 'Add shortcut', exact: true }).click();
   const dialog = options.getByRole('dialog', { name: 'Add a shortcut' });
   await dialog.getByLabel('Action').selectOption({ label: 'Go to a web address' });
   const url = dialog.getByLabel('Web address');
@@ -226,7 +226,8 @@ test('a site shortcut added in settings clicks an element on that site', async (
   await page.goto(`${FIXTURE_ORIGIN}/picker.html`);
   const options = await extensionContext.newPage();
   await openOptions(options, extensionId);
-  await expect(options.getByText('No sites yet.')).toBeVisible();
+  const site = options.getByRole('region', { name: '127.0.0.1', exact: true });
+  await expect(site).toHaveCount(0);
 
   await options.getByRole('button', { name: 'Add a site shortcut' }).click();
   const dialog = options.getByRole('dialog', { name: 'Add a shortcut' });
@@ -249,7 +250,6 @@ test('a site shortcut added in settings clicks an element on that site', async (
       ],
     },
   });
-  const site = options.getByRole('region', { name: '127.0.0.1', exact: true });
   await expect(site.getByRole('table', { name: 'Shortcuts for 127.0.0.1' })).toBeVisible();
 
   await page.bringToFront();

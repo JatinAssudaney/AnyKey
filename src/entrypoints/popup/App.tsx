@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import iconUrl from '@/assets/icon.svg';
 import { KeyCaps } from '@/components/KeyCaps';
 import { isMac } from '@/components/platform';
 import { checkbox, errorText, hintText, primaryButton, secondaryButton } from '@/components/styles';
+import { usePresets } from '@/components/usePresets';
 import { useSync } from '@/components/useSync';
 import type { PageInfo, PageRequest } from '@/core/messages';
-import { resolve, shortcutsForUrl } from '@/core/resolve';
+import type { Preset } from '@/core/presets';
+import { pageShortcuts, resolve, type Yielded } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
 import { isHost } from '@/core/url';
 import { urlParts } from '@/dom/url';
@@ -21,6 +23,7 @@ type Page =
 export function App() {
   const [page, setPage] = useState<Page>({ status: 'loading' });
   const { data, status, mutate } = useSync();
+  const presets = usePresets();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -34,9 +37,12 @@ export function App() {
   }, []);
 
   const reloadable = page.status === 'unavailable' ? page.tabId : null;
-  const applying = page.status === 'ready' && data !== null ? shortcutsForUrl(data.state, urlParts(page.url)) : [];
+  const shown =
+    page.status === 'ready' && data !== null && presets !== null
+      ? pageShortcuts(data.state, presets, urlParts(page.url))
+      : null;
   // What the page's keys do: the popup teaches the keys that work there, which the user may have changed.
-  const { active } = resolve({ shortcuts: applying, isMac });
+  const { active, shadowed } = resolve({ shortcuts: shown?.shortcuts ?? [], isMac });
 
   return (
     <main className="w-80 bg-white p-4 text-sm text-stone-900 dark:bg-stone-900 dark:text-stone-100">
@@ -80,11 +86,20 @@ export function App() {
         </div>
       )}
 
-      {page.status === 'ready' && data !== null && (
+      {page.status === 'ready' && data !== null && shown !== null && (
         <SiteControls
           page={page}
           disabled={data.state.sites.get(hostOf(page.url))?.disabled === true}
-          shortcuts={applying.filter((shortcut) => shortcut.source === 'user' && shortcut.scope.type === 'site')}
+          shortcuts={shown.shortcuts.filter((shortcut) => shortcut.source === 'user' && shortcut.scope.type === 'site')}
+          presets={shown.presets.map((preset) => {
+            const ids = new Set(preset.shortcuts.map(({ id }) => id));
+            return {
+              preset,
+              shortcuts: shown.shortcuts.filter(({ id }) => ids.has(id)),
+              yielded: shown.yielded.filter(({ native }) => native.site === preset.name),
+            };
+          })}
+          replaced={new Set(shadowed.filter(({ by }) => by.source === 'user').map(({ shortcut }) => shortcut.id))}
           hints={active.find(({ action }) => action.type === 'hints' && action.newTab !== true)}
           cheatsheet={active.find(({ action }) => action.type === 'cheatsheet')}
           onToggle={(disabled) => {
@@ -114,11 +129,22 @@ export function App() {
   );
 }
 
+interface PresetOnPage {
+  preset: Preset;
+  /** The preset's shortcuts for the page, with the user's changes. */
+  shortcuts: readonly Shortcut[];
+  /** Built-in shortcuts that leave their keys to the site on the page. */
+  yielded: readonly Yielded[];
+}
+
 interface SiteControlsProps {
   page: Extract<Page, { status: 'ready' }>;
   disabled: boolean;
   /** The site shortcuts that apply to the page. */
   shortcuts: readonly Shortcut[];
+  presets: readonly PresetOnPage[];
+  /** Ids of preset shortcuts whose keys a shortcut of the user's takes. */
+  replaced: ReadonlySet<string>;
   /** The shortcut that shows link hints on the page, if one does. */
   hints: Shortcut | undefined;
   /** The shortcut that opens the cheatsheet on the page, if one does. */
@@ -127,7 +153,17 @@ interface SiteControlsProps {
   onAdd: () => void;
 }
 
-function SiteControls({ page, disabled, shortcuts, hints, cheatsheet, onToggle, onAdd }: SiteControlsProps) {
+function SiteControls({
+  page,
+  disabled,
+  shortcuts,
+  presets,
+  replaced,
+  hints,
+  cheatsheet,
+  onToggle,
+  onAdd,
+}: SiteControlsProps) {
   const host = hostOf(page.url);
   if (!isHost(host)) {
     return <p className={`${hintText} mt-4`}>Shortcuts for one site work on web pages only.</p>;
@@ -158,17 +194,7 @@ function SiteControls({ page, disabled, shortcuts, hints, cheatsheet, onToggle, 
             {shortcuts.length === 0 ? (
               <p className={hintText}>None yet.</p>
             ) : (
-              <ul className="mt-2 space-y-1.5">
-                {shortcuts.map((shortcut) => (
-                  <li key={shortcut.id} className="flex items-center justify-between gap-3">
-                    <span className={`truncate ${shortcut.enabled ? '' : 'text-stone-500 dark:text-stone-400'}`}>
-                      {shortcut.label}
-                      {!shortcut.enabled && ' (off)'}
-                    </span>
-                    <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
-                  </li>
-                ))}
-              </ul>
+              <ShortcutList shortcuts={shortcuts} />
             )}
           </section>
           <div>
@@ -185,6 +211,26 @@ function SiteControls({ page, disabled, shortcuts, hints, cheatsheet, onToggle, 
               )}
             </p>
           </div>
+          {presets.map(({ preset, shortcuts: fromPreset, yielded }) =>
+            fromPreset.length === 0 && yielded.length === 0 ? null : (
+              <section key={preset.id} aria-labelledby={`preset-${preset.id}-heading`}>
+                <h2
+                  id={`preset-${preset.id}-heading`}
+                  className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400"
+                >
+                  {preset.name} preset
+                </h2>
+                {fromPreset.length > 0 && <ShortcutList shortcuts={fromPreset} replaced={replaced} />}
+                {yielded.length > 0 && (
+                  <p className={hintText}>
+                    On this page, <KeyList shortcuts={yielded.map(({ shortcut }) => shortcut)} />{' '}
+                    {yielded.length === 1 ? 'runs' : 'run'} {preset.name}&apos;s own{' '}
+                    {yielded.length === 1 ? 'shortcut' : 'shortcuts'} instead of AnyKey&apos;s.
+                  </p>
+                )}
+              </section>
+            ),
+          )}
           {hints !== undefined && (
             <section aria-labelledby="hint-mode-heading">
               <h2 id="hint-mode-heading" className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400">
@@ -201,6 +247,36 @@ function SiteControls({ page, disabled, shortcuts, hints, cheatsheet, onToggle, 
       )}
     </div>
   );
+}
+
+/** Shortcuts with their keys, marking those that can't run. */
+function ShortcutList({ shortcuts, replaced }: { shortcuts: readonly Shortcut[]; replaced?: ReadonlySet<string> }) {
+  return (
+    <ul className="mt-2 space-y-1.5">
+      {shortcuts.map((shortcut) => {
+        const note = !shortcut.enabled ? ' (off)' : replaced?.has(shortcut.id) === true ? ' (replaced by yours)' : '';
+        return (
+          <li key={shortcut.id} className="flex items-center justify-between gap-3">
+            <span className={`truncate ${note === '' ? '' : 'text-stone-500 dark:text-stone-400'}`}>
+              {shortcut.label}
+              {note}
+            </span>
+            <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Keys in a sentence: [j], [k] and [x]. */
+function KeyList({ shortcuts }: { shortcuts: readonly Shortcut[] }) {
+  return shortcuts.map((shortcut, i) => (
+    <Fragment key={shortcut.id}>
+      {i > 0 && (i === shortcuts.length - 1 ? ' and ' : ', ')}
+      <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
+    </Fragment>
+  ));
 }
 
 /** The tab the popup is for: the active tab, or `?tab=` (the E2E tests open the popup as a page of its own). */

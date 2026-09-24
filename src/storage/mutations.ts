@@ -5,6 +5,8 @@ import {
   isKnownKey,
   itemBytes,
   parseSync,
+  presetKey,
+  presetOfKey,
   serializeDoc,
   SETTINGS_KEY,
   siteKey,
@@ -16,6 +18,7 @@ import {
   type SyncState,
 } from '../core/docs';
 import type { Mutation } from '../core/messages';
+import type { PresetOverride } from '../core/presets';
 import { storedKeys, type KeyMode, type Settings, type Shortcut } from '../core/schema';
 import { isHost } from '../core/url';
 
@@ -53,6 +56,25 @@ export function applyMutation(data: SyncData, mutation: Mutation): MutationResul
       const sites = withSite(state.sites, mutation.site, { ...site, disabled: mutation.disabled });
       return commit(data, { ...state, sites }, [siteKey(mutation.site)]);
     }
+    case 'setSiteDefault': {
+      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      if (!DEFAULTS_BY_ID.has(mutation.id)) return fail(unknownDefault(mutation.id));
+      const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
+      const globals = withEntry(site.globals, mutation.id, mutation.enabled);
+      const sites = withSite(state.sites, mutation.site, { ...site, globals });
+      return commit(data, { ...state, sites }, [siteKey(mutation.site)]);
+    }
+    case 'setPresetOverride':
+      return setPresetOverride(data, mutation);
+    case 'resetToPreset': {
+      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
+      const shortcuts = mutation.deleteShortcuts ? [] : site.shortcuts;
+      const sites = withSite(state.sites, mutation.site, { ...site, shortcuts, globals: new Map() });
+      const presets = new Map(state.presets);
+      presets.delete(mutation.preset);
+      return commit(data, { ...state, sites, presets }, [siteKey(mutation.site), presetKey(mutation.preset)]);
+    }
     case 'replaceAll':
       return replaceAll(data, mutation.items);
     case 'restoreBackup':
@@ -82,6 +104,29 @@ function setDefault(data: SyncData, change: Extract<Mutation, { op: 'setDefault'
   if (enabled !== base.enabled) override.enabled = enabled;
   const empty = Object.keys(override).length === 0;
   return commitOverrides(data, withEntry(data.state.global.overrides, change.id, empty ? undefined : override));
+}
+
+/** Stores the user's change to a preset shortcut, with its keys in canonical notation. An empty change is removed. */
+function setPresetOverride(data: SyncData, change: Extract<Mutation, { op: 'setPresetOverride' }>): MutationResult {
+  if (!change.id.startsWith(`preset:${change.preset}:`)) return fail(`The ${change.preset} preset has no shortcut "${change.id}".`);
+  const override: PresetOverride = {};
+  if (change.override.keys !== undefined && change.override.keyMode !== undefined) {
+    const stored = storedKeys(change.override.keys, change.override.keyMode);
+    if (!stored.ok) return fail(stored.error);
+    override.keys = stored.keys;
+    override.keyMode = change.override.keyMode;
+  }
+  if (change.override.enabled !== undefined) override.enabled = change.override.enabled;
+  const { state } = data;
+  const overrides = withEntry(
+    state.presets.get(change.preset) ?? new Map<string, PresetOverride>(),
+    change.id,
+    Object.keys(override).length === 0 ? undefined : override,
+  );
+  const presets = new Map(state.presets);
+  if (overrides.size === 0) presets.delete(change.preset);
+  else presets.set(change.preset, overrides);
+  return commit(data, { ...state, presets }, [presetKey(change.preset)]);
 }
 
 /**
@@ -165,6 +210,7 @@ function replaceAll(data: SyncData, items: Readonly<Record<string, unknown>>): M
   const touched = new Set([SETTINGS_KEY, GLOBAL_KEY]);
   for (const key of Object.keys(data.items)) if (isKnownKey(key)) touched.add(key);
   for (const host of incoming.sites.keys()) touched.add(siteKey(host));
+  for (const preset of incoming.presets.keys()) touched.add(presetKey(preset));
   return commit(data, incoming, [...touched], { force: true });
 }
 
@@ -256,7 +302,9 @@ export function docName(key: string): string {
   if (key === SETTINGS_KEY) return 'your settings';
   if (key === GLOBAL_KEY) return 'your global shortcuts';
   const host = hostOfKey(key);
-  return host === null ? `"${key}"` : `your shortcuts for ${host}`;
+  if (host !== null) return `your shortcuts for ${host}`;
+  const preset = presetOfKey(key);
+  return preset === null ? `"${key}"` : `your changes to the ${preset} preset`;
 }
 
 export function capitalized(text: string): string {

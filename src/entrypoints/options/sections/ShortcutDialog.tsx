@@ -12,10 +12,11 @@ import {
   secondaryButton,
   textInput,
 } from '@/components/styles';
-import { describeConflict, findConflicts } from '@/core/conflicts';
+import { describeConflicts, findConflicts } from '@/core/conflicts';
 import type { SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
-import { effectiveDefaults } from '@/core/resolve';
+import { presetOverride, type Preset, type PresetShortcut } from '@/core/presets';
+import { effectiveDefaults, shortcutsOnSite } from '@/core/resolve';
 import { LIMITS, ShortcutSchema, type ElementTarget, type KeyMode, type Shortcut } from '@/core/schema';
 import { truncate } from '@/core/text';
 import { isHost, siteMatch } from '@/core/url';
@@ -26,12 +27,14 @@ import { editButtonId } from './ShortcutTable';
 
 /**
  * What the dialog edits: a new shortcut of the user's (for one site, when `site` is set), an existing one with the
- * site whose settings keep it, or the keys of a built-in shortcut.
+ * site whose settings keep it, or the keys of a built-in shortcut or of a preset's shortcut (`base`, as the preset
+ * has it) on one of the preset's sites.
  */
 export type Editing =
   | { kind: 'new'; site?: string }
   | { kind: 'user'; shortcut: Shortcut; site?: string }
-  | { kind: 'default'; shortcut: Shortcut };
+  | { kind: 'default'; shortcut: Shortcut }
+  | { kind: 'preset'; shortcut: Shortcut; base: PresetShortcut; preset: Preset; site: string };
 
 interface Errors {
   label?: string;
@@ -47,14 +50,17 @@ interface Errors {
 interface ShortcutDialogProps {
   editing: Editing;
   data: SyncData;
+  /** The installed presets, for conflicts with their shortcuts and their sites' own keys. */
+  presets: readonly Preset[];
   /** Gets a mutation that `applyMutation` accepted against `data`. */
   onSave: (mutation: Mutation) => void;
   onClose: () => void;
 }
 
-export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialogProps) {
+export function ShortcutDialog({ editing, data, presets, onSave, onClose }: ShortcutDialogProps) {
   const original = editing.kind === 'new' ? null : editing.shortcut;
-  const builtIn = editing.kind === 'default';
+  // Only the keys of a built-in or preset shortcut can change.
+  const keysOnly = editing.kind === 'default' || editing.kind === 'preset';
   const originalSite = editing.kind === 'default' ? undefined : editing.site;
   const originalTarget =
     original?.action.type === 'click' || original?.action.type === 'focus' ? original.action.target : null;
@@ -104,7 +110,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
   }
 
   function candidate(): Shortcut {
-    if (original !== null && builtIn) return { ...original, keys: keys.trim(), keyMode };
+    if (original !== null && keysOnly) return { ...original, keys: keys.trim(), keyMode };
     const action =
       choice === null && original !== null
         ? original.action
@@ -127,7 +133,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
     event.preventDefault();
     const shortcut = candidate();
     const found: Errors = {};
-    if (where === 'site' && !builtIn && !isHost(site)) found.host = 'Enter a site such as github.com.';
+    if (where === 'site' && !keysOnly && !isHost(site)) found.host = 'Enter a site such as github.com.';
     if (element) {
       if (selector.trim() === '') found.selector = 'Enter a CSS selector for the element.';
       else if (!isValidSelector(selector)) found.selector = "This isn't a CSS selector AnyKey can use.";
@@ -145,9 +151,20 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
         else found.form ??= 'Check the shortcut and try again.';
       }
     }
-    const mutation: Mutation = builtIn
-      ? { op: 'setDefault', id: shortcut.id, keys: shortcut.keys, keyMode }
-      : { op: 'saveShortcut', shortcut, ...(where === 'site' ? { site } : {}) };
+    const mutation: Mutation =
+      editing.kind === 'default'
+        ? { op: 'setDefault', id: shortcut.id, keys: shortcut.keys, keyMode }
+        : editing.kind === 'preset'
+          ? {
+              op: 'setPresetOverride',
+              preset: editing.preset.id,
+              id: shortcut.id,
+              override: presetOverride(editing.base, data.state.presets.get(editing.preset.id)?.get(shortcut.id), {
+                keys: shortcut.keys,
+                keyMode,
+              }),
+            }
+          : { op: 'saveShortcut', shortcut, ...(where === 'site' ? { site } : {}) };
     if (Object.keys(found).length === 0) {
       const result = applyMutation(data, mutation);
       if (!result.ok) found.form = result.error;
@@ -168,18 +185,17 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
     onSave(mutation);
     onClose();
     // Saving can move the shortcut to another table (to another site, or between a site and every site).
-    if (original !== null && !builtIn) focusAfterRender(() => document.getElementById(editButtonId(shortcut)));
+    if (original !== null && !keysOnly) focusAfterRender(() => document.getElementById(editButtonId(shortcut)));
   }
 
-  // Conflicts as if the shortcut were on, among the shortcuts that can run together with it.
+  // Conflicts as if the shortcut were on, among the shortcuts that can run together with it, and for a shortcut on
+  // one site, with the site's own keys.
   const shortcut = { ...candidate(), enabled: true };
-  const siteState = where === 'site' ? data.state.sites.get(site) : undefined;
-  const others = [
-    ...effectiveDefaults(data.state, siteState),
-    ...data.state.global.shortcuts,
-    ...(siteState?.shortcuts ?? []),
-  ].filter((other) => other.id !== shortcut.id);
-  const conflicts = findConflicts([...others, shortcut], isMac).get(shortcut.id) ?? [];
+  const onSite = where === 'site' ? shortcutsOnSite(data.state, presets, site) : null;
+  const others = (onSite?.shortcuts ?? [...effectiveDefaults(data.state), ...data.state.global.shortcuts]).filter(
+    (other) => other.id !== shortcut.id,
+  );
+  const conflicts = describeConflicts(findConflicts([...others, shortcut], isMac, onSite?.native).get(shortcut.id) ?? []);
 
   const title =
     original !== null
@@ -211,7 +227,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </p>
         )}
 
-        {!builtIn && (
+        {!keysOnly && (
           <div>
             <label htmlFor={`${ids}-where`} className={fieldLabel}>
               Works on
@@ -230,7 +246,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </div>
         )}
 
-        {!builtIn && where === 'site' && (
+        {!keysOnly && where === 'site' && (
           <div className="space-y-3">
             <div>
               <label htmlFor={`${ids}-host`} className={fieldLabel}>
@@ -283,7 +299,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </div>
         )}
 
-        {builtIn || choice === null ? (
+        {keysOnly || choice === null ? (
           <div>
             <p className={fieldLabel}>Action</p>
             <p className="mt-1 text-sm">{original === null ? '' : describeAction(original.action)}</p>
@@ -314,7 +330,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </div>
         )}
 
-        {!builtIn && element && (
+        {!keysOnly && element && (
           <div className="space-y-3">
             <div>
               <label htmlFor={`${ids}-selector`} className={fieldLabel}>
@@ -368,7 +384,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </div>
         )}
 
-        {!builtIn && choice === NAVIGATE && (
+        {!keysOnly && choice === NAVIGATE && (
           <div>
             <label htmlFor={`${ids}-url`} className={fieldLabel}>
               Web address
@@ -395,7 +411,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </div>
         )}
 
-        {!builtIn && (choice === NAVIGATE || choice === CLICK) && (
+        {!keysOnly && (choice === NAVIGATE || choice === CLICK) && (
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -409,7 +425,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </label>
         )}
 
-        {!builtIn && (
+        {!keysOnly && (
           <div>
             <label htmlFor={`${ids}-label`} className={fieldLabel}>
               Name
@@ -476,10 +492,10 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           )}
           {conflicts.length > 0 && (
             <ul id={conflictsId} className="mt-2 space-y-1 text-sm text-amber-800 dark:text-amber-300">
-              {conflicts.map((conflict, i) => (
+              {conflicts.map((note, i) => (
                 <li key={i}>
                   <span aria-hidden="true">⚠ </span>
-                  {describeConflict(conflict)}
+                  {note}
                 </li>
               ))}
             </ul>
@@ -507,7 +523,7 @@ export function ShortcutDialog({ editing, data, onSave, onClose }: ShortcutDialo
           </p>
         </div>
 
-        {!builtIn && (
+        {!keysOnly && (
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"

@@ -1,7 +1,7 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { keysInWords } from '../core/keys';
 import type { PickedShortcut } from '../core/messages';
-import type { Shortcut } from '../core/schema';
+import type { PageShortcuts } from '../core/resolve';
 import { truncate } from '../core/text';
 import { linkOf } from './click';
 import { isEditable } from './editable';
@@ -19,8 +19,8 @@ export interface PickerOptions {
   isMac: boolean;
   pushMode: (mode: Mode) => void;
   popMode: (mode: Mode) => void;
-  /** The shortcuts that apply to the page now, for the new shortcut's conflict check. */
-  pageShortcuts: () => readonly Shortcut[];
+  /** The shortcuts and the site's own keys on the page now, for the new shortcut's conflict check. */
+  page: () => PageShortcuts;
   /** Saves a new shortcut. Resolves to an error message, or null once it is saved. */
   save: (shortcut: PickedShortcut) => Promise<string | null>;
   /** The picker closed, having saved these shortcuts (none when the user saved nothing). */
@@ -171,7 +171,7 @@ export function createPicker(options: PickerOptions): Picker {
       kind: isEditable(element) ? 'focus' : 'click',
       isLink: linkOf(element) !== null,
       name: text === '' ? kindOf(element).toLowerCase() : truncate(text, 60),
-      pageShortcuts: options.pageShortcuts(),
+      page: options.page(),
       save: options.save,
       onClose(result) {
         panel = null;

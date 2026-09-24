@@ -206,10 +206,12 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
 function ImportSummary({ preview }: { preview: ImportPreview }) {
   const { state, problems } = preview.data;
   const siteShortcuts = [...state.sites.values()].reduce((sum, site) => sum + site.shortcuts.length, 0);
+  const presetChanges = [...state.presets.values()].reduce((sum, overrides) => sum + overrides.size, 0);
   const exported = preview.file.exportedAt === undefined ? Number.NaN : Date.parse(preview.file.exportedAt);
   const lines = [
     count(Object.keys(state.settings).length, 'changed setting'),
     count(state.global.overrides.size, 'changed built-in shortcut'),
+    count(presetChanges, 'changed preset shortcut'),
     count(state.global.shortcuts.length + siteShortcuts, 'shortcut of your own', 'shortcuts of your own'),
     count(state.sites.size, 'site with its own settings', 'sites with their own settings'),
   ];

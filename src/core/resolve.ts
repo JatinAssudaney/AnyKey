@@ -2,6 +2,7 @@ import { DEFAULT_SHORTCUTS } from './defaults';
 import type { SiteState, SyncState } from './docs';
 import { sequenceTokens } from './keys';
 import { matchesPattern } from './matchPattern';
+import { covers, presetHosts, presetShortcut, type Preset, type ReservedKey } from './presets';
 import type { Shortcut } from './schema';
 import type { UrlParts } from './url';
 
@@ -76,19 +77,150 @@ export function effectiveDefaults(state: SyncState, site?: SiteState): Shortcut[
   });
 }
 
+/** A key a site uses itself, from its preset's reserved keys. */
+export interface NativeKey {
+  /** Key-mode notation: "g c", "?". */
+  keys: string;
+  label: string;
+  /** The site's name, from its preset: "GitHub". */
+  site: string;
+  /** The pages it works on, as match patterns, when not every page of the site. */
+  matches?: readonly string[];
+  /** Built-in shortcuts, by id, that give way to this key where it works, so they don't take it there. */
+  yieldedBy?: readonly string[];
+}
+
+/** A built-in shortcut that is off on a page because the site uses its keys. */
+export interface Yielded {
+  /** As the user has it everywhere else. */
+  shortcut: Shortcut;
+  /** The site's key it gives way to. */
+  native: NativeKey;
+}
+
+export interface PageShortcuts {
+  /** Every shortcut that applies to the page, ready for `resolve()`. Those that are off here are included, off. */
+  shortcuts: Shortcut[];
+  /** The presets for the page's site. */
+  presets: Preset[];
+  /** The site's own keys that work on the page. */
+  native: NativeKey[];
+  /** Built-in shortcuts that would run on the page, but give way to the site's own keys there. */
+  yielded: Yielded[];
+}
+
 /**
- * Every shortcut that applies to a page, ready for `resolve()` (steps 1, 2 and 4 of docs/design.md, "Resolution"):
- * nothing on a switched-off host; otherwise the defaults, the user's global shortcuts, and the user's site shortcuts
- * from every site doc whose match pattern takes the URL.
+ * Every shortcut that applies to a page (steps 1 to 4 of docs/design.md, "Resolution"): nothing on a switched-off
+ * host; otherwise the defaults, less those that give way to the site's keys; the shortcuts of the presets for the
+ * site, with the user's changes; the user's global shortcuts; and the user's site shortcuts from every site doc
+ * whose match pattern takes the URL.
  */
-export function shortcutsForUrl(state: SyncState, url: UrlParts | null): Shortcut[] {
-  const site = url === null ? undefined : state.sites.get(url.host);
-  if (site?.disabled === true) return [];
-  const siteShortcuts =
-    url === null
-      ? []
-      : [...state.sites.values()].flatMap((doc) =>
-          doc.shortcuts.filter((shortcut) => shortcut.scope.type === 'site' && matchesPattern(shortcut.scope.match, url)),
-        );
-  return [...effectiveDefaults(state, site), ...state.global.shortcuts, ...siteShortcuts];
+export function pageShortcuts(state: SyncState, presets: readonly Preset[], url: UrlParts | null): PageShortcuts {
+  if (url === null) {
+    return { shortcuts: [...effectiveDefaults(state), ...state.global.shortcuts], presets: [], native: [], yielded: [] };
+  }
+  const site = state.sites.get(url.host);
+  if (site?.disabled === true) return { shortcuts: [], presets: [], native: [], yielded: [] };
+  const covering = presets.filter((preset) => covers(preset.matches, url));
+  const reserved = covering.flatMap((preset) =>
+    preset.reserved.filter((key) => covers(key.matches, url)).map((key) => ({ key, native: nativeKey(preset, key) })),
+  );
+
+  const yielded: Yielded[] = [];
+  const defaults = effectiveDefaults(state, site).map((shortcut) => {
+    // The site's own switch for a default beats the preset.
+    const taken = site?.globals.has(shortcut.id) === true ? undefined : reserved.find(({ key }) => yieldsTo(key, shortcut));
+    if (taken === undefined) return shortcut;
+    if (shortcut.enabled) yielded.push({ shortcut, native: taken.native });
+    return { ...shortcut, enabled: false };
+  });
+  const fromPresets = covering.flatMap((preset) => presetShortcuts(state, preset, url));
+  const siteShortcuts = [...state.sites.values()].flatMap((doc) =>
+    doc.shortcuts.filter((shortcut) => shortcut.scope.type === 'site' && matchesPattern(shortcut.scope.match, url)),
+  );
+  return {
+    shortcuts: [...defaults, ...fromPresets, ...state.global.shortcuts, ...siteShortcuts],
+    presets: covering,
+    native: reserved.map(({ native }) => native),
+    yielded,
+  };
+}
+
+/** A preset's shortcuts with the user's changes: those for the page at `url`, or all of them. */
+function presetShortcuts(state: SyncState, preset: Preset, url?: UrlParts): Shortcut[] {
+  const overrides = state.presets.get(preset.id);
+  return preset.shortcuts
+    .filter((shortcut) => url === undefined || covers(shortcut.matches, url))
+    .map((shortcut) => presetShortcut(preset, shortcut, overrides?.get(shortcut.id)));
+}
+
+export interface SiteShortcuts {
+  /**
+   * Every shortcut that can run on some page of the site: the built-in ones as the user has them there, the
+   * shortcuts of the site's presets, the user's global shortcuts, and the shortcuts kept with the site.
+   */
+  shortcuts: Shortcut[];
+  /** The presets for the site. */
+  presets: Preset[];
+  /** The site's own keys, on any of its pages, each with the built-in shortcuts that give way to it. */
+  native: NativeKey[];
+}
+
+/**
+ * A whole site at once, for the options page: unlike `pageShortcuts`, it leaves out no preset shortcut or site key
+ * for being on other pages. A built-in shortcut that gives way to a site key stays in, since it runs on the site's
+ * other pages, and the key names it in `yieldedBy` instead.
+ */
+export function shortcutsOnSite(state: SyncState, presets: readonly Preset[], host: string): SiteShortcuts {
+  const site = state.sites.get(host);
+  const own = presets.filter((preset) => presetHosts(preset).includes(host));
+  const defaults = effectiveDefaults(state, site);
+  const native = own.flatMap((preset) =>
+    preset.reserved.map((key): NativeKey => {
+      const yieldedBy = defaults
+        .filter((shortcut) => site?.globals.has(shortcut.id) !== true && yieldsTo(key, shortcut))
+        .map(({ id }) => id);
+      return { ...nativeKey(preset, key), ...(yieldedBy.length > 0 ? { yieldedBy } : {}) };
+    }),
+  );
+  return {
+    shortcuts: [
+      ...defaults,
+      ...own.flatMap((preset) => presetShortcuts(state, preset)),
+      ...state.global.shortcuts,
+      ...(site?.shortcuts ?? []),
+    ],
+    presets: own,
+    native,
+  };
+}
+
+const DEFAULTS_BY_ID = new Map(DEFAULT_SHORTCUTS.map((shortcut) => [shortcut.id, shortcut]));
+
+/**
+ * Whether a built-in shortcut gives way to a key the site uses itself: the preset says so, and the user left the
+ * shortcut on its own keys. User settings always win over presets, so a rekeyed default never gives way.
+ */
+function yieldsTo(key: ReservedKey, shortcut: Shortcut): boolean {
+  const base = DEFAULTS_BY_ID.get(shortcut.id);
+  const ownKeys = shortcut.keys === base?.keys && shortcut.keyMode === base.keyMode;
+  // Both are in canonical notation, so the same keys are the same text.
+  return key.yield === true && ownKeys && shortcut.keyMode === 'key' && shortcut.keys === key.keys;
+}
+
+function nativeKey(preset: Preset, key: ReservedKey): NativeKey {
+  return { keys: key.keys, label: key.label, site: preset.name, ...(key.matches === undefined ? {} : { matches: key.matches }) };
+}
+
+/**
+ * The built-in shortcuts that give way to the site's own keys on some page of a preset's site, as the user has them
+ * everywhere else: for the options page, which lets the user keep them on the site instead. A shortcut the user
+ * turned off everywhere gives way to nothing, so it is left out, unless the site has a switch of its own for it.
+ */
+export function presetYields(state: SyncState, preset: Preset, site?: SiteState): Yielded[] {
+  return effectiveDefaults(state).flatMap((shortcut) => {
+    if (!shortcut.enabled && site?.globals.has(shortcut.id) !== true) return [];
+    const key = preset.reserved.find((reserved) => yieldsTo(reserved, shortcut));
+    return key === undefined ? [] : [{ shortcut, native: nativeKey(preset, key) }];
+  });
 }

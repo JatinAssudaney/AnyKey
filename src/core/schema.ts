@@ -90,17 +90,17 @@ export const ActionSchema = z.discriminatedUnion('type', [
 ]);
 export type Action = z.infer<typeof ActionSchema>;
 
+/** A Chrome match pattern, such as `*://github.com/*`. */
+export const MatchPatternSchema = z
+  .string()
+  .check(
+    z.maxLength(MAX_URL_LENGTH),
+    z.refine((pattern) => parseMatchPattern(pattern) !== null, 'Use a match pattern such as *://github.com/*.'),
+  );
+
 export const ScopeSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('global') }),
-  z.object({
-    type: z.literal('site'),
-    match: z
-      .string()
-      .check(
-        z.maxLength(MAX_URL_LENGTH),
-        z.refine((pattern) => parseMatchPattern(pattern) !== null, 'Use a match pattern such as *://github.com/*.'),
-      ),
-  }),
+  z.object({ type: z.literal('site'), match: MatchPatternSchema }),
 ]);
 export type Scope = z.infer<typeof ScopeSchema>;
 

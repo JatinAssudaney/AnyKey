@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { KeyCaps } from '@/components/KeyCaps';
 import { checkbox, linkButton } from '@/components/styles';
-import { describeConflict, type Conflict } from '@/core/conflicts';
+import { describeConflicts, type Conflict } from '@/core/conflicts';
 import type { Shortcut } from '@/core/schema';
 import { describeAction } from '../actions';
 
@@ -50,7 +50,7 @@ export function ShortcutTable({
       </thead>
       <tbody>
         {shortcuts.map((shortcut) => {
-          const notes = conflicts.get(shortcut.id) ?? [];
+          const notes = describeConflicts(conflicts.get(shortcut.id) ?? []);
           const description = describeAction(shortcut.action);
           return (
             <tr key={shortcut.id} className="border-b border-stone-100 align-top last:border-0 dark:border-stone-800">
@@ -67,15 +67,20 @@ export function ShortcutTable({
               </td>
               <th scope="row" className="py-2.5 pr-4 font-normal">
                 <span className={shortcut.enabled ? '' : 'text-stone-500 dark:text-stone-400'}>{shortcut.label}</span>
+                {shortcut.source === 'preset' && shortcut.verified !== true && (
+                  <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                    Unverified
+                  </span>
+                )}
                 {describe && description !== shortcut.label && (
                   <span className="block text-xs break-words text-stone-600 dark:text-stone-400">{description}</span>
                 )}
                 {notes.length > 0 && (
                   <ul className="mt-1 space-y-0.5 text-xs text-amber-800 dark:text-amber-300">
-                    {notes.map((conflict, i) => (
+                    {notes.map((note, i) => (
                       <li key={i}>
                         <span aria-hidden="true">⚠ </span>
-                        {describeConflict(conflict)}
+                        {note}
                       </li>
                     ))}
                   </ul>

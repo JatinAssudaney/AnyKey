@@ -231,26 +231,116 @@ describe('docs with problems', () => {
   });
 });
 
+describe('setSiteDefault', () => {
+  it("sets a built-in shortcut's switch for one site, and removes it again", () => {
+    const on = run({}, { op: 'setSiteDefault', site: 'www.youtube.com', id: 'default:scroll-down', enabled: true });
+    expect(on.items['site:www.youtube.com']).toEqual({
+      v: 1,
+      shortcuts: [],
+      globals: { 'default:scroll-down': { enabled: true } },
+    });
+    const cleared = ok(applyMutation(on, { op: 'setSiteDefault', site: 'www.youtube.com', id: 'default:scroll-down' })).data;
+    expect(cleared.items).not.toHaveProperty(['site:www.youtube.com']);
+  });
+
+  it('refuses unknown defaults and sites', () => {
+    const data = parseSync({});
+    expect(error(applyMutation(data, { op: 'setSiteDefault', site: 'a.com', id: 'default:nope', enabled: true }))).toMatch(
+      /no built-in/,
+    );
+    expect(error(applyMutation(data, { op: 'setSiteDefault', site: 'Not A Host', id: 'default:scroll-down' }))).toMatch(
+      /site such as/,
+    );
+  });
+});
+
+describe('setPresetOverride', () => {
+  it('stores the change with canonical keys, and removes the doc once nothing is changed', () => {
+    const changed = run(
+      {},
+      { op: 'setPresetOverride', preset: 'github', id: 'preset:github:star', override: { keys: 'CTRL+S', keyMode: 'key' } },
+      { op: 'setPresetOverride', preset: 'github', id: 'preset:github:releases', override: { enabled: false } },
+    );
+    expect(changed.items['preset:github']).toEqual({
+      v: 1,
+      overrides: { 'preset:github:star': { keys: 'ctrl+s', keyMode: 'key' }, 'preset:github:releases': { enabled: false } },
+    });
+    const back = run(
+      changed.items,
+      { op: 'setPresetOverride', preset: 'github', id: 'preset:github:star', override: {} },
+      { op: 'setPresetOverride', preset: 'github', id: 'preset:github:releases', override: {} },
+    );
+    expect(back.items).not.toHaveProperty(['preset:github']);
+  });
+
+  it("refuses another preset's shortcut", () => {
+    const result = applyMutation(parseSync({}), {
+      op: 'setPresetOverride',
+      preset: 'github',
+      id: 'preset:youtube:like',
+      override: { enabled: false },
+    });
+    expect(error(result)).toMatch(/no shortcut/);
+  });
+});
+
+describe('resetToPreset', () => {
+  const items = {
+    'preset:github': { v: 1, overrides: { 'preset:github:star': { enabled: false } } },
+    'site:github.com': {
+      v: 1,
+      shortcuts: [onSite('user:1', 'g x')],
+      globals: { 'default:scroll-top': { enabled: true } },
+    },
+  };
+
+  it("clears the preset's changes and the site's switches, and keeps the site's shortcuts", () => {
+    const result = ok(
+      applyMutation(parseSync(items), { op: 'resetToPreset', preset: 'github', site: 'github.com', deleteShortcuts: false }),
+    );
+    expect(result.data.items).toEqual({ 'site:github.com': { v: 1, shortcuts: [onSite('user:1', 'g x')] } });
+    expect([...result.touched].sort()).toEqual(['preset:github', 'site:github.com']);
+  });
+
+  it("also deletes the site's shortcuts when asked", () => {
+    const data = run(items, { op: 'resetToPreset', preset: 'github', site: 'github.com', deleteShortcuts: true });
+    expect(data.items).toEqual({});
+  });
+});
+
 describe('replaceAll', () => {
   it('replaces every known doc, keeps unknown keys, and clears problems', () => {
     const before = parseSync({
       settings: { v: 1, scrollStep: 90 },
       global: { v: 2 },
       'site:old.example': { v: 1, disabled: true },
-      'preset:github': { v: 1, overrides: {} },
+      'preset:github': { v: 1, overrides: { 'preset:github:star': { enabled: false } } },
+      'future:thing': { v: 1 },
     });
     const result = ok(
       applyMutation(before, {
         op: 'replaceAll',
-        items: { 'site:new.example': { v: 1, disabled: true }, other: 1 },
+        items: {
+          'site:new.example': { v: 1, disabled: true },
+          'preset:youtube': { v: 1, overrides: { 'preset:youtube:like': { enabled: false } } },
+          other: 1,
+        },
       }),
     );
     expect(result.data.items).toEqual({
-      'preset:github': { v: 1, overrides: {} },
+      'future:thing': { v: 1 },
       'site:new.example': { v: 1, disabled: true, shortcuts: [] },
+      'preset:youtube': { v: 1, overrides: { 'preset:youtube:like': { enabled: false } } },
     });
     expect(result.data.problems.size).toBe(0);
-    expect([...result.touched].sort()).toEqual(['global', 'settings', 'site:new.example', 'site:old.example']);
+    expect([...result.touched].sort()).toEqual([
+      'global',
+      'preset:github',
+      'preset:youtube',
+      'settings',
+      'site:new.example',
+      'site:old.example',
+    ]);
   });
 
   it('leaves the restore to the background writer', () => {

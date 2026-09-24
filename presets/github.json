@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 1,
+  "id": "github",
+  "name": "GitHub",
+  "version": 1,
+  "matches": ["*://github.com/*"],
+  "reserved": [
+    { "keys": "?", "label": "Show keyboard shortcuts" },
+    { "keys": "s", "label": "Focus the search bar" },
+    { "keys": "/", "label": "Focus the search bar" },
+    { "keys": "g n", "label": "Go to your notifications" },
+    { "keys": "alt+up", "label": "Move focus to the hovercard" },
+    { "keys": "mod+k", "label": "Open the command palette" },
+    { "keys": "mod+alt+k", "label": "Open the command palette" },
+    { "keys": "mod+shift+k", "label": "Open the command palette in command mode" },
+
+    { "keys": "g c", "label": "Go to the Code tab", "matches": ["*://github.com/*/*"] },
+    { "keys": "g i", "label": "Go to the Issues tab", "matches": ["*://github.com/*/*"] },
+    { "keys": "g p", "label": "Go to the Pull requests tab", "matches": ["*://github.com/*/*"] },
+    { "keys": "g a", "label": "Go to the Actions tab", "matches": ["*://github.com/*/*"] },
+    { "keys": "g w", "label": "Go to the Wiki tab", "matches": ["*://github.com/*/*"] },
+    { "keys": "g g", "label": "Go to the Discussions tab", "yield": true, "matches": ["*://github.com/*/*"] },
+    { "keys": "g s", "label": "Go to the Security tab", "matches": ["*://github.com/*/*"] },
+    { "keys": ".", "label": "Open in the github.dev editor", "matches": ["*://github.com/*/*"] },
+    { "keys": ">", "label": "Open in the github.dev editor in a new tab", "matches": ["*://github.com/*/*"] },
+
+    { "keys": "t", "label": "Open the file finder", "matches": ["*://github.com/*/*"] },
+    { "keys": "w", "label": "Switch branch or tag", "matches": ["*://github.com/*/*"] },
+    { "keys": "y", "label": "Expand the URL to its canonical form", "matches": ["*://github.com/*/*"] },
+    { "keys": "l", "label": "Jump to a line", "matches": ["*://github.com/*/*/blob/*"] },
+    { "keys": "b", "label": "Open blame view", "matches": ["*://github.com/*/*/blob/*"] },
+    { "keys": "e", "label": "Edit the file", "matches": ["*://github.com/*/*/blob/*"] },
+    { "keys": "J", "label": "Highlight the line at the cursor", "matches": ["*://github.com/*/*/blob/*"] },
+    {
+      "keys": "i",
+      "label": "Show or hide comments on diffs",
+      "matches": ["*://github.com/*/*/pull/*", "*://github.com/*/*/commit/*"]
+    },
+    {
+      "keys": "a",
+      "label": "Show or hide annotations on diffs",
+      "matches": ["*://github.com/*/*/pull/*", "*://github.com/*/*/commit/*"]
+    },
+
+    {
+      "keys": "c",
+      "label": "Create an issue",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*"]
+    },
+    {
+      "keys": "mod+/",
+      "label": "Focus the issue or pull request search bar",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "u",
+      "label": "Filter by author",
+      "yield": true,
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "l",
+      "label": "Filter by label",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "m",
+      "label": "Filter by milestone",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "a",
+      "label": "Filter by assignee",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "o",
+      "label": "Open the selected issue",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+    {
+      "keys": "enter",
+      "label": "Open the selected issue",
+      "matches": ["*://github.com/*/*/issues", "*://github.com/*/*/issues?*", "*://github.com/*/*/pulls*"]
+    },
+
+    {
+      "keys": "q",
+      "label": "Request a reviewer",
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*"]
+    },
+    {
+      "keys": "m",
+      "label": "Set a milestone",
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*"]
+    },
+    {
+      "keys": "l",
+      "label": "Apply a label",
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*"]
+    },
+    {
+      "keys": "a",
+      "label": "Set an assignee",
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*"]
+    },
+    {
+      "keys": "x",
+      "label": "Link an issue or pull request",
+      "yield": true,
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*"]
+    },
+    {
+      "keys": "r",
+      "label": "Quote the selected text in your reply",
+      "matches": ["*://github.com/*/*/issues/*", "*://github.com/*/*/pull/*", "*://github.com/*/*/discussions/*"]
+    },
+    { "keys": "alt+shift+c", "label": "Create a sub-issue", "matches": ["*://github.com/*/*/issues/*"] },
+    { "keys": "alt+shift+a", "label": "Add an existing issue as a sub-issue", "matches": ["*://github.com/*/*/issues/*"] },
+    { "keys": "alt+shift+p", "label": "Edit the parent issue", "matches": ["*://github.com/*/*/issues/*"] },
+    { "keys": "c", "label": "Open the list of commits", "matches": ["*://github.com/*/*/pull/*/files*"] },
+    { "keys": "t", "label": "Filter the changed files", "matches": ["*://github.com/*/*/pull/*/files*"] },
+
+    {
+      "keys": "g f",
+      "label": "Go to the workflow file",
+      "yield": true,
+      "matches": ["*://github.com/*/*/actions/*"]
+    },
+    { "keys": "t", "label": "Show or hide timestamps in logs", "matches": ["*://github.com/*/*/actions/runs/*"] },
+    { "keys": "T", "label": "Show or hide timestamps in logs", "matches": ["*://github.com/*/*/actions/runs/*"] },
+    { "keys": "f", "label": "Full-screen logs on or off", "matches": ["*://github.com/*/*/actions/runs/*"] },
+    { "keys": "F", "label": "Full-screen logs on or off", "matches": ["*://github.com/*/*/actions/runs/*"] },
+    { "keys": "escape", "label": "Leave full-screen logs", "matches": ["*://github.com/*/*/actions/runs/*"] },
+
+    { "keys": "e", "label": "Mark as done", "matches": ["*://github.com/notifications*"] },
+    { "keys": "U", "label": "Mark as unread", "matches": ["*://github.com/notifications*"] },
+    { "keys": "I", "label": "Mark as read", "matches": ["*://github.com/notifications*"] },
+    { "keys": "M", "label": "Unsubscribe", "matches": ["*://github.com/notifications*"] },
+
+    {
+      "keys": "h",
+      "label": "Scroll the graph left",
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "l",
+      "label": "Scroll the graph right",
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "k",
+      "label": "Scroll the graph up",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "j",
+      "label": "Scroll the graph down",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "H",
+      "label": "Scroll the graph all the way left",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "L",
+      "label": "Scroll the graph all the way right",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "K",
+      "label": "Scroll the graph all the way up",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+    {
+      "keys": "J",
+      "label": "Scroll the graph all the way down",
+      "yield": true,
+      "matches": ["*://github.com/*/*/network", "*://github.com/*/*/network?*"]
+    },
+
+    {
+      "keys": "mod+f",
+      "label": "Focus the filter",
+      "matches": ["*://github.com/orgs/*/projects/*", "*://github.com/users/*/projects/*"]
+    },
+    {
+      "keys": "enter",
+      "label": "Edit the focused cell",
+      "matches": ["*://github.com/orgs/*/projects/*", "*://github.com/users/*/projects/*"]
+    },
+    {
+      "keys": "space",
+      "label": "Open the selected item",
+      "matches": ["*://github.com/orgs/*/projects/*", "*://github.com/users/*/projects/*"]
+    },
+    {
+      "keys": "shift+space",
+      "label": "Select the item",
+      "matches": ["*://github.com/orgs/*/projects/*", "*://github.com/users/*/projects/*"]
+    },
+    {
+      "keys": "e",
+      "label": "Archive the selected items",
+      "matches": ["*://github.com/orgs/*/projects/*", "*://github.com/users/*/projects/*"]
+    }
+  ],
+  "shortcuts": [
+    {
+      "id": "preset:github:settings-tab",
+      "keys": "g e",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#settings-tab" } },
+      "label": "Go to the Settings tab",
+      "verified": false,
+      "matches": ["*://github.com/*/*"]
+    },
+    {
+      "id": "preset:github:releases",
+      "keys": "g r",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "a[href$=\"/releases\"]", "text": "Releases", "tag": "a" }
+      },
+      "label": "Go to Releases",
+      "verified": false,
+      "matches": ["*://github.com/*/*"]
+    },
+    {
+      "id": "preset:github:dashboard",
+      "keys": "g d",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://github.com/" },
+      "label": "Go to your dashboard",
+      "verified": false
+    },
+    {
+      "id": "preset:github:star",
+      "keys": "S",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": {
+          "selector": "button[aria-label^=\"Star this repository\"]",
+          "fallbacks": [
+            "button[aria-label^=\"Unstar this repository\"]",
+            "a[aria-label=\"You must be signed in to star a repository\"]"
+          ]
+        }
+      },
+      "label": "Star or unstar the repository",
+      "verified": false,
+      "matches": ["*://github.com/*/*"]
+    },
+    {
+      "id": "preset:github:code-menu",
+      "keys": "C",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": {
+          "selector": "button[data-variant=\"primary\"][aria-haspopup=\"true\"]",
+          "text": "Code",
+          "tag": "button"
+        }
+      },
+      "label": "Open the Code menu to clone",
+      "verified": false,
+      "matches": ["*://github.com/*/*"]
+    }
+  ]
+}

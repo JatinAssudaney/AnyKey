@@ -83,12 +83,12 @@ describe('createWriter', () => {
   });
 
   it('backs up the data an import replaces, and a restore swaps it back', async () => {
-    const original = { settings: { v: 1, scrollStep: 90 }, 'preset:github': { v: 1 } };
+    const original = { settings: { v: 1, scrollStep: 90 }, 'future:thing': { v: 1 } };
     await browser.storage.sync.set(original);
     const imported = writer.submit({ op: 'replaceAll', items: { settings: { v: 1, scrollStep: 200 } } });
     await vi.advanceTimersByTimeAsync(300);
     await imported;
-    expect(await syncItems()).toEqual({ settings: { v: 1, scrollStep: 200 }, 'preset:github': { v: 1 } });
+    expect(await syncItems()).toEqual({ settings: { v: 1, scrollStep: 200 }, 'future:thing': { v: 1 } });
     const { backup } = await browser.storage.local.get('backup');
     expect(backup).toEqual({ savedAt: expect.any(Number) as number, items: original });
 

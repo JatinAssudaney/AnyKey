@@ -6,6 +6,7 @@ import { card, hintText, linkButton, primaryButton, sectionHeading } from '@/com
 import { findConflicts } from '@/core/conflicts';
 import type { SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
+import type { Preset } from '@/core/presets';
 import { effectiveDefaults } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
 import { ShortcutDialog, type Editing } from './ShortcutDialog';
@@ -13,10 +14,11 @@ import { editButtonId, ShortcutTable } from './ShortcutTable';
 
 interface ShortcutsSectionProps {
   data: SyncData;
+  presets: readonly Preset[];
   mutate: (mutation: Mutation) => Promise<string | null>;
 }
 
-export function ShortcutsSection({ data, mutate }: ShortcutsSectionProps) {
+export function ShortcutsSection({ data, presets, mutate }: ShortcutsSectionProps) {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [deleting, setDeleting] = useState<Shortcut | null>(null);
   const addButton = useRef<HTMLButtonElement>(null);
@@ -109,6 +111,7 @@ export function ShortcutsSection({ data, mutate }: ShortcutsSectionProps) {
         <ShortcutDialog
           editing={editing}
           data={data}
+          presets={presets}
           onSave={send}
           onClose={() => {
             setEditing(null);

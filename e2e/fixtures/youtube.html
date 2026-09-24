@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Video fixture</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px system-ui, sans-serif;
+      }
+      main {
+        height: 5000px;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Video fixture</h1>
+      <p>The specs serve this page as www.youtube.com, so AnyKey's YouTube preset applies to it.</p>
+      <!-- YouTube's like button, as the preset finds it. -->
+      <like-button-view-model>
+        <button type="button" aria-label="like this video along with 1,234 other people">Like</button>
+      </like-button-view-model>
+    </main>
+    <script>
+      // Stands in for YouTube's own keyboard handlers.
+      window.pageKeys = [];
+      for (const type of ['keydown', 'keyup']) {
+        document.addEventListener(type, (event) => {
+          window.pageKeys.push(`${type}:${event.key}`);
+        });
+      }
+      window.clicks = { like: 0, play: 0 };
+      document.querySelector('like-button-view-model button').addEventListener('click', () => {
+        window.clicks.like++;
+      });
+    </script>
+  </body>
+</html>

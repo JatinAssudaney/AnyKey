@@ -11,11 +11,11 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M3 | Storage layer, options editor with key recorder, import/export | done |
 | M4 | Element picker, per-site shortcuts from the popup | done |
 | M5 | Hint mode | done |
-| M6 | Presets, overrides, conflict warnings | planned |
+| M6 | Presets, overrides, conflict warnings | done |
 
 ## Data model
 
-All types are `z.infer`'d from `src/core/schema.ts`.
+All types are `z.infer`'d from `src/core/schema.ts`, and the preset types from `src/core/presets.ts`.
 
 ```ts
 type Shortcut = {
@@ -48,13 +48,30 @@ type ElementTarget = {
   tag?: string;            // restricts the text match, e.g. "button"
 };
 
-type PresetOverride = { keys?: string; keyMode?: "key" | "code"; enabled?: boolean };  // keyed by preset shortcut id
-type ReservedKey = { keys: string; label: string; yield?: boolean; match?: string };
 type Preset = {
-  schemaVersion: 1; id: string; name: string; version: number;
-  matches: string[];          // preset shortcuts take their scope from these
-  reserved: ReservedKey[];    // the site's native shortcuts
-  shortcuts: PresetShortcut[];
+  schemaVersion: 1;
+  id: string;                 // "github": lowercase letters, digits and dashes
+  name: string;               // "GitHub", shown in the UI
+  version: number;            // the highest version of an id wins
+  matches: string[];          // the site's pages, as match patterns
+  reserved: ReservedKey[];    // the site's own shortcuts, up to 300
+  shortcuts: PresetShortcut[];// up to 50
+};
+type ReservedKey = {
+  keys: string;               // key-mode notation, canonical
+  label: string;              // what the site does
+  yield?: boolean;            // AnyKey's built-in shortcut on these keys gives way (see Presets)
+  matches?: string[];         // only on these pages
+};
+type PresetShortcut = {       // becomes a Shortcut: scope from the preset, source "preset"
+  id: string;                 // "preset:<presetId>:<name>"
+  keys: string; keyMode: "key" | "code"; action: Action; label: string; allowInInputs?: boolean;
+  verified: boolean;          // checked on the live site with docs/preset-checklist.md
+  matches?: string[];         // only on these pages
+};
+type PresetOverride = {       // the user's change to a preset shortcut, keyed by its id
+  keys?: string; keyMode?: "key" | "code";  // together or not at all
+  enabled?: boolean;
 };
 type Settings = {
   sequenceTimeoutMs: number;  // 800
@@ -75,13 +92,13 @@ Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half 
 |---|---|
 | `settings` | The settings that differ from their defaults |
 | `global` | `{ shortcuts: user global shortcuts, overrides: Record<defaultId, { keys?, keyMode?, enabled? }> }` |
-| `site:<host>` | `{ disabled?, shortcuts: user site shortcuts, globals?: Record<defaultId, { enabled }> }` |
-| `preset:<presetId>` | `{ overrides: Record<presetShortcutId, PresetOverride> }` (M6) |
+| `site:<host>` | `{ disabled?, shortcuts: user site shortcuts, globals?: Record<defaultId, { enabled }> }`, where `globals` are the host's own switches for built-in shortcuts |
+| `preset:<presetId>` | `{ overrides: Record<presetShortcutId, PresetOverride> }`, the user's changes to a preset's shortcuts |
 
 - Every doc carries a version field `v` and stays under 8KB (about 20 to 25 picker shortcuts per site). A doc is never split across items: Chrome sync delivers items independently, so a split doc could be read half-updated. Any stored-format change bumps `v` (`DOC_VERSION` in `src/core/docs.ts`).
 - Storage stays sparse: a setting equal to its default and an override equal to the built-in shortcut are left out, and a doc left empty is removed (a site doc once the site is on, with no shortcuts and no `globals`), so a later version can improve the defaults. Keys are stored in canonical notation (`ctrl+k`, never `Ctrl+K`).
 - A site shortcut lives in the doc of the site it was made for, named in the `saveShortcut` mutation (`site`), which a site shortcut must have and a global one must not. Its `match` may be edited to other pages, even of another host. Saving a shortcut takes it out of any other doc, so changing where it works moves it, and both docs are written in the same save.
-- `chrome.storage.local` holds `backup` (below) and, from M6, `presets` (validated bundled presets, written by the background on install and update). `chrome.storage.session` holds picker sessions (see Picker); content scripts can't read or write that area.
+- `chrome.storage.local` holds `backup` (below) and `presets`, which only the background writes (see Presets). `chrome.storage.session` holds picker sessions (see Picker); content scripts can't read or write that area.
 
 **Reading.** The content script and the options page read every sync item and read again after each change; an older read never overwrites a newer one. `parseSync` never throws: an entry that fails its schema is skipped, and its doc is reported as damaged, or as newer when its `v` is above this version's. No shortcut runs in a page until storage has loaded.
 
@@ -94,19 +111,19 @@ Default global shortcuts (`src/core/defaults.ts`): `j`/`k` scroll, `d`/`u` half 
 
 **Docs with problems.** A damaged or newer doc stays readable (its valid shortcuts keep working) and is never written back by an ordinary change, which fails with a message instead. Three things may replace it: an import, a restore, and Repair on the options page, which rewrites the doc with only what this version can read.
 
-**Import and export.** Export writes every sync item, unknown keys included, as `{ format: "anykey-settings", version: 1, exportedAt, items }`. Import checks the file (at most 1 MB, the right format, not a newer `version`), previews what it holds, and then replaces every doc this version knows: `settings`, `global` and each `site:<host>`. Unknown keys, such as a newer version's docs, stay as they are, and entries this version can't read are left out. First the sync items as they stood become the `backup` in `chrome.storage.local` (`{ savedAt, items }`); if the sync write then fails, the previous backup goes back, since nothing was replaced. Restoring the backup swaps the two, putting the backup's docs back exactly as they were (even what this version can't read), so a second restore undoes the first.
+**Import and export.** Export writes every sync item, unknown keys included, as `{ format: "anykey-settings", version: 1, exportedAt, items }`. Import checks the file (at most 1 MB, the right format, not a newer `version`), previews what it holds, and then replaces every doc this version knows: `settings`, `global`, each `site:<host>` and each `preset:<presetId>`. Unknown keys, such as a newer version's docs, stay as they are, and entries this version can't read are left out. First the sync items as they stood become the `backup` in `chrome.storage.local` (`{ savedAt, items }`); if the sync write then fails, the previous backup goes back, since nothing was replaced. Restoring the backup swaps the two, putting the backup's docs back exactly as they were (even what this version can't read), so a second restore undoes the first.
 
 ## Resolution
 
-Pure `resolve()` in `src/core/resolve.ts` computes the shortcuts for one URL and returns active, shadowed and yielded shortcuts plus the site's native reserved keys:
+`pageShortcuts()` in `src/core/resolve.ts` gathers the shortcuts that apply to one URL (steps 1 to 4), and pure `resolve()` picks those that run (step 5):
 
-1. If `site:<exact host>.disabled`, nothing is active.
-2. Defaults, with `global.overrides` applied.
-3. For each preset whose `matches` include the URL: a reserved key with `yield: true` (and a matching `match`, if set) turns off defaults still on their default keys; user-rekeyed defaults and user shortcuts are never yielded. `site:<host>.globals` can re-enable or disable a default on that host. Preset shortcuts are added with `preset:<id>` overrides applied.
+1. If `site:<exact host>.disabled`, nothing applies.
+2. Defaults, with `global.overrides` applied, then the host's own switches (`site:<host>.globals`).
+3. For each preset whose `matches` include the URL: defaults give way to the site's keys (see Presets), and the preset's shortcuts for the page are added with the user's changes from `preset:<presetId>`. `pageShortcuts` also returns the site's keys that work on the page and the defaults that gave way, for the cheatsheet, the popup and the picker's warnings.
 4. User global shortcuts, then user site shortcuts whose `match` includes the URL (from every site doc, so a scope edited to another host still works).
 5. Precedence: user site > user global > preset > default. For identical key sequences the higher one wins and the rest are shadowed; within a rank the first wins, and M3's conflict checks warn about the duplicate. A higher-precedence sequence also shadows lower-precedence sequences that start with it (a user's `g` shadows a preset's `g e`); same-rank prefixes stay active and wait for the timeout. Sequences are compared as match tokens, after `mod` resolves for the platform.
 
-Steps 1, 2, 4 and 5 are built (`shortcutsForUrl` feeds `resolve`); step 3 arrives with presets (M6). The content script resolves again whenever storage changes, and at the next keydown after the URL changes (single-page apps navigate without a reload). A change to only the `#` part doesn't count: match patterns ignore it, and some sites rewrite it as you scroll. When the resolved shortcuts differ, the key buffer starts empty; otherwise a sequence in progress goes on.
+The content script resolves only once sync storage and the presets have both loaded, again whenever either changes, and at the next keydown after the URL changes (single-page apps navigate without a reload). A change to only the `#` part doesn't count: match patterns ignore it, and some sites rewrite it as you scroll. When the resolved shortcuts differ, the key buffer starts empty; otherwise a sequence in progress goes on.
 
 ## Key engine
 
@@ -145,8 +162,13 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 ## Options page
 
 - Built-in shortcuts can be rekeyed, switched off and reset; the user's own global shortcuts can be added, edited, switched off and deleted. A change shows at once and saves in the background: the header's status says "Saving…" then "Saved.", and a failure appears in an alert. Text fields save on blur or Enter.
-- Sites lists every site with a doc: a switch for AnyKey on the site, and its shortcuts to switch off, edit and delete. "Add a site shortcut" and each site's "Add shortcut for <host>" take any action; click and focus take a typed selector (" >>> " steps into shadow roots) and optional text. The site field accepts a pasted address and keeps its host; the pages follow the site (`*://<host>/*`) until edited. A site changed on the page stays listed while it holds nothing, so no control vanishes while in use.
-- Conflict warnings come from `src/core/conflicts.ts`: a shortcut that doesn't run because another takes its keys (and the one that takes them), a key that waits for the sequence timeout because a longer shortcut that still runs starts with it, keys the browser keeps for itself on this platform, and a shortcut that also runs in text fields on a key that types.
+- Sites lists every site with a doc, and each site a preset names (`presetHosts`: the patterns for one host): a switch for AnyKey on the site, and its shortcuts to switch off, edit and delete. "Add a site shortcut" and each site's "Add shortcut for <host>" take any action; click and focus take a typed selector (" >>> " steps into shadow roots) and optional text. The site field accepts a pasted address and keeps its host; the pages follow the site (`*://<host>/*`) until edited. A site changed on the page stays listed while it holds nothing, so no control vanishes while in use.
+- A site with a preset gets a panel for it (`PresetPanel`):
+  - the preset's shortcuts, marked Unverified until checked, to switch off, rekey (keys and key mode only) and reset one by one. Only what differs from the preset is stored (`presetOverride`);
+  - "Built-in shortcuts that give way to <Site>", each with a Keep switch that sets the host's own switch (`setSiteDefault`); switching it off removes the switch, so the default gives way again;
+  - "<Site>'s own keys", a reference of the site's keys with the pages they work on and the shortcut that takes each, if any;
+  - "Reset to the <Site> preset" (`resetToPreset`), shown once there is something to reset. It asks first, clears `preset:<presetId>` and the host's `globals`, and can also delete the host's own shortcuts.
+- Conflict warnings come from `src/core/conflicts.ts`: a shortcut that doesn't run because another takes its keys (and the one that takes them), a key that waits for the sequence timeout because a longer shortcut that still runs starts with it, keys the browser keeps for itself on this platform, a shortcut that also runs in text fields on a key that types, and clashes with a site's own keys (see Presets). On a site, warnings cover the whole site at once (`shortcutsOnSite`): every preset shortcut and site key, whatever pages they are for.
 - The key recorder (`src/core/recorder.ts`, shared with the picker's panel) never traps focus. Esc cancels, and its keydown is cancelled so the dialog around it stays open. Tab finishes and moves focus on as usual. Enter, a 1-second pause, or a fourth chord finishes. Auto-repeats and lone modifiers don't count as keys. The platform's command key is recorded as `mod`, so a shortcut recorded on a Mac works on Windows. Key mode records characters (`?`), code mode records physical keys (`shift+Slash`).
 - Settings save on blur or Enter once they pass the settings schema; a failure shows as an alert under the field. Hint characters are saved in small letters, since hints ignore case.
 - When a change removes the focused control, focus moves to the nearest control that stays, never back to the top of the page: Reset to the row's Edit button, Delete to Add shortcut (a site shortcut's Delete to its site's Add button), Repair to the next Repair button or else Export.
@@ -156,6 +178,7 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - The popup can't read the tab's URL without the `tabs` permission, so it asks the tab's content script (`pageInfo`). No answer means AnyKey isn't running there: a browser page, or a tab opened before AnyKey was installed or updated, which "Reload this tab" fixes.
 - For a web page it shows the site, a switch for AnyKey on the site (by exact host), the site shortcuts that apply to the page, and "Add shortcut for this site", which starts the picker and closes the popup so the page is in view.
 - It teaches the keys that work on the page, as `resolve()` finds them there, so a rekeyed or disabled default shows as it is: the cheatsheet key, and hint mode with the key that shows hints (what labels are for, and that keys pick labels until one is picked or Esc). A line goes when its action has no key.
+- On a site with a preset, a section lists the preset's shortcuts for the page (noting any that are off, or replaced by the user's on the same keys) and names the built-in keys that go to the site's own shortcuts on the page.
 
 ## Picker
 
@@ -192,7 +215,7 @@ Each candidate must match only the element within its own document or shadow roo
 
 `F` puts a label on everything in view that can be clicked or typed into, and typing a label picks that element; `g f` does the same to open links in a new tab (`src/dom/hints.ts`, labels from `src/core/hintLabels.ts`). Hints cover the top frame only, where the content script runs.
 
-The keys aren't Vimium's `f` and `F`: `f` is fullscreen on YouTube and most other video players, while few sites bind `F`. `g f` is what Surfingkeys uses to open a link in a new tab, and it adds no wait, since `g` already waits for a second key for `g g`. GitHub's Actions pages use `g f` to open the workflow file, so the GitHub preset yields it there (M6). Their full-screen logs answer to `f` as well as `F`, so hints keep `F`.
+The keys aren't Vimium's `f` and `F`: `f` is fullscreen on YouTube and most other video players, while few sites bind `F`. `g f` is what Surfingkeys uses to open a link in a new tab, and it adds no wait, since `g` already waits for a second key for `g g`. GitHub's Actions pages use `g f` to open the workflow file, so AnyKey's `g f` gives way to GitHub's there (see Presets). Their full-screen logs answer to `f` as well as `F`, so hints keep `F`.
 
 **Targets**, in document order through open and closed shadow roots:
 - the interactive elements the picker moves between (links, buttons, form fields, ARIA widget roles, contenteditable, `[onclick]`, `tabindex` 0 and up) that aren't `:disabled`;
@@ -219,14 +242,46 @@ While hints show, a bar at the bottom center names the mode and how to leave it 
 
 Targets are collected when the key is pressed, before the layer mounts, so keys typed right after `F` are never lost. The scan reads every element's box: about 20 ms for 13,000 elements on a fast machine, growing linearly.
 
-## Presets (M6)
+## Presets
 
-- Bundled JSON in `presets/`, validated with zod when loaded. Loading goes through a `PresetSource` interface so a remote data source can be added later without code changes elsewhere.
-- Each preset lists the site's native shortcuts as `reserved` keys; preset shortcuts only add actions the site lacks, and every one ships with `verified: false` until checked with `docs/preset-checklist.md`.
-- `?` stays AnyKey's cheatsheet on every site. The cheatsheet shows a "Native to this site" section built from the preset's reserved keys.
+**Data.** Presets are JSON files in `presets/`, checked with `PresetSchema` (see Data model): keys in canonical notation, and shortcut ids that start with `preset:<presetId>:`. A reserved key or preset shortcut with `matches` works only on those pages: GitHub's `t` opens the file finder on repository pages (`*://github.com/*/*`). In a match pattern `*` also matches `/`, and the path includes the query string, so `*://github.com/*/*/issues?*` covers `/owner/repo/issues?q=is:open`. Each preset lists the site's own shortcuts from its help pages and its code, except those that work only while typing (markdown formatting, find and replace in editors): AnyKey doesn't act in text fields, so they never clash.
+
+**Installing.** The background reads presets from `PresetSource`s (`src/background/presets.ts`; today only the bundled files), checks each on its own (one that fails is logged and left out), keeps the highest `version` of each id, and writes them to `chrome.storage.local` as `presets` on install, update and browser start, only when they changed, since every open tab resolves again when they do. The content script, popup and options page read and watch that key, and check it again (`parsePresets`). A remote source can plug in later: presets are data, and their actions pass the same schemas as the user's shortcuts, so a preset can't carry code or a `javascript:` URL.
+
+**The user's changes** to a preset's shortcuts live in `preset:<presetId>`, apart from the preset, so a new version of the preset keeps them; a change to a shortcut the new version dropped does nothing. Keys are stored with their key mode, so the writer and the reader can check them without the preset.
+
+**Giving way.** A reserved key with `yield: true` turns off the built-in shortcut on the same keys, on the pages where the reserved key works, unless:
+- the user rekeyed the built-in shortcut (its keys or key mode differ from the built-in ones), since user settings beat presets;
+- the host has its own switch for it (`site:<host>.globals`, the options page's Keep switch), which beats the preset whichever way it is set.
+
+User shortcuts never give way. Only keys that equal a built-in shortcut's are marked `yield` (a test checks each preset). A site sequence that starts with a built-in key needs nothing: a pure prefix passes through, so GitHub's `g c` works although AnyKey has `g g`.
+
+| Site and pages | Keys that give way | The site's own shortcut |
+|---|---|---|
+| GitHub, repository pages | `g g` | Go to the Discussions tab |
+| GitHub, issue and pull request lists | `u` | Filter by author |
+| GitHub, issue and pull request pages | `x` | Link an issue or pull request (AnyKey's `x` would close the tab there) |
+| GitHub, Actions pages | `g f` | Go to the workflow file |
+| GitHub, the network graph | `j` `k` `H` `L` `J` `K` | Scroll the graph |
+| YouTube, video pages (`/watch*`) | `j` `k` | Go back 10 seconds, play or pause |
+| Reddit, every page | `j` `k` `x` | Next and previous post or comment, expand a post in compact view |
+| Reddit, the mod queue (`/mod/*`) | `d` | Remove |
+
+These stay AnyKey's although the site uses them: `?` on all three sites (AnyKey's cheatsheet lists the site's keys too); `F` on GitHub's Actions run pages, whose full-screen logs also answer to `f`; `J` in GitHub's code view, where it only highlights the line at the cursor; and `d` on YouTube, which uses it only in 360° videos. YouTube reads most letters with or without Shift, so AnyKey's `F`, `J`, `K` and `L` also take keys from it; its reserved list names only the keys YouTube documents. On YouTube Shorts `k` does nothing and AnyKey doesn't use the arrow keys, so nothing gives way there.
+
+**Clashes with the site's keys** (`findConflicts` with the site's keys):
+- A key-mode shortcut whose keys equal a site key, or the start of one, takes it, so the site's shortcut doesn't run (`takesNative`).
+- A shortcut that starts with a whole site key runs after it (`afterNative`): the site acts on the first keys, which can stop the rest from reaching AnyKey (`s x` on GitHub: `s` moves focus to the search bar, and `x` types there). This applies only when no shortcut takes that site key.
+- Only key-mode shortcuts are compared: site keys are characters, and the character a physical key types depends on the layout.
+- The picker compares with the site's keys on the page (`pageShortcuts`), the options page with all of them (`shortcutsOnSite`), where a built-in shortcut that gives way to a key doesn't count as taking it (`yieldedBy`). The site keys a shortcut clashes with in the same way share one warning.
+
+**The cheatsheet** ends with "<Site>'s own keys": the site's keys that work on the page and that no active shortcut takes (`nativeKeysLeft`).
+
+**Checking.** Every preset shortcut ships with `verified: false`, which the options page shows as Unverified, until it is checked on the live site with `docs/preset-checklist.md`; it then becomes `verified: true` in the preset's next version. Preset shortcuts use keys that none of the site's own shortcuts use on any of its pages, which a test checks.
 
 ## Security
 
 - Navigate and new-tab URLs must be http(s) or relative, so imported JSON cannot carry `javascript:` URLs.
 - The background validates every message with zod and accepts messages only from AnyKey's own contexts. Setting changes and picker starts come only from its own pages; a content script can add a site shortcut only during a picker session (see Picker). Labels and selectors have length caps.
+- Presets are data, checked when installed and again when read, and their actions pass the same schemas as the user's shortcuts.
 - The content script validates stored data before using it. Schemas use `zod/mini`, whose functions tree-shake, so the content script carries only the schemas it parses with (about 26 kB, where classic zod would add about 85 kB), and none of the reducers, import or export code.

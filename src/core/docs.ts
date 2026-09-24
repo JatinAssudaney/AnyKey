@@ -1,5 +1,6 @@
 import { z } from 'zod/mini';
 import { DEFAULT_SETTINGS, DEFAULT_SHORTCUTS } from './defaults';
+import { PresetIdSchema, PresetOverrideSchema, type PresetOverride } from './presets';
 import {
   IdSchema,
   KeyModeSchema,
@@ -21,6 +22,7 @@ export const DOC_VERSION = 1;
 export const SETTINGS_KEY = 'settings';
 export const GLOBAL_KEY = 'global';
 const SITE_PREFIX = 'site:';
+const PRESET_PREFIX = 'preset:';
 
 /** chrome.storage.sync quotas. An item's size is the UTF-8 bytes of its key plus its JSON value. */
 export const SYNC_QUOTA = { totalBytes: 102_400, itemBytes: 8_192, items: 512 } as const;
@@ -34,9 +36,18 @@ export function hostOfKey(key: string): string | null {
   return key.startsWith(SITE_PREFIX) ? key.slice(SITE_PREFIX.length) : null;
 }
 
+export function presetKey(id: string): string {
+  return PRESET_PREFIX + id;
+}
+
+/** The preset a `preset:<id>` key belongs to, or null for other keys. */
+export function presetOfKey(key: string): string | null {
+  return key.startsWith(PRESET_PREFIX) ? key.slice(PRESET_PREFIX.length) : null;
+}
+
 /** Keys of the docs this version reads and writes. Other keys in storage are left alone. */
 export function isKnownKey(key: string): boolean {
-  return key === SETTINGS_KEY || key === GLOBAL_KEY || key.startsWith(SITE_PREFIX);
+  return key === SETTINGS_KEY || key === GLOBAL_KEY || key.startsWith(SITE_PREFIX) || key.startsWith(PRESET_PREFIX);
 }
 
 /** A user's change to a built-in shortcut. Fields left out keep the built-in value. */
@@ -68,6 +79,8 @@ export interface SyncState {
   global: GlobalState;
   /** By exact host, as `URL.hostname` gives it. */
   sites: ReadonlyMap<string, SiteState>;
+  /** The user's changes to preset shortcuts, by preset id, then by preset shortcut id. */
+  presets: ReadonlyMap<string, ReadonlyMap<string, PresetOverride>>;
 }
 
 /** Why a doc is only partly readable: saved by a newer version, or damaged. */
@@ -88,6 +101,7 @@ export const EMPTY_STATE: SyncState = {
   settings: {},
   global: { shortcuts: [], overrides: new Map() },
   sites: new Map(),
+  presets: new Map(),
 };
 
 export function effectiveSettings(state: SyncState): Settings {
@@ -107,16 +121,23 @@ export function parseSync(items: Readonly<Record<string, unknown>>): SyncData {
     };
 
   const sites = new Map<string, SiteState>();
+  const presets = new Map<string, ReadonlyMap<string, PresetOverride>>();
   for (const [key, value] of Object.entries(items)) {
     const host = hostOfKey(key);
-    if (host === null) continue;
-    if (isHost(host)) sites.set(host, parseSite(value, reporter(key)));
-    else problems.set(key, 'invalid');
+    const preset = presetOfKey(key);
+    if (host !== null) {
+      if (isHost(host)) sites.set(host, parseSite(value, reporter(key)));
+      else problems.set(key, 'invalid');
+    } else if (preset !== null) {
+      if (PresetIdSchema.safeParse(preset).success) presets.set(preset, parsePresetDoc(preset, value, reporter(key)));
+      else problems.set(key, 'invalid');
+    }
   }
   const state: SyncState = {
     settings: parseSettings(items[SETTINGS_KEY], reporter(SETTINGS_KEY)),
     global: parseGlobal(items[GLOBAL_KEY], reporter(GLOBAL_KEY)),
     sites,
+    presets,
   };
   return { state, problems, items };
 }
@@ -179,6 +200,18 @@ function parseSite(value: unknown, report: Report): SiteState {
   return { disabled: disabled === true, shortcuts: parseShortcuts(doc.shortcuts, 'site', report), globals };
 }
 
+/** Changes to one preset's shortcuts. An entry for a shortcut of another preset counts as damage. */
+function parsePresetDoc(preset: string, value: unknown, report: Report): Map<string, PresetOverride> {
+  const doc = openDoc(value, report) ?? {};
+  const overrides = parseEntries(doc.overrides, PresetOverrideSchema, report);
+  for (const id of overrides.keys()) {
+    if (id.startsWith(`preset:${preset}:`)) continue;
+    overrides.delete(id);
+    report('invalid');
+  }
+  return overrides;
+}
+
 /** User shortcuts of one scope type. Anything else, and repeated ids, count as damage. */
 function parseShortcuts(value: unknown, scope: 'global' | 'site', report: Report): Shortcut[] {
   if (value === undefined) return [];
@@ -237,6 +270,13 @@ export function serializeDoc(state: SyncState, key: string): object | undefined 
     const { shortcuts, overrides } = state.global;
     if (shortcuts.length === 0 && overrides.size === 0) return undefined;
     return { v: DOC_VERSION, shortcuts, overrides: Object.fromEntries(overrides) };
+  }
+  const preset = presetOfKey(key);
+  if (preset !== null) {
+    const overrides = state.presets.get(preset);
+    return overrides === undefined || overrides.size === 0
+      ? undefined
+      : { v: DOC_VERSION, overrides: Object.fromEntries(overrides) };
   }
   const host = hostOfKey(key);
   const site = host === null ? undefined : state.sites.get(host);

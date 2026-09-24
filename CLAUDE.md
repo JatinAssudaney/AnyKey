@@ -6,7 +6,7 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 
 - `src/core/`: pure logic (key parsing, sequence matching, shortcut resolution, selector scoring, zod schemas). Type-checked against the ECMAScript library alone (`tsconfig.core.json`), so any DOM, `chrome.*` or Node global fails `pnpm typecheck`. Callers pass platform facts in: `isMac`, parsed URL parts, the current time.
 - `src/dom/`: content-script code: key engine, action executor, picker, hints. In-page UI lives in `src/dom/ui/`.
-- `src/background/`: service-worker code: the validating message router and tab actions.
+- `src/background/`: service-worker code: the validating message router, tab actions, and preset install.
 - `src/storage/`: storage reads, pure mutation reducers, and the background write queue.
 - `src/messaging.ts`: the sending side of runtime messages, shared by the content script and extension pages.
 - `src/entrypoints/`: WXT entrypoints (background, content, popup, options). Thin: they wire modules together.
@@ -22,7 +22,7 @@ Imports flow one way: entrypoints, then dom / background / components, then stor
 - TypeScript strict; `any` is a lint error. Validate every trust boundary with zod: stored data, imported JSON, presets, runtime messages. Schemas use `zod/mini` (`z.string().check(z.maxLength(n, message))`), which has no default messages, so any check a user can fail carries its own.
 - Explicit imports (auto-imports are off): `browser` from `wxt/browser`, WXT helpers from `wxt/utils/...`. Call extension APIs through `browser.*`, which tests fake with `fakeBrowser`.
 - In-page UI is vanilla TypeScript + plain CSS in px units, rendered in the one shared shadow root, with text set through `textContent` (the `h()` helper in `src/dom/ui/h.ts`). React and Tailwind belong to the popup and options page.
-- The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (M5: 99.4 kB, 34 kB gzipped; zod/mini is about 26 kB of that, the picker about 27 kB, link hints about 6 kB).
+- The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (M6: 104.2 kB, 36 kB gzipped; zod/mini is about 26 kB of that, the picker about 27 kB, link hints about 6 kB, preset support about 5 kB). Preset JSON belongs to the background, which installs it into storage; the content script only reads it.
 - Permissions stay at `storage` plus the `<all_urls>` content script, so people aren't put off installing. Adding one needs the user's approval and updates to PERMISSIONS.md and `e2e/extension.spec.ts` (which pins the manifest). Deferred ideas go in `BACKLOG.md`, with why they wait.
 - The popup and options page are keyboard-first: every control reachable with Tab in visual order, visible `focus-visible` rings, a label on every input, native `<dialog>` for modals, `aria-live` for status. jsx-a11y runs in strict mode.
 - Tests sit next to the code as `*.test.ts(x)`. Pure logic gets unit tests; DOM tests opt in with `// @vitest-environment happy-dom`; real-browser behavior gets a Playwright spec in `e2e/`.
@@ -40,7 +40,8 @@ Imports flow one way: entrypoints, then dom / background / components, then stor
 - E2E opens the popup as a page, `popup.html?tab=<id>`, since Playwright can't click the toolbar button. `tabIdOf` in the harness finds the id by asking each tab's content script, as the popup does.
 - happy-dom leaves out `assignedSlot` and focuses elements a browser wouldn't (a plain `div`). fakeBrowser doesn't implement `tabs.sendMessage` or `dom.openOrClosedShadowRoot`, so tests stub them.
 - After `chrome.runtime.reload()` the new service worker starts only when an event needs it, so E2E waits for the old worker's `close` event, never for a new `serviceworker` event.
-- E2E tests share one browser profile per worker. The harness clears storage before each test, so a test that changes settings must wait until storage holds the change (the writer saves up to about a second later), or the write lands in the next test.
+- E2E tests share one browser profile per worker. Before each test the harness clears sync storage and the backup, but keeps the installed presets (the background installs them only at startup). A test that changes settings must wait until storage holds the change (the writer saves up to about a second later), or the write lands in the next test.
+- E2E fakes real sites by routing their URLs to a fixture page (`page.route`, as `e2e/presets.spec.ts` does for www.youtube.com), after waiting for the presets to be in storage.
 
 ## Milestone loop
 

@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from './defaults';
-import { effectiveSettings, EMPTY_STATE, itemBytes, parseSync, serializeDoc, siteKey, type SyncState } from './docs';
+import {
+  effectiveSettings,
+  EMPTY_STATE,
+  itemBytes,
+  parseSync,
+  presetKey,
+  serializeDoc,
+  siteKey,
+  type SyncState,
+} from './docs';
 import type { Shortcut } from './schema';
 
 function userShortcut(id: string, keys: string, site?: string): Shortcut {
@@ -102,9 +111,34 @@ describe('parseSync', () => {
   });
 
   it('keeps unknown keys in the raw items and ignores them otherwise', () => {
-    const data = parseSync({ 'preset:github': { v: 1, overrides: {} } });
-    expect(data.items).toHaveProperty(['preset:github']);
+    const data = parseSync({ 'future:thing': { v: 3 } });
+    expect(data.items).toHaveProperty(['future:thing']);
     expect(data.problems.size).toBe(0);
+  });
+
+  it('reads changes to preset shortcuts, and reports entries it cannot use', () => {
+    const { state, problems } = parseSync({
+      'preset:github': {
+        v: 1,
+        overrides: {
+          'preset:github:star': { keys: 'ctrl+s', keyMode: 'key' },
+          'preset:github:releases': { enabled: false },
+          'preset:youtube:like': { enabled: false },
+          'preset:github:code-menu': { keys: 'x' },
+        },
+      },
+      'preset:Not An Id': { v: 1, overrides: {} },
+    });
+    expect(state.presets.get('github')).toEqual(
+      new Map([
+        ['preset:github:star', { keys: 'ctrl+s', keyMode: 'key' }],
+        ['preset:github:releases', { enabled: false }],
+      ]),
+    );
+    // Another preset's shortcut, and keys without their key mode.
+    expect(problems.get('preset:github')).toBe('invalid');
+    expect(state.presets.has('Not An Id')).toBe(false);
+    expect(problems.get('preset:Not An Id')).toBe('invalid');
   });
 });
 
@@ -114,14 +148,21 @@ describe('serializeDoc', () => {
     global: { shortcuts: [userShortcut('user:1', 'n')], overrides: new Map([['default:tab-close', { enabled: false }]]) },
     sites: new Map([
       ['example.com', { disabled: true, shortcuts: [], globals: new Map() }],
-      ['github.com', { disabled: false, shortcuts: [userShortcut('user:2', 'g x', 'github.com')], globals: new Map() }],
+      [
+        'github.com',
+        {
+          disabled: false,
+          shortcuts: [userShortcut('user:2', 'g x', 'github.com')],
+          globals: new Map([['default:scroll-top', true]]),
+        },
+      ],
     ]),
+    presets: new Map([['github', new Map([['preset:github:star', { keys: 'ctrl+s', keyMode: 'key', enabled: false }]])]]),
   };
 
   it('writes docs that read back as the same state', () => {
-    const items = Object.fromEntries(
-      ['settings', 'global', siteKey('example.com'), siteKey('github.com')].map((key) => [key, serializeDoc(state, key)]),
-    );
+    const keys = ['settings', 'global', siteKey('example.com'), siteKey('github.com'), presetKey('github')];
+    const items = Object.fromEntries(keys.map((key) => [key, serializeDoc(state, key)]));
     const read = parseSync(items);
     expect(read.state).toEqual(state);
     expect(read.problems.size).toBe(0);
@@ -132,6 +173,8 @@ describe('serializeDoc', () => {
     expect(serializeDoc(EMPTY_STATE, 'global')).toBeUndefined();
     const idle = { ...EMPTY_STATE, sites: new Map([['a.com', { disabled: false, shortcuts: [], globals: new Map() }]]) };
     expect(serializeDoc(idle, siteKey('a.com'))).toBeUndefined();
+    const untouched = { ...EMPTY_STATE, presets: new Map([['github', new Map()]]) };
+    expect(serializeDoc(untouched, presetKey('github'))).toBeUndefined();
   });
 });
 

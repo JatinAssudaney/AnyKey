@@ -4,10 +4,12 @@ import { DataSection } from './sections/DataSection';
 import { SettingsSection } from './sections/SettingsSection';
 import { ShortcutsSection } from './sections/ShortcutsSection';
 import { SitesSection } from './sections/SitesSection';
+import { usePresets } from '@/components/usePresets';
 import { useSync } from '@/components/useSync';
 
 export function App() {
   const { data, backup, status, mutate } = useSync();
+  const presets = usePresets();
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
@@ -35,7 +37,7 @@ export function App() {
             </p>
           )}
         </div>
-        {data === null ? (
+        {data === null || presets === null ? (
           <p className="text-sm text-stone-600 dark:text-stone-400">Loading your settings…</p>
         ) : (
           <div className="space-y-6">
@@ -48,8 +50,8 @@ export function App() {
                 .
               </p>
             )}
-            <ShortcutsSection data={data} mutate={mutate} />
-            <SitesSection data={data} mutate={mutate} />
+            <ShortcutsSection data={data} presets={presets} mutate={mutate} />
+            <SitesSection data={data} presets={presets} mutate={mutate} />
             <SettingsSection data={data} mutate={mutate} />
             <DataSection data={data} backup={backup} mutate={mutate} />
           </div>

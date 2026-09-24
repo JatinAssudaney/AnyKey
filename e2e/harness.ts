@@ -35,7 +35,7 @@ interface WorkerFixtures {
 
 interface TestFixtures {
   page: Page;
-  /** Runs before every test: clears AnyKey's storage, so no test sees another's settings. */
+  /** Runs before every test: clears the user's data from AnyKey's storage, so no test sees another's settings. */
   freshStorage: undefined;
 }
 
@@ -69,7 +69,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       await page.evaluate(async () => {
         // Sync storage counts every clear against its write quota, so clear only when there is something to clear.
         if (Object.keys(await chrome.storage.sync.get(null)).length > 0) await chrome.storage.sync.clear();
-        await chrome.storage.local.clear();
+        // The presets stay: the background installs them only when the extension starts.
+        await chrome.storage.local.remove('backup');
       });
       await page.close();
       await use(undefined);

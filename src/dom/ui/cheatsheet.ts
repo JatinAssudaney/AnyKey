@@ -1,5 +1,6 @@
 import { keycapLabels } from '../../core/keys';
-import type { Action, Shortcut } from '../../core/schema';
+import type { NativeKey } from '../../core/resolve';
+import type { Action, KeyMode, Shortcut } from '../../core/schema';
 import type { Mode } from '../modes';
 import { deepActiveElement } from '../shadow';
 import { h } from './h';
@@ -17,6 +18,8 @@ export interface CheatsheetOptions {
   root: UiRoot;
   isMac: boolean;
   shortcuts: readonly Shortcut[];
+  /** The site's own keys that reach it on this page, listed after AnyKey's. */
+  native: readonly NativeKey[];
   /** Key-mode tokens that close it besides Esc: the cheatsheet shortcut's own key. */
   closeTokens: readonly string[];
   scrollStep: number;
@@ -92,17 +95,25 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
 }
 
 function groups(options: CheatsheetOptions): HTMLElement[] {
-  return GROUPS.flatMap(({ title, types }) => {
-    const shortcuts = options.shortcuts.filter((shortcut) => types.includes(shortcut.action.type));
-    if (shortcuts.length === 0) return [];
-    const rows = shortcuts.map((shortcut) =>
-      h('tr', {}, h('td', { class: 'ak-keys' }, ...keycaps(shortcut, options.isMac)), h('td', {}, shortcut.label)),
+  const own = GROUPS.map(({ title, types }) => ({
+    title,
+    rows: options.shortcuts.filter((shortcut) => types.includes(shortcut.action.type)),
+  }));
+  // The site's own keys come last, by site: "YouTube's own keys".
+  const sites = [...new Set(options.native.map(({ site }) => site))].map((site) => ({
+    title: `${site}'s own keys`,
+    rows: options.native.filter((key) => key.site === site).map((key) => ({ ...key, keyMode: 'key' as const })),
+  }));
+  return [...own, ...sites].flatMap(({ title, rows }) => {
+    if (rows.length === 0) return [];
+    const cells = rows.map((row) =>
+      h('tr', {}, h('td', { class: 'ak-keys' }, ...keycaps(row, options.isMac)), h('td', {}, row.label)),
     );
-    return [h('section', { class: 'ak-group' }, h('h3', {}, title), h('table', {}, h('tbody', {}, ...rows)))];
+    return [h('section', { class: 'ak-group' }, h('h3', {}, title), h('table', {}, h('tbody', {}, ...cells)))];
   });
 }
 
-function keycaps(shortcut: Shortcut, isMac: boolean): HTMLElement[] {
+function keycaps(shortcut: { keys: string; keyMode: KeyMode }, isMac: boolean): HTMLElement[] {
   const chords = keycapLabels(shortcut.keys, shortcut.keyMode, isMac) ?? [];
   return chords.flatMap((labels, i) => [
     ...(i > 0 ? [h('span', { class: 'ak-then' }, 'then')] : []),

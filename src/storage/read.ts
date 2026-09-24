@@ -1,5 +1,6 @@
 import { browser, type Browser } from 'wxt/browser';
 import { BACKUP_KEY, BackupSchema, parseSync, type Backup, type SyncData } from '../core/docs';
+import { parsePresets, PRESETS_KEY, type Preset } from '../core/presets';
 
 // Reading storage. Every context reads; only the background writer (./writer.ts) writes.
 
@@ -12,6 +13,12 @@ export async function loadBackup(): Promise<Backup | null> {
   const { [BACKUP_KEY]: raw } = await browser.storage.local.get(BACKUP_KEY);
   const parsed = BackupSchema.safeParse(raw);
   return parsed.success ? parsed.data : null;
+}
+
+/** The presets the background installed in chrome.storage.local (docs/design.md, "Presets"). */
+export async function loadPresets(): Promise<Preset[]> {
+  const { [PRESETS_KEY]: raw } = await browser.storage.local.get(PRESETS_KEY);
+  return parsePresets(raw);
 }
 
 export interface Watcher {
@@ -28,6 +35,11 @@ export function watchSync(onData: (data: SyncData) => void): Watcher {
 /** Calls `onBackup` with the backup now and after every change to it, until stopped. */
 export function watchBackup(onBackup: (backup: Backup | null) => void): Watcher {
   return watch(browser.storage.local, (changes) => BACKUP_KEY in changes, loadBackup, onBackup);
+}
+
+/** Calls `onPresets` with the installed presets now and after every change to them, until stopped. */
+export function watchPresets(onPresets: (presets: Preset[]) => void): Watcher {
+  return watch(browser.storage.local, (changes) => PRESETS_KEY in changes, loadPresets, onPresets);
 }
 
 /** Every relevant change starts a fresh read, and an older read never overwrites a newer one. */

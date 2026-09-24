@@ -1,4 +1,5 @@
 import { z } from 'zod/mini';
+import { PresetIdSchema, PresetOverrideSchema } from './presets';
 import {
   ElementActionSchema,
   IdSchema,
@@ -40,6 +41,18 @@ export const MutationSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('deleteShortcut'), id: IdSchema }),
   /** Switches AnyKey off, or back on, for one site. */
   z.object({ op: z.literal('setSiteDisabled'), site: HostSchema, disabled: z.boolean() }),
+  /**
+   * Turns a built-in shortcut on or off for one site, whatever applies everywhere else and whatever a preset says.
+   * Leaving `enabled` out removes the site's own switch.
+   */
+  z.object({ op: z.literal('setSiteDefault'), site: HostSchema, id: IdSchema, enabled: z.optional(z.boolean()) }),
+  /** Replaces the user's change to a preset shortcut. An empty override puts back the preset's own keys, turned on. */
+  z.object({ op: z.literal('setPresetOverride'), preset: PresetIdSchema, id: IdSchema, override: PresetOverrideSchema }),
+  /**
+   * Puts a site back the way its preset has it: no changes to the preset's shortcuts, and no site switches for
+   * built-in shortcuts. `deleteShortcuts` also deletes the user's shortcuts kept with the site.
+   */
+  z.object({ op: z.literal('resetToPreset'), preset: PresetIdSchema, site: HostSchema, deleteShortcuts: z.boolean() }),
   /** Replaces every doc this version knows with the given items (an import). The old data becomes the backup. */
   z.object({ op: z.literal('replaceAll'), items: z.record(z.string(), z.unknown()) }),
   /** Swaps the stored data with the backup. */

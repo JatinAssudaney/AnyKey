@@ -1,8 +1,9 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
-import { describeConflict, findConflicts } from '../../core/conflicts';
+import { describeConflicts, findConflicts } from '../../core/conflicts';
 import { keysInWords } from '../../core/keys';
 import type { PickedShortcut } from '../../core/messages';
 import { createRecorder, type Recorder, type RecorderStep } from '../../core/recorder';
+import type { PageShortcuts } from '../../core/resolve';
 import { LIMITS, storedKeys, type ElementAction, type ElementTarget, type Shortcut } from '../../core/schema';
 import { truncate } from '../../core/text';
 import { siteMatch } from '../../core/url';
@@ -28,8 +29,8 @@ export interface PanelOptions {
   isLink: boolean;
   /** What the default name calls the element: its text, or what kind of element it is. */
   name: string;
-  /** The shortcuts that apply to the page now, for the conflict check. */
-  pageShortcuts: readonly Shortcut[];
+  /** The shortcuts and the site's own keys on the page now, for the conflict check. */
+  page: PageShortcuts;
   /** Saves the shortcut. Resolves to an error message, or null once it is saved. */
   save(shortcut: PickedShortcut): Promise<string | null>;
   onClose(result: PanelResult): void;
@@ -161,9 +162,11 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
         }
       : null;
     const found =
-      shortcut === null ? [] : (findConflicts([...options.pageShortcuts, shortcut], options.isMac).get(NEW_ID) ?? []);
+      shortcut === null
+        ? []
+        : (findConflicts([...options.page.shortcuts, shortcut], options.isMac, options.page.native).get(NEW_ID) ?? []);
     conflicts = found.length;
-    notes.replaceChildren(...found.map((conflict) => h('li', {}, describeConflict(conflict))));
+    notes.replaceChildren(...describeConflicts(found).map((line) => h('li', {}, line)));
   }
 
   function showError(message: string): void {

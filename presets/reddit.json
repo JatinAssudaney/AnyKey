@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "reddit",
+  "name": "Reddit",
+  "version": 1,
+  "matches": ["*://www.reddit.com/*"],
+  "reserved": [
+    { "keys": "?", "label": "Show keyboard shortcuts" },
+    { "keys": "c", "label": "Create a post" },
+    { "keys": "q", "label": "Open or close the navigation" },
+    { "keys": "j", "label": "Next post or comment", "yield": true },
+    { "keys": "k", "label": "Previous post or comment", "yield": true },
+    { "keys": "a", "label": "Upvote" },
+    { "keys": "z", "label": "Downvote" },
+    { "keys": "s", "label": "Save or unsave" },
+    { "keys": "h", "label": "Hide the post" },
+    { "keys": "l", "label": "Copy the link" },
+    { "keys": "x", "label": "Expand or collapse a post, in compact view", "yield": true },
+    { "keys": "r", "label": "Reply to the comment" },
+    { "keys": "f", "label": "Collapse or expand the comment" },
+    { "keys": "meta+enter", "label": "Submit the comment or post" },
+    { "keys": "alt+enter", "label": "Submit the comment or post" },
+    { "keys": "space", "label": "Play or pause the video" },
+    { "keys": "left", "label": "Rewind the video 5 seconds" },
+    { "keys": "right", "label": "Forward the video 5 seconds" },
+    { "keys": "up", "label": "Turn the video's volume up" },
+    { "keys": "down", "label": "Turn the video's volume down" },
+    { "keys": "0", "label": "Restart the video" },
+    { "keys": "m", "label": "Mute or unmute the video" },
+
+    { "keys": "t", "label": "Show or hide the user panel", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "T", "label": "Open the user's mod log", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "enter", "label": "Open the post panel", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "meta+enter", "label": "Open the post in a new tab", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "escape", "label": "Close the panel", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "n", "label": "Next page", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "p", "label": "Previous page", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "f", "label": "Approve", "matches": ["*://www.reddit.com/mod/*"] },
+    { "keys": "d", "label": "Remove", "yield": true, "matches": ["*://www.reddit.com/mod/*"] }
+  ],
+  "shortcuts": [
+    {
+      "id": "preset:reddit:home",
+      "keys": "g h",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://www.reddit.com/" },
+      "label": "Go to your home feed",
+      "verified": false
+    },
+    {
+      "id": "preset:reddit:popular",
+      "keys": "g p",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://www.reddit.com/r/popular/" },
+      "label": "Go to Popular",
+      "verified": false
+    },
+    {
+      "id": "preset:reddit:notifications",
+      "keys": "g n",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://www.reddit.com/notifications" },
+      "label": "Go to your notifications",
+      "verified": false
+    },
+    {
+      "id": "preset:reddit:chat",
+      "keys": "g m",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://www.reddit.com/chat" },
+      "label": "Go to chat",
+      "verified": false
+    },
+    {
+      "id": "preset:reddit:search",
+      "keys": "/",
+      "keyMode": "key",
+      "action": {
+        "type": "focus",
+        "target": {
+          "selector": "reddit-search-large input[name=\"q\"]",
+          "fallbacks": ["form.reddit-search-bar input[name=\"q\"]", "input[name=\"q\"][enterkeyhint=\"search\"]"]
+        }
+      },
+      "label": "Search Reddit",
+      "verified": false
+    }
+  ]
+}

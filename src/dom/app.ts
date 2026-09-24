@@ -1,13 +1,15 @@
 import { browser, type Browser } from 'wxt/browser';
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
+import { nativeKeysLeft } from '../core/conflicts';
 import { DEFAULT_SETTINGS } from '../core/defaults';
-import { effectiveSettings, type SyncState } from '../core/docs';
+import { effectiveSettings, EMPTY_STATE, type SyncState } from '../core/docs';
 import { keysInWords, sequenceTokens } from '../core/keys';
 import type { BackgroundResponse, PageInfo, PageRequest } from '../core/messages';
-import { resolve, shortcutsForUrl } from '../core/resolve';
+import type { Preset } from '../core/presets';
+import { pageShortcuts, resolve, type PageShortcuts } from '../core/resolve';
 import type { Settings, Shortcut } from '../core/schema';
 import { sendToBackground } from '../messaging';
-import { watchSync } from '../storage/read';
+import { watchPresets, watchSync } from '../storage/read';
 import { startEngine } from './engine';
 import { createExecutor } from './executor';
 import { openHints } from './hints';
@@ -24,6 +26,8 @@ export function startAnyKey(ctx: ContentScriptContext): void {
   let settings: Settings = DEFAULT_SETTINGS;
   /** Null until storage has loaded; until then no shortcut runs, so a disabled key never fires early. */
   let state: SyncState | null = null;
+  /** Null until the installed presets have loaded, so a key the site keeps for itself never goes to AnyKey early. */
+  let presets: readonly Preset[] | null = null;
   /**
    * The URL the active shortcuts were resolved for, without its `#` part: match patterns ignore it, and some sites
    * rewrite it as you scroll, which mustn't reset a sequence such as g g.
@@ -31,6 +35,7 @@ export function startAnyKey(ctx: ContentScriptContext): void {
   let resolvedUrl = '';
   const ui = createUiRoot(ctx);
   const toast = createToast(ui, ctx);
+  let page: PageShortcuts | null = null;
   let active: readonly Shortcut[] = [];
   let cheatsheetOpen = false;
 
@@ -66,6 +71,7 @@ export function startAnyKey(ctx: ContentScriptContext): void {
         root: ui,
         isMac,
         shortcuts: active,
+        native: nativeKeysLeft(page?.native ?? [], active, isMac),
         closeTokens,
         scrollStep: settings.scrollStep,
         pushMode: (mode) => {
@@ -108,7 +114,7 @@ export function startAnyKey(ctx: ContentScriptContext): void {
     popMode: (mode) => {
       engine.popMode(mode);
     },
-    pageShortcuts: () => (state === null ? [] : shortcutsForUrl(state, urlParts(withoutHash(location.href)))),
+    page: () => pageShortcuts(state ?? EMPTY_STATE, presets ?? [], urlParts(withoutHash(location.href))),
     save: async (shortcut) => {
       const response = await sendToBackground({ type: 'addSiteShortcut', shortcut });
       return response.ok ? null : response.error;
@@ -124,15 +130,20 @@ export function startAnyKey(ctx: ContentScriptContext): void {
   });
 
   function applyShortcuts(): void {
-    if (state === null) return;
+    if (state === null || presets === null) return;
     resolvedUrl = withoutHash(location.href);
-    active = resolve({ shortcuts: shortcutsForUrl(state, urlParts(resolvedUrl)), isMac }).active;
+    page = pageShortcuts(state, presets, urlParts(resolvedUrl));
+    active = resolve({ shortcuts: page.shortcuts, isMac }).active;
     engine.setShortcuts(active);
   }
 
   const watcher = watchSync((data) => {
     state = data.state;
     settings = effectiveSettings(data.state);
+    applyShortcuts();
+  });
+  const presetWatcher = watchPresets((list) => {
+    presets = list;
     applyShortcuts();
   });
 
@@ -151,6 +162,7 @@ export function startAnyKey(ctx: ContentScriptContext): void {
 
   ctx.onInvalidated(() => {
     watcher.stop();
+    presetWatcher.stop();
     try {
       browser.runtime.onMessage.removeListener(onMessage);
     } catch {

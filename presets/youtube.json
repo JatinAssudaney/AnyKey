@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "id": "youtube",
+  "name": "YouTube",
+  "version": 1,
+  "matches": ["*://www.youtube.com/*"],
+  "reserved": [
+    { "keys": "/", "label": "Focus the search box" },
+    { "keys": "?", "label": "Show keyboard shortcuts" },
+
+    { "keys": "k", "label": "Play or pause", "yield": true, "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "space", "label": "Play or pause", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "j", "label": "Go back 10 seconds", "yield": true, "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "l", "label": "Go forward 10 seconds", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "left", "label": "Go back 5 seconds", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "right", "label": "Go forward 5 seconds", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "up", "label": "Volume up", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "down", "label": "Volume down", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "m", "label": "Mute or unmute", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "home", "label": "Go to the start of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "end", "label": "Go to the end of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "ctrl+left", "label": "Previous chapter", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "alt+left", "label": "Previous chapter", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "ctrl+right", "label": "Next chapter", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "alt+right", "label": "Next chapter", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": ",", "label": "Previous frame, while paused", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": ".", "label": "Next frame, while paused", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "<", "label": "Slow down playback", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": ">", "label": "Speed up playback", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "0", "label": "Go to the start of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "1", "label": "Go to 10% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "2", "label": "Go to 20% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "3", "label": "Go to 30% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "4", "label": "Go to 40% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "5", "label": "Go to 50% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "6", "label": "Go to 60% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "7", "label": "Go to 70% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "8", "label": "Go to 80% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "9", "label": "Go to 90% of the video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "f", "label": "Full screen on or off", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "escape", "label": "Leave full screen", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "c", "label": "Captions on or off", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "plus", "label": "Bigger captions", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "-", "label": "Smaller captions", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "N", "label": "Next video", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "P", "label": "Previous video in a playlist", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "t", "label": "Theater mode on or off", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "i", "label": "Open the miniplayer", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "w", "label": "Look up, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "a", "label": "Look left, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "s", "label": "Look down, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "d", "label": "Look right, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "]", "label": "Zoom in, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+    { "keys": "[", "label": "Zoom out, in 360° videos", "matches": ["*://www.youtube.com/watch*"] },
+
+    { "keys": "up", "label": "Previous Short", "matches": ["*://www.youtube.com/shorts/*"] },
+    { "keys": "down", "label": "Next Short", "matches": ["*://www.youtube.com/shorts/*"] }
+  ],
+  "shortcuts": [
+    {
+      "id": "preset:youtube:like",
+      "keys": "g l",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": {
+          "selector": "like-button-view-model button",
+          "fallbacks": ["button[aria-label^=\"like this video\"]"]
+        }
+      },
+      "label": "Like the video",
+      "verified": false,
+      "matches": ["*://www.youtube.com/watch*"]
+    },
+    {
+      "id": "preset:youtube:dislike",
+      "keys": "g d",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": {
+          "selector": "dislike-button-view-model button",
+          "fallbacks": ["button[aria-label=\"Dislike this video\"]"]
+        }
+      },
+      "label": "Dislike the video",
+      "verified": false,
+      "matches": ["*://www.youtube.com/watch*"]
+    },
+    {
+      "id": "preset:youtube:subscribe",
+      "keys": "g s",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": {
+          "selector": "ytd-watch-metadata #subscribe-button button",
+          "fallbacks": ["#owner #subscribe-button button"]
+        }
+      },
+      "label": "Subscribe to the channel",
+      "verified": false,
+      "matches": ["*://www.youtube.com/watch*"]
+    },
+    {
+      "id": "preset:youtube:comment",
+      "keys": "g c",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "#simplebox-placeholder", "fallbacks": ["ytd-comment-simplebox-renderer #placeholder-area"] }
+      },
+      "label": "Write a comment",
+      "verified": false,
+      "matches": ["*://www.youtube.com/watch*"]
+    },
+    {
+      "id": "preset:youtube:channel",
+      "keys": "g u",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "ytd-video-owner-renderer a[href]", "fallbacks": ["#owner ytd-channel-name a[href]"] }
+      },
+      "label": "Go to the channel",
+      "verified": false,
+      "matches": ["*://www.youtube.com/watch*"]
+    }
+  ]
+}
