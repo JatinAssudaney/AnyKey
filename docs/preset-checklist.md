@@ -12,7 +12,7 @@ How to check a preset on the live site. Every preset shortcut ships with `verifi
 
 - [ ] Press `?` on a page from the tables below. The cheatsheet starts with "<Site>'s own keys", listing the site's keys that still reach it.
 - [ ] Open the popup there. The "<Site> preset" section lists the preset's shortcuts for the page, and says which keys go to the site's own shortcuts.
-- [ ] In the options page, Sites, the site's section shows the preset's shortcuts, the built-in shortcuts that give way, and the site's own keys.
+- [ ] In the options page, Sites, the site's row names the preset. Opened, the site shows the preset's shortcuts, then the built-in shortcuts that give way and the site's own keys, as closed lists with their counts.
 
 ## Each preset shortcut
 
@@ -24,7 +24,7 @@ How to check a preset on the live site. Every preset shortcut ships with `verifi
 
 1. On a page where it applies, press the key. The site's own shortcut runs, and AnyKey does nothing.
 2. On a page of the site where it doesn't apply, AnyKey's shortcut runs.
-3. In options, switch on Keep for it in the site's section. AnyKey's shortcut now runs on the first page too. Switch Keep off again.
+3. In options, open the site in Sites, then "Built-in shortcuts that give way to <Site>", and switch on Keep for it. AnyKey's shortcut now runs on the first page too. Switch Keep off again.
 
 ## GitHub (`presets/github.json`)
 
