@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "reddit",
   "name": "Reddit",
-  "version": 1,
+  "version": 2,
   "matches": ["*://www.reddit.com/*"],
   "reserved": [
     { "keys": "?", "label": "Show keyboard shortcuts" },
@@ -45,7 +45,7 @@
       "keyMode": "key",
       "action": { "type": "navigate", "url": "https://www.reddit.com/" },
       "label": "Go to your home feed",
-      "verified": false
+      "verified": true
     },
     {
       "id": "preset:reddit:popular",
@@ -53,7 +53,7 @@
       "keyMode": "key",
       "action": { "type": "navigate", "url": "https://www.reddit.com/r/popular/" },
       "label": "Go to Popular",
-      "verified": false
+      "verified": true
     },
     {
       "id": "preset:reddit:notifications",
@@ -61,7 +61,7 @@
       "keyMode": "key",
       "action": { "type": "navigate", "url": "https://www.reddit.com/notifications" },
       "label": "Go to your notifications",
-      "verified": false
+      "verified": true
     },
     {
       "id": "preset:reddit:chat",
@@ -69,7 +69,7 @@
       "keyMode": "key",
       "action": { "type": "navigate", "url": "https://www.reddit.com/chat" },
       "label": "Go to chat",
-      "verified": false
+      "verified": true
     },
     {
       "id": "preset:reddit:search",
@@ -83,7 +83,7 @@
         }
       },
       "label": "Search Reddit",
-      "verified": false
+      "verified": true
     }
   ]
 }

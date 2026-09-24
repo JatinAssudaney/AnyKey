@@ -13,7 +13,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M5 | Hint mode | done |
 | M6 | Presets, overrides, conflict warnings | done |
 | M7 | Welcome page on install, where AnyKey's keys work on the page itself | done |
-| M8 | Presets checked on the live sites, signed in and signed out, and marked verified | in progress |
+| M8 | Presets checked on the live sites, signed in and signed out, and marked verified | done |
 | M9 | Store listing: store icon, screenshots, promo tiles, demo video, description, privacy policy | in progress |
 | M10 | Release 1.0: release checks as E2E tests, a Chrome test pass and a Windows E2E run, publish, Featured badge nomination | planned |
 

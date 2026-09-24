@@ -41,17 +41,17 @@ Checked on 2026-09-24:
 
 - [x] `pnpm test:live` checks the GitHub and YouTube presets on the live sites, signed out.
 - [x] GitHub and YouTube pass `docs/preset-checklist.md` on the live sites, signed in and signed out, and are marked `verified: true` (GitHub version 3, YouTube version 2).
-- [ ] Reddit passes the checklist by hand, signed in and signed out, and is marked `verified: true`, so no Unverified badge is left for a reviewer to see.
+- [x] Reddit passes the checklist by hand and is marked `verified: true` (version 2), so no Unverified badge is left for a reviewer to see.
 
 ## Store listing (M9)
 
 Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing.md` says which goes where):
 
 - [x] Store icon, 128×128: the artwork 96×96 in the middle and 16 px clear on each side, working on light and dark backgrounds. The toolbar icon fills its square (120×118 of 128), so the listing gets its own.
-- [x] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI: five, on a made-up recipe site (`store/demo.html`) and AnyKey's own pages. Make them again once M8 clears the Unverified badges from the settings screenshot.
+- [x] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI: five, on a made-up recipe site (`store/demo.html`) and AnyKey's own pages. Made again after M8, without Unverified badges.
 - [x] Small promo tile, 440×280 (required): no text, saturated colors, clear at half size.
 - [x] Marquee, 1400×560: optional, but the store's carousel shows only items that have one.
-- [ ] A short demo video on YouTube (recommended): made in `store/video` (Remotion) from stills of AnyKey on the demo page, 40 seconds. Render it, upload it to YouTube and put its link in the listing. Its settings scene shows the Unverified badges too, so make the stills again after M8 as well.
+- [ ] A short demo video on YouTube (recommended): made in `store/video` (Remotion) from stills of AnyKey on the demo page, 40 seconds, and rendered after M8 into `store/video/out/anykey-demo.mp4`. Upload it to YouTube and put its link in the listing.
 
 Text, ready to paste in `store/listing.md`:
 
