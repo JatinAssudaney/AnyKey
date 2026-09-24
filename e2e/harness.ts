@@ -4,6 +4,7 @@ import {
   expect,
   test as base,
   type BrowserContext,
+  type BrowserContextOptions,
   type CDPSession,
   type Page,
   type Worker,
@@ -14,10 +15,13 @@ export { FIXTURE_ORIGIN } from './constants.ts';
 
 const EXTENSION_PATH = path.resolve(import.meta.dirname, '../dist/chrome-mv3');
 
-/** A fresh Chromium profile with the built extension loaded. */
-export async function launchExtensionContext(): Promise<BrowserContext> {
+/** A fresh Chromium profile with the built extension loaded. The options size its pages (the store images). */
+export async function launchExtensionContext(
+  options: Pick<BrowserContextOptions, 'viewport' | 'deviceScaleFactor'> = {},
+): Promise<BrowserContext> {
   // Branded Chrome 137+ ignores --load-extension, so this uses Playwright's bundled Chromium.
   return chromium.launchPersistentContext('', {
+    ...options,
     channel: 'chromium',
     args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
   });

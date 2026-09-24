@@ -447,15 +447,17 @@
   overflow-wrap: anywhere;
 }
 
+/* Its top margin comes from .ak-field, like the other fields'. */
 .ak-panel fieldset {
   min-width: 0;
-  margin: 0;
+  margin-inline: 0;
   padding: 0;
   border: 0;
 }
 
+/* A field's caption. Choices (.ak-check) wrap their input in a label with no for. */
 .ak-panel legend,
-.ak-field > label {
+.ak-field > label[for] {
   display: block;
   margin-bottom: 4px;
   padding: 0;

@@ -14,7 +14,7 @@ The rules each area must keep. Sections marked with a milestone describe planned
 | M6 | Presets, overrides, conflict warnings | done |
 | M7 | Welcome page on install, where AnyKey's keys work on the page itself | done |
 | M8 | Presets checked on the live sites, signed in and signed out, and marked verified | in progress |
-| M9 | Store listing: store icon, screenshots, promo tiles, description, privacy policy | planned |
+| M9 | Store listing: store icon, screenshots, promo tiles, description, privacy policy | in progress |
 | M10 | Release 1.0: release checks as E2E tests, Windows and Chrome test pass, publish, Featured badge nomination | planned |
 
 M7 to M10 take AnyKey to the Chrome Web Store and a nomination for its Featured badge. `docs/launch.md` lists what the store asks for and which milestone covers each part.

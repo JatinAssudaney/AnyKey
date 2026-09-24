@@ -10,7 +10,8 @@ const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclud
   encoding: 'utf8',
 })
   .split('\0')
-  .filter((file) => file !== '' && !SKIP.has(file));
+  // Images are binary, where the em dash's three bytes can turn up by chance.
+  .filter((file) => file !== '' && !SKIP.has(file) && !/\.(png|jpe?g|webp|gif)$/.test(file));
 
 let found = 0;
 for (const file of files) {

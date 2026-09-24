@@ -18,6 +18,7 @@
     "test:watch": "vitest",
     "test:e2e": "wxt build && playwright test",
     "test:live": "wxt build && playwright test -c playwright.live.config.ts",
+    "store:images": "wxt build && playwright test -c playwright.store.config.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm lint:text && pnpm test && pnpm build",
     "postinstall": "wxt prepare"
   },

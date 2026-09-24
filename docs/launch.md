@@ -44,22 +44,22 @@ Checked on 2026-09-24:
 
 ## Store listing (M9)
 
-Images, all PNG:
+Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing.md` says which goes where):
 
-- [ ] Store icon, 128×128: the artwork 96×96 in the middle and 16 px clear on each side, working on light and dark backgrounds. The toolbar icon fills its square (120×118 of 128), so the listing gets its own.
-- [ ] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI.
-- [ ] Small promo tile, 440×280 (required): no text, saturated colors, clear at half size.
-- [ ] Marquee, 1400×560: optional, but the store's carousel shows only items that have one.
-- [ ] A short demo video on YouTube (recommended).
+- [x] Store icon, 128×128: the artwork 96×96 in the middle and 16 px clear on each side, working on light and dark backgrounds. The toolbar icon fills its square (120×118 of 128), so the listing gets its own.
+- [x] 1 to 5 screenshots, 1280×800, full bleed with square corners, showing the real UI: five, on a made-up recipe site (`store/demo.html`) and AnyKey's own pages. Make them again once M8 clears the Unverified badges from the settings screenshot.
+- [x] Small promo tile, 440×280 (required): no text, saturated colors, clear at half size.
+- [x] Marquee, 1400×560: optional, but the store's carousel shows only items that have one.
+- [ ] A short demo video on YouTube (recommended): recorded by hand on the demo page (`python3 -m http.server -d store`, then http://localhost:8000/demo.html), showing hints, then giving a button a key, then pressing it.
 
-Text:
+Text, ready to paste in `store/listing.md`:
 
-- [ ] Title: the manifest name, AnyKey. The address bar shows it on AnyKey's pages, so it stays short, and the summary says what AnyKey does.
-- [ ] Summary: the manifest description, at most 132 characters (104 now).
-- [ ] Description: an overview paragraph, then the features. No lists of keywords.
-- [ ] Category: Accessibility, or Workflow & Planning.
-- [ ] Privacy practices: the single purpose and the permission justifications from PERMISSIONS.md, and what AnyKey does with data, matching the privacy policy.
-- [ ] A privacy policy, a website and a support page, at public URLs.
+- [x] Title: the manifest name, AnyKey. The address bar shows it on AnyKey's pages, so it stays short, and the summary says what AnyKey does.
+- [x] Summary: the manifest description, at most 132 characters (104 now).
+- [x] Description: an overview paragraph, then the features. No lists of keywords.
+- [x] Category: Accessibility.
+- [x] Privacy practices: the single purpose and the permission justifications from PERMISSIONS.md, and what AnyKey does with data, matching the privacy policy.
+- [ ] A privacy policy, a website and a support page, at public URLs: PRIVACY.md, the repository and its Issues, on GitHub once pushed.
 
 ## Release (M10)
 

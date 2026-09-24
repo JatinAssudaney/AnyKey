@@ -12,6 +12,7 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 - `src/entrypoints/`: WXT entrypoints (background, content, popup, options, welcome). Thin: they wire modules together.
 - `src/components/`: React components shared by the popup and options page.
 - `presets/`: bundled preset JSON. `e2e/`: Playwright specs, harness and fixture pages.
+- `store/`: the Chrome Web Store listing (`listing.md`), the demo page and promo art that `pnpm store:images` (`e2e/store/`) turns into `store/images`. Run it again when the UI it shows changes.
 
 Imports flow one way: entrypoints, then dom / background / components, then storage, then `messaging.ts`, then core. Core imports from no other layer.
 
@@ -23,7 +24,7 @@ Imports flow one way: entrypoints, then dom / background / components, then stor
 - Explicit imports (auto-imports are off): `browser` from `wxt/browser`, WXT helpers from `wxt/utils/...`. Call extension APIs through `browser.*`, which tests fake with `fakeBrowser`.
 - In-page UI is vanilla TypeScript + plain CSS in px units, rendered in the one shared shadow root, with text set through `textContent` (the `h()` helper in `src/dom/ui/h.ts`). React and Tailwind belong to the popup and options page.
 - The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (M8: 106.0 kB, 36.6 kB gzipped; zod/mini is about 26 kB of that, the picker about 27 kB, link hints about 6 kB, preset support about 5 kB). Preset JSON belongs to the background, which installs it into storage; the content script only reads it.
-- Permissions stay at `storage` plus the `<all_urls>` content script, so people aren't put off installing. Adding one needs the user's approval and updates to PERMISSIONS.md and `e2e/extension.spec.ts` (which pins the manifest). Deferred ideas go in `BACKLOG.md`, with why they wait.
+- Permissions stay at `storage` plus the `<all_urls>` content script, so people aren't put off installing. Adding one needs the user's approval and updates to PERMISSIONS.md, PRIVACY.md, `store/listing.md` and `e2e/extension.spec.ts` (which pins the manifest). Deferred ideas go in `BACKLOG.md`, with why they wait.
 - The popup and options page are keyboard-first: every control reachable with Tab in visual order, visible `focus-visible` rings, a label on every input, native `<dialog>` for modals, `aria-live` for status. jsx-a11y runs in strict mode.
 - Tests sit next to the code as `*.test.ts(x)`. Pure logic gets unit tests; DOM tests opt in with `// @vitest-environment happy-dom`; real-browser behavior gets a Playwright spec in `e2e/`.
 - Writing style everywhere (code, comments, docs, UI copy, commit messages): use commas, colons, periods or parentheses where an em dash (U+2014) might go. `pnpm lint:text` fails on any em dash.

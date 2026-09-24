@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AnyKey promo tiles</title>
+    <!--
+      The store's promo tiles, drawn at their exact size by e2e/store: ?size=small (440 by 280) or ?size=marquee
+      (1400 by 560). The store asks for no text, saturated colors, well-defined edges and a design that holds up at
+      half size, so they show the toolbar icon on a field of keys, with link hints in AnyKey's own colors.
+    -->
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      .tile {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 40%, #c2410c 100%);
+      }
+      .key {
+        position: absolute;
+        border-radius: 12px;
+        background: rgb(255 255 255 / 0.13);
+        box-shadow: 0 6px 0 rgb(124 45 18 / 0.35);
+      }
+      .logo {
+        position: absolute;
+        filter: drop-shadow(0 18px 24px rgb(67 20 7 / 0.35));
+      }
+      .hint {
+        position: absolute;
+        padding: 2px 8px;
+        border: 2px solid #b45309;
+        border-radius: 7px;
+        color: #1c1917;
+        background: #fcd34d;
+        box-shadow: 0 3px 8px rgb(0 0 0 / 0.3);
+        font: 800 22px/26px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        text-transform: uppercase;
+      }
+      .window {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 30px 70px rgb(67 20 7 / 0.45);
+      }
+      .bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        height: 40px;
+        padding: 0 16px;
+        background: #f5f5f4;
+        border-bottom: 1px solid #e7e5e4;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .address {
+        width: 45%;
+        height: 20px;
+        margin-left: 16px;
+        border-radius: 10px;
+        background: #e7e5e4;
+      }
+      .window img {
+        display: block;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tile" id="tile"></div>
+    <script>
+      const LAYOUTS = {
+        small: {
+          width: 440,
+          height: 280,
+          key: 58,
+          gap: 12,
+          logo: { x: 145, y: 60, size: 150 },
+          hints: [
+            { text: 'sa', x: 62, y: 50 },
+            { text: 'jk', x: 318, y: 186 },
+          ],
+        },
+        marquee: {
+          width: 1400,
+          height: 560,
+          key: 84,
+          gap: 16,
+          logo: { x: 150, y: 150, size: 260 },
+          hints: [
+            { text: 'df', x: 96, y: 118 },
+            { text: 'jk', x: 372, y: 382 },
+          ],
+          window: { x: 560, y: 70, width: 900 },
+        },
+      };
+      const layout = LAYOUTS[new URLSearchParams(location.search).get('size') ?? 'small'];
+      const tile = document.getElementById('tile');
+      tile.style.width = `${layout.width}px`;
+      tile.style.height = `${layout.height}px`;
+
+      // A field of keys, rows staggered like a keyboard's, running off every edge.
+      const step = layout.key + layout.gap;
+      for (let row = -1; row * step < layout.height + step; row++) {
+        const shift = ((row * layout.key) / 3) % step;
+        for (let x = -step + shift; x < layout.width + step; x += step) {
+          const key = document.createElement('div');
+          key.className = 'key';
+          Object.assign(key.style, {
+            left: `${x}px`,
+            top: `${row * step + layout.gap}px`,
+            width: `${layout.key}px`,
+            height: `${layout.key - 6}px`,
+          });
+          tile.append(key);
+        }
+      }
+
+      if (layout.window) {
+        const frame = document.createElement('div');
+        frame.className = 'window';
+        Object.assign(frame.style, { left: `${layout.window.x}px`, top: `${layout.window.y}px`, width: `${layout.window.width}px` });
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        for (const color of ['#ef4444', '#f59e0b', '#22c55e']) {
+          const dot = document.createElement('span');
+          dot.className = 'dot';
+          dot.style.background = color;
+          bar.append(dot);
+        }
+        const address = document.createElement('span');
+        address.className = 'address';
+        bar.append(address);
+        const shot = document.createElement('img');
+        shot.src = 'images/screenshot-1-hints.png';
+        shot.alt = '';
+        frame.append(bar, shot);
+        tile.append(frame);
+      }
+
+      const logo = document.createElement('img');
+      logo.className = 'logo';
+      logo.src = '../src/assets/icon.svg';
+      logo.alt = '';
+      Object.assign(logo.style, {
+        left: `${layout.logo.x}px`,
+        top: `${layout.logo.y}px`,
+        width: `${layout.logo.size}px`,
+        height: `${layout.logo.size}px`,
+      });
+      tile.append(logo);
+
+      for (const hint of layout.hints) {
+        const label = document.createElement('span');
+        label.className = 'hint';
+        label.textContent = hint.text;
+        Object.assign(label.style, { left: `${hint.x}px`, top: `${hint.y}px` });
+        tile.append(label);
+      }
+    </script>
+  </body>
+</html>

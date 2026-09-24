@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lemon garlic spaghetti · Pantry Notes</title>
+    <!-- A made-up recipe site for the store screenshots, served as https://pantry.example/ by e2e/store. -->
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --green: #166534;
+        --green-soft: #dcfce7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: #fafaf9;
+        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      a {
+        color: var(--green);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 14px 40px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+      .logo {
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 20px;
+        text-decoration: none;
+        letter-spacing: -0.02em;
+      }
+      .logo span {
+        color: var(--green);
+      }
+      nav {
+        display: flex;
+        gap: 20px;
+      }
+      nav a {
+        color: var(--ink);
+        font-weight: 500;
+        font-size: 15px;
+        text-decoration: none;
+      }
+      .search {
+        margin-left: auto;
+        width: 200px;
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font: inherit;
+        font-size: 14px;
+      }
+      .button {
+        padding: 7px 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--ink);
+        background: #fff;
+        font: 500 14px/20px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        cursor: pointer;
+      }
+      .button.primary {
+        border-color: var(--green);
+        color: #fff;
+        background: var(--green);
+      }
+      .page {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 40px;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px 40px 80px;
+      }
+      .crumbs {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      h1 {
+        margin: 6px 0 4px;
+        font-size: 34px;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+      }
+      .meta {
+        display: flex;
+        gap: 16px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .hero {
+        display: grid;
+        place-items: center;
+        height: 220px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fef9c3, #fde68a 45%, #bbf7d0);
+        font-size: 88px;
+      }
+      h2 {
+        margin: 28px 0 8px;
+        font-size: 22px;
+      }
+      ul,
+      ol {
+        padding-left: 22px;
+      }
+      li {
+        margin: 4px 0;
+      }
+      aside h2 {
+        margin-top: 8px;
+        font-size: 17px;
+      }
+      .card {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 12px 0;
+        font-size: 15px;
+      }
+      .thumb {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        font-size: 28px;
+      }
+      .card small {
+        display: block;
+        color: var(--muted);
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .tags a {
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--green-soft);
+        font-size: 13px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="logo" href="/">Pantry<span>Notes</span></a>
+      <nav aria-label="Sections">
+        <a href="/recipes">Recipes</a>
+        <a href="/weeknight">Weeknight</a>
+        <a href="/baking">Baking</a>
+        <a href="/seasonal">Seasonal</a>
+        <a href="/collections">Collections</a>
+      </nav>
+      <input class="search" type="search" placeholder="Search recipes" aria-label="Search recipes" />
+      <button class="button" type="button">Sign in</button>
+    </header>
+    <div class="page">
+      <main>
+        <div class="crumbs"><a href="/recipes">Recipes</a> › <a href="/recipes/pasta">Pasta</a></div>
+        <h1>Lemon garlic spaghetti</h1>
+        <div class="meta">
+          <span>25 minutes</span><span>Serves 4</span><a href="#reviews">★★★★★ 4.8 (312 reviews)</a>
+        </div>
+        <div class="actions">
+          <button class="button primary" type="button" data-testid="save">Save recipe</button>
+          <button class="button" type="button">Print</button>
+          <button class="button" type="button">Share</button>
+          <a class="button" href="#method">Jump to the method</a>
+        </div>
+        <div class="hero" aria-hidden="true">🍋🍝</div>
+        <p>
+          A bright, fast dinner from the pantry: spaghetti tossed with garlic softened in olive oil, lemon zest, a splash
+          of the pasta water and plenty of parmesan. It is on the table before the salad is dressed.
+        </p>
+        <h2>Ingredients</h2>
+        <ul>
+          <li>400 g <a href="/ingredients/spaghetti">spaghetti</a></li>
+          <li>5 tbsp olive oil and 4 cloves garlic, thinly sliced</li>
+          <li>2 unwaxed <a href="/ingredients/lemons">lemons</a>, zest and juice</li>
+          <li>60 g <a href="/ingredients/parmesan">parmesan</a>, finely grated</li>
+          <li>A handful of parsley, chopped</li>
+        </ul>
+        <h2 id="method">Method</h2>
+        <ol>
+          <li>Boil the spaghetti in well-salted water until just shy of al dente.</li>
+          <li>Warm the oil and garlic gently until the garlic turns pale gold.</li>
+          <li>Keep a mug of pasta water, drain, and toss everything together off the heat.</li>
+          <li>Loosen with the pasta water until glossy, then add the lemon juice to taste.</li>
+        </ol>
+        <h2 id="reviews">Reviews</h2>
+        <p>Weeknight regular. Add chili flakes with the garlic if you like some heat.</p>
+        <p>Made it with linguine and a little butter at the end: lovely.</p>
+        <p>The pasta water step is what makes it. Don't skip it.</p>
+      </main>
+      <aside>
+        <h2>More weeknight dinners</h2>
+        <a class="card" href="/recipes/tomato-rice">
+          <span class="thumb" style="background: #fee2e2" aria-hidden="true">🍅</span>
+          <span>One-pan tomato rice<small>30 minutes</small></span>
+        </a>
+        <a class="card" href="/recipes/green-curry">
+          <span class="thumb" style="background: #dcfce7" aria-hidden="true">🥦</span>
+          <span>Quick green curry<small>20 minutes</small></span>
+        </a>
+        <a class="card" href="/recipes/miso-salmon">
+          <span class="thumb" style="background: #e0f2fe" aria-hidden="true">🐟</span>
+          <span>Miso glazed salmon<small>15 minutes</small></span>
+        </a>
+        <a class="card" href="/recipes/chickpea-stew">
+          <span class="thumb" style="background: #fef3c7" aria-hidden="true">🥘</span>
+          <span>Smoky chickpea stew<small>35 minutes</small></span>
+        </a>
+        <h2>Collections</h2>
+        <div class="tags">
+          <a href="/collections/pantry">Pantry</a>
+          <a href="/collections/vegetarian">Vegetarian</a>
+          <a href="/collections/30-minutes">30 minutes</a>
+          <a href="/collections/one-pan">One pan</a>
+        </div>
+      </aside>
+    </div>
+  </body>
+</html>
