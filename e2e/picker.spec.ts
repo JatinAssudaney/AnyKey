@@ -145,6 +145,41 @@ test('Esc steps back: from the panel to picking, then out of the picker', async 
   await storage.close();
 });
 
+test("the panel's Cancel closes the picker, keeping what was saved before", async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
+  await page.goto(PICKER);
+  const storage = await extensionPage(extensionContext, extensionId);
+  const tabId = await tabIdOf(storage, PICKER);
+  const session = async (): Promise<unknown> =>
+    (await storage.evaluate(() => chrome.storage.session.get(null)))[`picker:${tabId}`];
+
+  await startPicker(page, extensionContext, extensionId);
+  await page.locator('#like').click();
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain('Button "Like"');
+  await page.keyboard.press('q');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-banner-status')).toContain('Saved "Click Like" (q).');
+
+  await page.locator('#route').click();
+  await expect.poll(() => uiText(page, 'ak-panel')).toContain('Button "Settings"');
+  // Tab ends the recording and moves on to Record keys, and then to Cancel.
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => uiText(page, 'ak-toast')).toBe('Saved "Click Like". Press q to use it.');
+  expect(await uiText(page, 'ak-panel')).toBeNull();
+  expect(await uiText(page, 'ak-banner')).toBeNull();
+  await expect.poll(session).toBeUndefined();
+  expect(await stored(storage)).toMatchObject({ 'site:127.0.0.1': { shortcuts: [{ keys: 'q', label: 'Click Like' }] } });
+  await storage.close();
+  // The page gets clicks again.
+  await page.locator('#like').click();
+  expect(await clicks(page)).toEqual({ like: 1, play: 0 });
+});
+
 test('the picker stays open to give several elements shortcuts', async ({ page, extensionContext, extensionId }) => {
   await page.goto(PICKER);
   await startPicker(page, extensionContext, extensionId);

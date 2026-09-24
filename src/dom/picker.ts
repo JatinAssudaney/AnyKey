@@ -38,7 +38,7 @@ const PROMOTE_DEPTH = 6;
 /**
  * The element picker (rules in docs/design.md, "Picker"). While it is open the page gets no presses or clicks, and
  * the element under the pointer, or reached with Tab and the arrow keys, is outlined. Picking one opens the panel
- * that makes it a shortcut; the picker stays open afterwards, for the next element, until Esc or Done.
+ * that makes it a shortcut; after a save the picker stays open, for the next element, until Esc or Done.
  */
 export function createPicker(options: PickerOptions): Picker {
   const { ctx, ui } = options;
@@ -175,7 +175,11 @@ export function createPicker(options: PickerOptions): Picker {
       save: options.save,
       onClose(result) {
         panel = null;
-        // Back to picking either way, so the next element can get a shortcut too.
+        if (result.type === 'cancelled') {
+          finish();
+          return;
+        }
+        // Back to picking, so the next element can get a shortcut too.
         phase = 'picking';
         overlay?.showBanner(true);
         if (result.type !== 'saved') return;
@@ -221,7 +225,7 @@ export function createPicker(options: PickerOptions): Picker {
     options.popMode(mode);
   }
 
-  /** Closes the picker: Esc or the banner's button while picking. */
+  /** Closes the picker: Esc or the banner's button while picking, or the panel's Cancel. */
   function finish(): void {
     if (phase === 'idle') return;
     const done = saved;

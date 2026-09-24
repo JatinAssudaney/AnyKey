@@ -12,8 +12,11 @@ import type { Disposition } from '../modes';
 import { h } from './h';
 import type { UiRoot } from './root';
 
-/** How the panel closed. Either way the picker goes back to picking, so the next element can get a shortcut. */
-export type PanelResult = { type: 'saved'; shortcut: PickedShortcut } | { type: 'cancelled' };
+/**
+ * How the panel closed. After a save or Esc (`back`) the picker goes back to picking, so the next element can get a
+ * shortcut; the Cancel button closes the picker.
+ */
+export type PanelResult = { type: 'saved'; shortcut: PickedShortcut } | { type: 'back' } | { type: 'cancelled' };
 
 export interface PanelOptions {
   root: UiRoot;
@@ -221,7 +224,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   /** Esc during the recording the panel opened with: leave the panel if it holds no keys, or else start it over. */
   function escapeOpening(): void {
     if (keysInput.value === '') {
-      close({ type: 'cancelled' });
+      close({ type: 'back' });
       return;
     }
     keysInput.value = beforeRecording;
@@ -309,7 +312,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   // Any other way the dialog is asked to close, such as the Esc a screen reader sends.
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    close({ type: 'cancelled' });
+    close({ type: 'back' });
   });
 
   // Most people want to press the keys they have in mind, so the panel opens recording them.
@@ -334,7 +337,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
         return step.consume ? 'consume' : 'isolate';
       }
       if (bare && event.key === 'Escape') {
-        if (!event.repeat) close({ type: 'cancelled' });
+        if (!event.repeat) close({ type: 'back' });
         return 'consume';
       }
       // A held Enter mustn't save keys whose warning the first press just brought up.
