@@ -69,7 +69,10 @@ export async function extensionWorker(context: BrowserContext): Promise<Worker> 
 /** The welcome page, which AnyKey opens when it is installed: in every profile `launchExtensionContext` makes. */
 export async function welcomePage(context: BrowserContext): Promise<Page> {
   const find = (): Page | undefined => context.pages().find((page) => page.url().endsWith('/welcome.html'));
-  await expect.poll(() => find() !== undefined, { message: 'Installing AnyKey opens its welcome page' }).toBe(true);
+  // A fresh browser installing the extension can take a while on a slow machine (CI).
+  await expect
+    .poll(() => find() !== undefined, { message: 'Installing AnyKey opens its welcome page', timeout: 15_000 })
+    .toBe(true);
   const page = find();
   if (page === undefined) throw new Error('The welcome page closed');
   return page;
