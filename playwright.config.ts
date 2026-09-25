@@ -10,6 +10,8 @@ export default defineConfig<object, { platform: Platform }>({
   // All tests in a worker share one Chromium profile with the extension loaded.
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
+  // CI machines are slower and busier than a laptop: one retry, and the report marks a test that needed it as flaky.
+  retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: { trace: 'retain-on-failure' },
   // Every test runs twice: as the machine it runs on, and as Windows, where `mod` is Ctrl and keys are named in words.

@@ -46,6 +46,9 @@ test("installing AnyKey opens its welcome page, where AnyKey's keys work", async
     await expect.poll(() => openCheatsheetText(welcome)).toContain('Keyboard shortcuts');
     await welcome.keyboard.press('Escape');
     await expect.poll(() => openCheatsheetText(welcome)).toBeNull();
+    // Back at the top, where the Settings button gives link hints something to label. How far j scrolled depends on
+    // how often it was pressed before the first scroll showed, and further down there may be nothing to click.
+    await pressUntil(welcome, ['g', 'g'], async () => (await scrollY(welcome)) === 0);
     await welcome.keyboard.press('Shift+F');
     await expect.poll(async () => (await shownHints(welcome)).length).toBeGreaterThan(0);
     await welcome.keyboard.press('Escape');
