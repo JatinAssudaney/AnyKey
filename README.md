@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/JatinAssudaney/AnyKey/actions/workflows/ci.yml"><img src="https://github.com/JatinAssudaney/AnyKey/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol"><img src="https://img.shields.io/chrome-web-store/v/emmemmnaljoepcaghoememjlmofagnol?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white&color=f97316" alt="Chrome Web Store"></a>
+  <a href="https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol"><img src="https://img.shields.io/badge/Chrome_Web_Store-available-f97316?logo=googlechrome&logoColor=white" alt="Available in the Chrome Web Store"></a>
   <img src="https://img.shields.io/badge/Manifest-V3-f97316" alt="Manifest V3">
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/data_collected-none-16a34a" alt="Data collected: none"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-57534e" alt="License: MIT"></a>
