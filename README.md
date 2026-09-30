@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/JatinAssudaney/AnyKey/actions/workflows/ci.yml"><img src="https://github.com/JatinAssudaney/AnyKey/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/Chrome_Web_Store-in_review-f97316?logo=googlechrome&logoColor=white" alt="Chrome Web Store: in review">
+  <a href="https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol"><img src="https://img.shields.io/chrome-web-store/v/emmemmnaljoepcaghoememjlmofagnol?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white&color=f97316" alt="Chrome Web Store"></a>
   <img src="https://img.shields.io/badge/Manifest-V3-f97316" alt="Manifest V3">
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/data_collected-none-16a34a" alt="Data collected: none"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-57534e" alt="License: MIT"></a>
@@ -55,9 +55,9 @@
 
 ## Install
 
-**Chrome Web Store:** AnyKey 1.0 is in review. The link goes here once it is published.
+**[Add AnyKey to Chrome from the Chrome Web Store](https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol)** (it works in Brave and other Chromium browsers too).
 
-**From a release,** in Chrome, Brave or another Chromium browser:
+**Or from a release,** unpacked:
 
 1. Download `anykey-<version>-chrome.zip` from [Releases](https://github.com/JatinAssudaney/AnyKey/releases) and unzip it.
 2. Open `chrome://extensions` (`brave://extensions` in Brave) and turn on **Developer mode**.
