@@ -4,6 +4,8 @@ What the Chrome Web Store asks of AnyKey, for publishing and for its Featured ba
 
 ## The Featured badge
 
+**Update, September 2026:** Google closed self-nominations and is ending the Featured badge program later in 2026 ([announcement](https://developer.chrome.com/blog/cws-review-updates-2026)). This section stays for the record; the best practices it points to still shape the review.
+
 Featured extensions "follow our technical best practices and meet a high standard of user experience and design". The store's team reviews each one by hand, and no one can pay for the badge.
 
 Once AnyKey is public, nominate it from the [One Stop Support](https://support.google.com/chrome_webstore/contact/one_stop_support) page ("I want to nominate my extension…", offered as a trial). A nomination needs:
@@ -88,5 +90,5 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] Distribution: free, public, every region.
 - [x] Test instructions (optional, for the reviewer): as `store/listing.md` says.
 - [x] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload. Submitted on 25 September 2026, version 1.0.0.
-- [ ] Once AnyKey is public: nominate it for the Featured badge (see The Featured badge, above).
+- [x] ~~Once AnyKey is public: nominate it for the Featured badge.~~ Not possible: Google closed self-nominations and is ending the Featured badge in 2026 ([announcement](https://developer.chrome.com/blog/cws-review-updates-2026)). Ratings, which now weigh recent reviews more, take its place.
 - [x] Once AnyKey is public: its store link in README.md (Install, and the badge) and the repository's About website. Published on 26 September 2026: https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol
