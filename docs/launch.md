@@ -57,7 +57,7 @@ Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing
 
 Text, ready to paste in `store/listing.md`:
 
-- [x] Title: the manifest name, AnyKey. The address bar shows it on AnyKey's pages, so it stays short, and the summary says what AnyKey does.
+- [x] Title: the manifest name, "AnyKey: Keyboard Shortcuts for Any Website" since 1.0.1, so store search finds it by what it does; `short_name` stays AnyKey.
 - [x] Summary: the manifest description, at most 132 characters (104 now).
 - [x] Description: an overview paragraph, then the features. No lists of keywords.
 - [x] Category: Accessibility.
@@ -92,3 +92,9 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] Submit for review. The dashboard emails the result; a rejection names the policy, and what to fix goes into a new upload. Submitted on 25 September 2026, version 1.0.0.
 - [x] ~~Once AnyKey is public: nominate it for the Featured badge.~~ Not possible: Google closed self-nominations and is ending the Featured badge in 2026 ([announcement](https://developer.chrome.com/blog/cws-review-updates-2026)). Ratings, which now weigh recent reviews more, take its place.
 - [x] Once AnyKey is public: its store link in README.md (Install, and the badge) and the repository's About website. Published on 26 September 2026: https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol
+
+## After launch (1.0.1)
+
+- [x] Search: the name and summary carry what people search for (keyboard shortcuts, Vim-style keyboard navigation, link hints), and the description's first lines say it plainly, with one mention of Vimium. No keyword lists: the store's spam policy forbids them.
+- [x] A "Rate AnyKey" link in the settings header, to the store's reviews. Nothing is offered for a review.
+- [ ] Upload `dist/anykey-1.0.1-chrome.zip` and paste the new description from `store/listing.md` (by hand).

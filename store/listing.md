@@ -4,16 +4,18 @@ What to enter in the developer dashboard for AnyKey, field by field. The images 
 
 ## Store listing tab
 
-**Title:** AnyKey (the manifest's `name`).
+**Title:** AnyKey: Keyboard Shortcuts for Any Website (the manifest's `name`, `APP_NAME` in `src/core/app.ts`). Store search weighs the title most, so it carries the words people search for; AnyKey's own pages and the toolbar still say AnyKey.
 
 **Summary:** the manifest's `description` (`APP_DESCRIPTION` in `src/core/app.ts`, at most 132 characters):
 
-> Make any website keyboard-navigable: bind keys to any element, link hints, scroll keys and site presets.
+> Vim-style keyboard navigation for any website: link hints, scroll keys, custom shortcuts for any button, and site presets.
 
 **Description** (plain text; the store keeps line breaks):
 
 ```text
-AnyKey lets you use any website from the keyboard. Scroll, follow links, press buttons and move between tabs without reaching for the mouse, and give a key to anything on a page: the Save button on a recipe site, the Like button under a video, the search box you use every day. Presets for GitHub, YouTube and Reddit add keys those sites lack, and step aside where a site already uses a key. Your own shortcuts always win.
+Keyboard shortcuts and Vim-style navigation for any website. Browse mouse-free: scroll with j and k, click any link or button with link hints, move between tabs, and give your own keyboard shortcut to anything on a page, such as the Save button on a recipe site, the Like button under a video, or the search box you use every day.
+
+If you have used Vimium, AnyKey will feel familiar, and it adds custom shortcuts for any element plus presets for GitHub, YouTube and Reddit, which add keys those sites lack and step aside where a site already uses a key. Your own shortcuts always win.
 
 • Keys on every site: j and k scroll, d and u move half a page, g g and G go to the top and bottom, H and L go back and forward, J and K switch tabs.
 • Link hints: press F and every link and button in view gets a short label. Type the label to click it. Press g f instead to open a link in a new tab.

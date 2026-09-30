@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import iconUrl from '@/assets/icon.svg';
+import { STORE_URL } from '@/core/app';
 import { focusRing, headerLink } from '@/components/styles';
 import { DataSection } from './sections/DataSection';
 import { SettingsSection } from './sections/SettingsSection';
@@ -32,6 +33,10 @@ export function App() {
           {/* The page that opens on install, with the keys to start with. */}
           <a href="/welcome.html" className={headerLink}>
             Getting started
+          </a>
+          {/* Ratings are how the Chrome Web Store ranks AnyKey, and asked for only here, where people already use it. */}
+          <a href={`${STORE_URL}/reviews`} target="_blank" rel="noreferrer" className={headerLink}>
+            Rate AnyKey
           </a>
         </div>
       </header>
