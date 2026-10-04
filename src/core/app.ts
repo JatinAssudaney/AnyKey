@@ -5,7 +5,7 @@
 export const APP_NAME = 'AnyKey: Keyboard Shortcuts for Any Website';
 export const APP_SHORT_NAME = 'AnyKey';
 export const APP_DESCRIPTION =
-  'Vim-style keyboard navigation for any website: link hints, scroll keys, custom shortcuts for any button, and site presets.';
+  'Browse any website from the keyboard: link hints, scroll keys, custom shortcuts for any button, and site presets.';
 
 /** AnyKey's page in the Chrome Web Store. */
 export const STORE_URL = 'https://chromewebstore.google.com/detail/anykey/emmemmnaljoepcaghoememjlmofagnol';

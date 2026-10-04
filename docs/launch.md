@@ -95,6 +95,6 @@ Registering is quick, but the email checks take a while. From [Register your dev
 
 ## After launch (1.0.1)
 
-- [x] Search: the name and summary carry what people search for (keyboard shortcuts, Vim-style keyboard navigation, link hints), and the description's first lines say it plainly. No keyword lists (the store's spam policy forbids them) and no other extension named ([best listing](https://developer.chrome.com/docs/webstore/best-listing): don't "reference similar or competing extensions").
+- [x] Search: the name and summary carry what people search for (keyboard shortcuts, browsing from the keyboard, link hints), and the description's first lines say it plainly. No keyword lists (the store's spam policy forbids them) and no other extension named ([best listing](https://developer.chrome.com/docs/webstore/best-listing): don't "reference similar or competing extensions").
 - [x] A "Rate AnyKey" link in the settings header, to the store's reviews. Nothing is offered for a review.
 - [ ] Upload `dist/anykey-1.0.1-chrome.zip` and paste the new description from `store/listing.md` (by hand).

@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Scroll, click, switch tabs and press any button without the mouse, on every site.</b><br>
-  Vimium-style link hints, a key for anything on a page, and presets for GitHub, YouTube and Reddit.
+  Link hints, a key for anything on a page, and presets for GitHub, YouTube and Reddit.
 </p>
 
 <p align="center">

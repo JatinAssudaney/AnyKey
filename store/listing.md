@@ -8,12 +8,12 @@ What to enter in the developer dashboard for AnyKey, field by field. The images 
 
 **Summary:** the manifest's `description` (`APP_DESCRIPTION` in `src/core/app.ts`, at most 132 characters):
 
-> Vim-style keyboard navigation for any website: link hints, scroll keys, custom shortcuts for any button, and site presets.
+> Browse any website from the keyboard: link hints, scroll keys, custom shortcuts for any button, and site presets.
 
 **Description** (plain text; the store keeps line breaks):
 
 ```text
-Keyboard shortcuts and Vim-style navigation for any website. Browse mouse-free: scroll with j and k, click any link or button with link hints, move between tabs, and give your own keyboard shortcut to anything on a page, such as the Save button on a recipe site or the Like button under a video. Presets for GitHub, YouTube and Reddit add keys those sites lack, and step aside where a site already uses a key. Your own shortcuts always win.
+Keyboard shortcuts and mouse-free navigation for any website: scroll with j and k, click any link or button with link hints, move between tabs, and give your own keyboard shortcut to anything on a page, such as the Save button on a recipe site or the Like button under a video. Presets for GitHub, YouTube and Reddit add keys those sites lack, and step aside where a site already uses a key. Your own shortcuts always win.
 
 • Keys on every site: j and k scroll, d and u move half a page, g g and G go to the top and bottom, H and L go back and forward, J and K switch tabs.
 • Link hints: press F and every link and button in view gets a short label. Type the label to click it. Press g f instead to open a link in a new tab.
