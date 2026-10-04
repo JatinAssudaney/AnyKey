@@ -2,7 +2,7 @@
 
 How to check a preset on the live site. Every preset shortcut ships with `verified: false` (the options page marks it Unverified) until it passes these checks. Sites change their pages, so check again when a shortcut stops finding its element: AnyKey then shows a toast that names it.
 
-`pnpm test:live` runs the GitHub and YouTube checks that work signed out (`e2e/live/`). The rest is checked by hand: every site signed in (rows marked "signed in" work only then), GitHub's `g e` on a repository you administer, and all of Reddit, which shows automated browsers a reCAPTCHA page.
+`pnpm test:live` runs the GitHub and YouTube checks that work signed out (`e2e/live/`), as does CI for the presets a pull request changes. To write the live test for a new preset, see [CONTRIBUTING.md](../CONTRIBUTING.md#presets). The rest is checked by hand: every site signed in (rows marked "signed in" work only then), GitHub's `g e` on a repository you administer, and all of Reddit, which shows automated browsers a reCAPTCHA page.
 
 ## Setup
 

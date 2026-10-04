@@ -4,7 +4,7 @@ labels: [enhancement]
 body:
   - type: markdown
     attributes:
-      value: A preset adds keys a site lacks and leaves the site's own keys to it. Your own shortcuts always win over a preset's.
+      value: A preset adds keys a site lacks and leaves the site's own keys to it. Your own shortcuts always win over a preset's. To write the preset yourself, see [CONTRIBUTING.md](https://github.com/JatinAssudaney/AnyKey/blob/main/CONTRIBUTING.md#presets).
   - type: input
     id: site
     attributes:

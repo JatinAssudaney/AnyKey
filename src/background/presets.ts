@@ -1,7 +1,5 @@
 import { browser } from 'wxt/browser';
-import github from '../../presets/github.json';
-import reddit from '../../presets/reddit.json';
-import youtube from '../../presets/youtube.json';
+import { BUNDLED_PRESETS } from '../../presets/index.ts';
 import { parsePresets, PRESETS_KEY, type Preset } from '../core/presets';
 
 /**
@@ -15,7 +13,7 @@ export interface PresetSource {
 
 /** The presets in `presets/`, bundled with the extension. */
 export const bundledPresets: PresetSource = {
-  load: () => Promise.resolve([github, youtube, reddit]),
+  load: () => Promise.resolve(BUNDLED_PRESETS),
 };
 
 /**

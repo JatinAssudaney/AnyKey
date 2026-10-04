@@ -94,7 +94,7 @@ Presets add keys a site lacks and step aside where it has its own: on a YouTube 
 | YouTube | <kbd>g</kbd> <kbd>l</kbd> like · <kbd>g</kbd> <kbd>d</kbd> dislike · <kbd>g</kbd> <kbd>s</kbd> subscribe · <kbd>g</kbd> <kbd>c</kbd> write a comment · <kbd>g</kbd> <kbd>u</kbd> the channel |
 | Reddit | <kbd>g</kbd> <kbd>h</kbd> home · <kbd>g</kbd> <kbd>p</kbd> Popular · <kbd>g</kbd> <kbd>n</kbd> notifications · <kbd>g</kbd> <kbd>m</kbd> chat · <kbd>/</kbd> search |
 
-Want one for another site? [Request a preset](https://github.com/JatinAssudaney/AnyKey/issues/new?template=preset_request.yml).
+Want one for another site? [Request a preset](https://github.com/JatinAssudaney/AnyKey/issues/new?template=preset_request.yml), or [add one yourself](CONTRIBUTING.md#presets): a preset is a JSON file plus a Playwright test that checks it on the live site.
 
 ## Privacy
 
@@ -120,10 +120,11 @@ pnpm store:images   # the Chrome Web Store images, the GitHub banner, and the de
 pnpm zip            # the upload for the Chrome Web Store, dist/anykey-<version>-chrome.zip
 ```
 
-The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chromium`. CI runs `pnpm check` and `pnpm test:e2e` on every push.
+The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chromium`. CI runs `pnpm check` and `pnpm test:e2e` on every push, and the live tests for the presets a pull request changes.
 
 **Docs:**
 
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, and how to add or change a preset
 - [CLAUDE.md](CLAUDE.md): architecture and conventions
 - [docs/design.md](docs/design.md): design rules and milestones
 - [docs/preset-checklist.md](docs/preset-checklist.md): how to check a preset on the live site

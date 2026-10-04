@@ -25,7 +25,7 @@ describe('installPresets', () => {
 
   it('installs the bundled presets', async () => {
     await installPresets();
-    expect((await loadPresets()).map((preset) => preset.id)).toEqual(['github', 'youtube', 'reddit']);
+    expect((await loadPresets()).map((preset) => preset.id)).toEqual(['github', 'reddit', 'youtube']);
   });
 
   it('keeps the newest version of each preset, and leaves out any that fail their checks', async () => {

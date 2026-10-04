@@ -24,12 +24,13 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.core.json && tsc --noEmit -p e2e",
     "lint": "eslint .",
     "lint:text": "node scripts/no-em-dash.ts",
+    "lint:presets": "node scripts/check-presets.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "wxt build && playwright test",
     "test:live": "wxt build && playwright test -c playwright.live.config.ts",
     "store:images": "wxt build && playwright test -c playwright.store.config.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm lint:text && pnpm test && pnpm build",
+    "check": "pnpm typecheck && pnpm lint && pnpm lint:text && pnpm lint:presets && pnpm test && pnpm build",
     "postinstall": "wxt prepare"
   },
   "dependencies": {

@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import github from '../../presets/github.json';
-import reddit from '../../presets/reddit.json';
-import youtube from '../../presets/youtube.json';
+import { BUNDLED_PRESETS } from '../../presets/index.ts';
 import { findConflicts } from './conflicts';
 import { DEFAULT_SHORTCUTS } from './defaults';
 import { EMPTY_STATE } from './docs';
@@ -113,8 +111,9 @@ describe('presetHosts', () => {
   });
 });
 
+// Every file in presets/ goes through these checks, so a new preset needs no change here.
 describe('bundled presets', () => {
-  const bundled: unknown[] = [github, youtube, reddit];
+  const bundled = BUNDLED_PRESETS;
   const presets = parsePresets(bundled);
 
   it('are valid, with nothing the schema would drop', () => {
@@ -123,7 +122,8 @@ describe('bundled presets', () => {
       expect(result.success ? [] : result.error.issues).toEqual([]);
       expect(result.data).toEqual(raw);
     }
-    expect(presets.map((preset) => preset.id)).toEqual(['github', 'youtube', 'reddit']);
+    expect(presets).toHaveLength(bundled.length);
+    expect(presets.map((preset) => preset.id)).toEqual(expect.arrayContaining(['github', 'reddit', 'youtube']));
   });
 
   it("add shortcuts only on keys the site doesn't use, on any of its pages", () => {
