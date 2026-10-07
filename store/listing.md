@@ -13,13 +13,13 @@ What to enter in the developer dashboard for AnyKey, field by field. The images 
 **Description** (plain text; the store keeps line breaks):
 
 ```text
-Keyboard shortcuts and mouse-free navigation for any website: scroll with j and k, click any link or button with link hints, move between tabs, and give your own keyboard shortcut to anything on a page, such as the Save button on a recipe site or the Like button under a video. Presets for GitHub, YouTube and Reddit add keys those sites lack, and step aside where a site already uses a key. Your own shortcuts always win.
+Keyboard shortcuts and mouse-free navigation for any website: scroll with j and k, click any link or button with link hints, move between tabs, and give your own keyboard shortcut to anything on a page, such as the Save button on a recipe site or the Like button under a video. Presets for GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia add keys those sites lack, and step aside where a site already uses a key. Your own shortcuts always win.
 
 • Keys on every site: j and k scroll, d and u move half a page, g g and G go to the top and bottom, H and L go back and forward, J and K switch tabs.
 • Link hints: press F and every link and button in view gets a short label. Type the label to click it. Press g f instead to open a link in a new tab.
 • A key for anything: click AnyKey's toolbar button, choose "Add shortcut for this site", pick the element and press the keys you want. AnyKey remembers each element several ways, so a shortcut can still find it after the site changes its page.
-• Presets for GitHub, YouTube and Reddit: g r opens a repository's releases, g l likes a video, g s subscribes to a channel. Where the site has its own key, such as YouTube's j and k on a video, the key goes to the site.
-• Press ? on any page to see every shortcut that works there, starting with the site's own on GitHub, YouTube and Reddit.
+• Presets for GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia: g r opens a repository's releases, g l likes a video, g j jumps to the accepted answer on Stack Overflow, / searches Wikipedia. Where the site has its own key, such as YouTube's j and k on a video, the key goes to the site.
+• Press ? on any page to see every shortcut that works there, starting with the site's own on the sites with a preset.
 • Change any key, switch any shortcut off, or turn AnyKey off for a site. Warnings say when two shortcuts clash or the browser keeps a key for itself. Settings sync with your browser, and export to a file.
 • Alt+Shift+K (Option+Shift+K on a Mac) opens AnyKey's panel from any tab.
 

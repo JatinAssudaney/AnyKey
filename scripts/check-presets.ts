@@ -8,7 +8,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 
 /** Presets with no live test, and why. */
 const MANUAL: Record<string, string> = {
+  gmail: 'Gmail needs an account.',
   reddit: 'Reddit shows automated browsers a reCAPTCHA page.',
+  'stack-overflow': 'Stack Overflow shows headless browsers a Cloudflare check.',
 };
 
 const base = process.env.PRESETS_BASE ?? 'origin/main';

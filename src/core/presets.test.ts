@@ -123,7 +123,7 @@ describe('bundled presets', () => {
       expect(result.data).toEqual(raw);
     }
     expect(presets).toHaveLength(bundled.length);
-    expect(presets.map((preset) => preset.id)).toEqual(expect.arrayContaining(['github', 'reddit', 'youtube']));
+    expect(presets.map((preset) => preset.id)).toEqual(expect.arrayContaining(['github', 'gmail', 'hacker-news', 'reddit', 'stack-overflow', 'wikipedia', 'youtube']));
   });
 
   it("add shortcuts only on keys the site doesn't use, on any of its pages", () => {
@@ -170,5 +170,13 @@ describe('bundled presets', () => {
     expect(yielded('https://www.reddit.com/r/AskReddit/')).toEqual(['j', 'k', 'x']);
     expect(yielded('https://www.reddit.com/mod/AskReddit/queue')).toEqual(['j', 'k', 'd', 'x']);
     expect(yielded('https://old.reddit.com/')).toEqual([]);
+    // Gmail's and Stack Overflow's keys are off until the user turns them on, but the presets give way all the same.
+    expect(yielded('https://mail.google.com/mail/u/0/')).toEqual(['j', 'k', 'd', 'u', 'x']);
+    expect(yielded('https://stackoverflow.com/questions')).toEqual(['j', 'k', 'u']);
+    // On a question, d votes down after v. A pattern can't leave the tagged lists out, so d gives way there too.
+    expect(yielded('https://stackoverflow.com/questions/1/title')).toEqual(['j', 'k', 'd', 'u']);
+    expect(yielded('https://stackoverflow.com/questions/tagged/javascript')).toEqual(['j', 'k', 'd', 'u']);
+    expect(yielded('https://news.ycombinator.com/')).toEqual([]);
+    expect(yielded('https://de.wikipedia.org/wiki/Tastatur')).toEqual([]);
   });
 });

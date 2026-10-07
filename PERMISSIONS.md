@@ -21,5 +21,5 @@ AnyKey makes websites keyboard-navigable. Users bind keys to elements on any pag
 
 ## Remote code and data use
 
-- No remote code. All logic ships in the extension package. Site presets (for GitHub, YouTube and Reddit) are JSON data in the package: the background checks them against a schema before storing them, and they hold no code, only keys, page patterns and the same kinds of action the user's own shortcuts use.
+- No remote code. All logic ships in the extension package. Site presets (for GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia) are JSON data in the package: the background checks them against a schema before storing them, and they hold no code, only keys, page patterns and the same kinds of action the user's own shortcuts use.
 - AnyKey collects no data and makes no network requests. Settings stay in the user's Chrome storage (and Chrome Sync, when the user has it turned on). Export writes them to a file only when the user asks for one.

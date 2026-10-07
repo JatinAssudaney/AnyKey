@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "github",
   "name": "GitHub",
-  "version": 3,
+  "version": 4,
   "matches": ["*://github.com/*"],
   "reserved": [
     { "keys": "?", "label": "Show keyboard shortcuts" },
@@ -280,15 +280,16 @@
       "action": {
         "type": "click",
         "target": {
-          "selector": "button[aria-label^=\"Star this repository\"]",
+          "selector": "[data-testid=\"star-button\"]",
           "fallbacks": [
-            "button[aria-label^=\"Unstar this repository\"]",
-            "a[aria-label=\"You must be signed in to star a repository\"]"
+            "[data-testid=\"unstar-button\"]",
+            "button[aria-label^=\"Star this repository\"]",
+            "button[aria-label^=\"Unstar this repository\"]"
           ]
         }
       },
       "label": "Star or unstar the repository",
-      "verified": true,
+      "verified": false,
       "matches": ["*://github.com/*/*"]
     },
     {

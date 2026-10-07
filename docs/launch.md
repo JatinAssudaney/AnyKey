@@ -97,4 +97,12 @@ Registering is quick, but the email checks take a while. From [Register your dev
 
 - [x] Search: the name and summary carry what people search for (keyboard shortcuts, browsing from the keyboard, link hints), and the description's first lines say it plainly. No keyword lists (the store's spam policy forbids them) and no other extension named ([best listing](https://developer.chrome.com/docs/webstore/best-listing): don't "reference similar or competing extensions").
 - [x] A "Rate AnyKey" link in the settings header, to the store's reviews. Nothing is offered for a review.
-- [ ] Upload `dist/anykey-1.0.1-chrome.zip` and paste the new description from `store/listing.md` (by hand).
+- [x] Upload `dist/anykey-1.0.1-chrome.zip` and paste the new description from `store/listing.md` (by hand). Published.
+
+## Four more presets (1.0.2)
+
+- [x] Presets for Gmail, Hacker News, Stack Overflow and Wikipedia, with live tests for Hacker News and Wikipedia (Gmail needs an account, and Stack Overflow shows headless browsers a Cloudflare check).
+- [x] GitHub version 4: its star button is now `[data-testid="star-button"]`, and signed out its issue lists no longer select with `x`, so the live test checks that `x` reaches GitHub and the tab stays open.
+- [ ] Check Gmail and Stack Overflow by hand with `docs/preset-checklist.md`, signed in, and mark their shortcuts `verified: true` in a new `version` of each. Check GitHub's `S` signed in too (starred and not), then mark it verified again.
+- [ ] Render the demo video again: the Settings scene's headline names the new presets (`store/video/README.md`).
+- [ ] Upload `dist/anykey-1.0.2-chrome.zip` and paste the new description from `store/listing.md` (by hand).

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "wikipedia",
+  "name": "Wikipedia",
+  "version": 1,
+  "matches": ["*://*.wikipedia.org/*", "*://en.wikipedia.org/*"],
+  "reserved": [],
+  "shortcuts": [
+    {
+      "id": "preset:wikipedia:search",
+      "keys": "/",
+      "keyMode": "key",
+      "action": {
+        "type": "focus",
+        "target": { "selector": "#searchInput", "fallbacks": ["#searchform input[name=\"search\"]"] }
+      },
+      "label": "Search Wikipedia",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:main-page",
+      "keys": "g m",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#n-mainpage-description a" } },
+      "label": "Go to the main page",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:random",
+      "keys": "g r",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#n-randompage a" } },
+      "label": "Go to a random article",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:article",
+      "keys": "g c",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#ca-nstab-main a" } },
+      "label": "Go to the article",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:talk",
+      "keys": "g t",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#ca-talk a" } },
+      "label": "Go to the talk page",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:edit",
+      "keys": "g e",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "#ca-edit a", "fallbacks": ["#ca-viewsource a"] }
+      },
+      "label": "Edit the page, or view its source",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:history",
+      "keys": "g h",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#ca-history a" } },
+      "label": "Go to the page's history",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:links-here",
+      "keys": "g w",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#t-whatlinkshere a" } },
+      "label": "Go to What links here",
+      "verified": true
+    },
+    {
+      "id": "preset:wikipedia:languages",
+      "keys": "g l",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#p-lang-btn-checkbox" } },
+      "label": "Show the page in other languages",
+      "verified": true
+    }
+  ]
+}

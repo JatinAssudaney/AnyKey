@@ -9,7 +9,7 @@ export const SettingsScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   return (
-    <Framed headline="Presets for GitHub, YouTube and Reddit" presses={[]}>
+    <Framed headline="Presets for GitHub, Gmail, YouTube and more" presses={[]}>
       <AbsoluteFill style={{ overflow: "hidden" }}>
         <Img
           src={frameSrc("settings")}

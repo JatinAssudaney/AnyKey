@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Scroll, click, switch tabs and press any button without the mouse, on every site.</b><br>
-  Link hints, a key for anything on a page, and presets for GitHub, YouTube and Reddit.
+  Link hints, a key for anything on a page, and presets for GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia.
 </p>
 
 <p align="center">
@@ -48,7 +48,7 @@
     </td>
     <td width="50%" valign="top">
       <img src="store/images/screenshot-5-presets.png" alt="The settings page with the GitHub preset's shortcuts">
-      <p><b>Presets you can change.</b> GitHub, YouTube and Reddit get keys they lack, and keep their own. Change or switch off any shortcut; yours always win over a preset's.</p>
+      <p><b>Presets you can change.</b> GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia get keys they lack, and keep their own. Change or switch off any shortcut; yours always win over a preset's.</p>
     </td>
   </tr>
 </table>

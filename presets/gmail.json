@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "id": "gmail",
+  "name": "Gmail",
+  "version": 1,
+  "matches": ["*://mail.google.com/*"],
+  "reserved": [
+    { "keys": "?", "label": "Show keyboard shortcuts" },
+    { "keys": "c", "label": "Compose" },
+    { "keys": "d", "label": "Compose in a new tab", "yield": true },
+    { "keys": "/", "label": "Search mail" },
+    { "keys": "q", "label": "Search chat contacts" },
+    { "keys": ".", "label": "Open the More actions menu" },
+    { "keys": "v", "label": "Open the Move to menu" },
+    { "keys": "l", "label": "Open the Label as menu" },
+
+    { "keys": "k", "label": "Newer conversation", "yield": true },
+    { "keys": "j", "label": "Older conversation", "yield": true },
+    { "keys": "u", "label": "Back to the conversation list", "yield": true },
+    { "keys": "o", "label": "Open the conversation" },
+    { "keys": "enter", "label": "Open the conversation" },
+    { "keys": "p", "label": "Previous message in the conversation" },
+    { "keys": "n", "label": "Next message in the conversation" },
+    { "keys": "`", "label": "Next inbox section" },
+    { "keys": "~", "label": "Previous inbox section" },
+    { "keys": "g n", "label": "Next page" },
+    { "keys": "g p", "label": "Previous page" },
+
+    { "keys": "g i", "label": "Go to Inbox" },
+    { "keys": "g s", "label": "Go to Starred" },
+    { "keys": "g b", "label": "Go to Snoozed" },
+    { "keys": "g t", "label": "Go to Sent" },
+    { "keys": "g d", "label": "Go to Drafts" },
+    { "keys": "g a", "label": "Go to All mail" },
+    { "keys": "g k", "label": "Go to Tasks" },
+    { "keys": "g l", "label": "Go to a label" },
+
+    { "keys": ",", "label": "Move the focus to the toolbar" },
+    { "keys": "x", "label": "Select the conversation", "yield": true },
+    { "keys": "s", "label": "Star or unstar" },
+    { "keys": "e", "label": "Archive" },
+    { "keys": "m", "label": "Mute the conversation" },
+    { "keys": "!", "label": "Report as spam" },
+    { "keys": "#", "label": "Delete" },
+    { "keys": "r", "label": "Reply" },
+    { "keys": "R", "label": "Reply in a new window" },
+    { "keys": "a", "label": "Reply all" },
+    { "keys": "A", "label": "Reply all in a new window" },
+    { "keys": "f", "label": "Forward" },
+    { "keys": "F", "label": "Forward in a new window" },
+    { "keys": "N", "label": "Update the conversation" },
+    { "keys": "]", "label": "Archive and go to the older conversation" },
+    { "keys": "[", "label": "Archive and go to the newer conversation" },
+    { "keys": "z", "label": "Undo" },
+    { "keys": "I", "label": "Mark as read" },
+    { "keys": "U", "label": "Mark as unread" },
+    { "keys": "_", "label": "Mark as unread from the selected message" },
+    { "keys": "plus", "label": "Mark as important" },
+    { "keys": "=", "label": "Mark as important" },
+    { "keys": "-", "label": "Mark as not important" },
+    { "keys": "b", "label": "Snooze" },
+    { "keys": ";", "label": "Expand the whole conversation" },
+    { "keys": ":", "label": "Collapse the whole conversation" },
+    { "keys": "T", "label": "Add the conversation to Tasks" },
+
+    { "keys": "* a", "label": "Select all conversations" },
+    { "keys": "* n", "label": "Deselect all conversations" },
+    { "keys": "* r", "label": "Select read conversations" },
+    { "keys": "* u", "label": "Select unread conversations" },
+    { "keys": "* s", "label": "Select starred conversations" },
+    { "keys": "* t", "label": "Select unstarred conversations" },
+
+    { "keys": "escape", "label": "Focus the latest chat or draft" },
+    { "keys": "shift+escape", "label": "Focus the main window" },
+    { "keys": "ctrl+.", "label": "Next chat or draft" },
+    { "keys": "ctrl+,", "label": "Previous chat or draft" },
+    { "keys": "mod+alt+.", "label": "Next side panel" },
+    { "keys": "mod+alt+,", "label": "Previous side panel" }
+  ],
+  "shortcuts": [
+    {
+      "id": "preset:gmail:spam",
+      "keys": "g m",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "a[href$=\"#spam\"]" } },
+      "label": "Go to Spam",
+      "verified": false
+    },
+    {
+      "id": "preset:gmail:trash",
+      "keys": "g h",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "a[href$=\"#trash\"]" } },
+      "label": "Go to Trash (Bin)",
+      "verified": false
+    },
+    {
+      "id": "preset:gmail:important",
+      "keys": "g o",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "a[href$=\"#imp\"]" } },
+      "label": "Go to Important",
+      "verified": false
+    },
+    {
+      "id": "preset:gmail:scheduled",
+      "keys": "g w",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "a[href$=\"#scheduled\"]" } },
+      "label": "Go to Scheduled",
+      "verified": false
+    },
+    {
+      "id": "preset:gmail:settings",
+      "keys": "g e",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "[role=\"button\"][data-tooltip=\"Settings\"]", "fallbacks": ["[aria-label=\"Settings\"][role=\"button\"]"] }
+      },
+      "label": "Open the quick settings",
+      "verified": false
+    }
+  ]
+}

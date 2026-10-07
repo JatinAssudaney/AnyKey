@@ -1,15 +1,16 @@
 import type { Page } from '@playwright/test';
 import { expect, openCheatsheetText, uiText } from '../harness.ts';
 
-// Reddit shows automated browsers a reCAPTCHA page instead of its own, so its preset is checked by hand
-// (docs/preset-checklist.md).
+// Reddit shows automated browsers a reCAPTCHA page instead of its own, Stack Overflow shows headless ones a Cloudflare
+// check, and Gmail needs an account, so their presets are checked by hand (docs/preset-checklist.md).
 
 /**
- * Opens a page of a preset's site once AnyKey runs there with the preset: its cheatsheet lists the site's own keys.
+ * Opens a page of a preset's site once AnyKey runs there with the preset: its cheatsheet lists the site's own keys,
+ * or, for a site with none (Hacker News), `ready`, the label of one of the preset's shortcuts on the page.
  * A live page goes on loading after its load event (GitHub fetches its sidebar, then sets up its own keys), so this
  * also waits for the network to go quiet, for a while at most, before pressing `?` until the cheatsheet opens.
  */
-export async function openOnSite(page: Page, url: string, site: string): Promise<void> {
+export async function openOnSite(page: Page, url: string, site: string, ready = `${site}'s own keys`): Promise<void> {
   await page.goto(url);
   await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
   await expect
@@ -20,7 +21,7 @@ export async function openOnSite(page: Page, url: string, site: string): Promise
       },
       { timeout: 30_000 },
     )
-    .toContain(`${site}'s own keys`);
+    .toContain(ready);
   await page.keyboard.press('Escape');
   await expect.poll(() => openCheatsheetText(page)).toBeNull();
 }

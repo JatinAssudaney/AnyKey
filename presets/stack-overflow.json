@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "id": "stack-overflow",
+  "name": "Stack Overflow",
+  "version": 1,
+  "matches": ["*://stackoverflow.com/*"],
+  "reserved": [
+    { "keys": "?", "label": "Show keyboard shortcuts" },
+    { "keys": "j", "label": "Select the next question or post", "yield": true },
+    { "keys": "k", "label": "Select the previous question or post", "yield": true },
+    { "keys": "u", "label": "Select the first question or post, or vote up after v", "yield": true },
+    { "keys": "enter", "label": "Open the selected question" },
+    { "keys": "s", "label": "Search" },
+    { "keys": "i", "label": "Open the inbox" },
+    { "keys": "r", "label": "Show recent achievements" },
+    { "keys": "h", "label": "Turn the shortcut help on or off" },
+    { "keys": "t", "label": "Switch tab" },
+    { "keys": "l", "label": "Switch to the question list" },
+    { "keys": "n", "label": "Move around the page" },
+    { "keys": "o", "label": "Order the questions" },
+    { "keys": "p f", "label": "Go to the first page" },
+    { "keys": "p p", "label": "Go to the previous page" },
+    { "keys": "p n", "label": "Go to the next page" },
+    { "keys": "p l", "label": "Go to the last page" },
+    { "keys": "g h", "label": "Go to the home page" },
+    { "keys": "g q", "label": "Go to the questions" },
+    { "keys": "g t", "label": "Go to the tags" },
+    { "keys": "g u", "label": "Go to the users" },
+    { "keys": "g b", "label": "Go to the badges" },
+    { "keys": "g n", "label": "Go to the unanswered questions" },
+    { "keys": "g a", "label": "Ask a question" },
+    { "keys": "g p", "label": "Go to your profile" },
+    { "keys": "g m", "label": "Go to the meta site" },
+    { "keys": "g c", "label": "Go to chat" },
+    { "keys": "g r", "label": "Go to the review queues" },
+    { "keys": "g f", "label": "Go to the FAQ, or your flags" },
+    { "keys": "g s", "label": "Go to the special pages" },
+    { "keys": "g e", "label": "Go to the help center" },
+
+    { "keys": "v", "label": "Vote on the selected post (then u or d)", "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "d", "label": "Vote down after v, or delete after m", "yield": true, "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "a", "label": "Answer the question", "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "e", "label": "Edit or retag the selected post", "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "c", "label": "Add or show comments", "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "m", "label": "Moderate: flag, close or delete", "matches": ["*://stackoverflow.com/questions/*"] },
+    { "keys": "f", "label": "Flag the selected post", "matches": ["*://stackoverflow.com/questions/*"] }
+  ],
+  "shortcuts": [
+    {
+      "id": "preset:stack-overflow:search",
+      "keys": "/",
+      "keyMode": "key",
+      "action": {
+        "type": "focus",
+        "target": { "selector": "input.js-search-field[name=\"q\"]", "fallbacks": ["header input[name=\"q\"]"] }
+      },
+      "label": "Search Stack Overflow",
+      "verified": false
+    },
+    {
+      "id": "preset:stack-overflow:accepted-answer",
+      "keys": "g j",
+      "keyMode": "key",
+      "action": {
+        "type": "focus",
+        "target": {
+          "selector": ".accepted-answer .js-share-link",
+          "fallbacks": ["[itemprop=\"acceptedAnswer\"] .js-share-link"]
+        }
+      },
+      "label": "Jump to the accepted answer",
+      "verified": false,
+      "matches": ["*://stackoverflow.com/questions/*"]
+    },
+    {
+      "id": "preset:stack-overflow:share",
+      "keys": "g l",
+      "keyMode": "key",
+      "action": { "type": "click", "target": { "selector": "#question .js-share-link" } },
+      "label": "Share a link to the question",
+      "verified": false,
+      "matches": ["*://stackoverflow.com/questions/*"]
+    }
+  ]
+}

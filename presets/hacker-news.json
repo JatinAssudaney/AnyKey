@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "id": "hacker-news",
+  "name": "Hacker News",
+  "version": 1,
+  "matches": ["*://news.ycombinator.com/*"],
+  "reserved": [],
+  "shortcuts": [
+    {
+      "id": "preset:hacker-news:front",
+      "keys": "g h",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/" },
+      "label": "Go to the front page",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:newest",
+      "keys": "g n",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/newest" },
+      "label": "Go to the newest stories",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:past",
+      "keys": "g p",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/front" },
+      "label": "Go to past front pages",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:comments",
+      "keys": "g c",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/newcomments" },
+      "label": "Go to the newest comments",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:ask",
+      "keys": "g a",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/ask" },
+      "label": "Go to Ask HN",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:show",
+      "keys": "g s",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/show" },
+      "label": "Go to Show HN",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:jobs",
+      "keys": "g j",
+      "keyMode": "key",
+      "action": { "type": "navigate", "url": "https://news.ycombinator.com/jobs" },
+      "label": "Go to the jobs",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:more",
+      "keys": "n",
+      "keyMode": "key",
+      "action": {
+        "type": "click",
+        "target": { "selector": "a.morelink", "text": "More", "tag": "a" }
+      },
+      "label": "Go to the next page",
+      "verified": true
+    },
+    {
+      "id": "preset:hacker-news:search",
+      "keys": "/",
+      "keyMode": "key",
+      "action": { "type": "focus", "target": { "selector": "input[name=\"q\"]" } },
+      "label": "Search Hacker News",
+      "verified": true
+    }
+  ]
+}

@@ -294,16 +294,16 @@ test('sites show one at a time, the clicked row keeping its place, and the searc
   await search.focus();
   for (const next of [
     page.getByRole('button', { name: 'Add a site shortcut' }),
+    row('en.wikipedia.org'),
+    page.getByRole('switch', { name: 'Use AnyKey on en.wikipedia.org' }),
     row('github.com'),
-    page.getByRole('switch', { name: 'Use AnyKey on github.com' }),
-    row('www.reddit.com'),
   ]) {
     await page.keyboard.press('Tab');
     await expect(next).toBeFocused();
   }
 
   await search.fill('redd');
-  await expect(page.getByText('1 of 3 sites')).toBeVisible();
+  await expect(page.getByText('1 of 7 sites')).toBeVisible();
   await expect(row('github.com')).toHaveCount(0);
   await search.press('Enter');
   await expect(row('www.reddit.com')).toBeFocused();

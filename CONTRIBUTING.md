@@ -36,14 +36,14 @@ Every new or changed shortcut ships with `verified: false`. It becomes `true` on
 
 ### Testing a preset with Playwright
 
-Each preset has a live test, `e2e/live/<id>.spec.ts`, which loads the built extension into Chromium, opens the real site signed out, and presses the preset's keys. `pnpm lint:presets` fails for a preset without one (the few exceptions, such as Reddit, which shows automated browsers a reCAPTCHA page, are listed in `scripts/check-presets.ts` with the reason).
+Each preset has a live test, `e2e/live/<id>.spec.ts`, which loads the built extension into Chromium, opens the real site signed out, and presses the preset's keys. `pnpm lint:presets` fails for a preset without one (the few exceptions, such as Reddit, which shows automated browsers a reCAPTCHA page, and Gmail, which needs an account, are listed in `scripts/check-presets.ts` with the reason).
 
 A test checks two things:
 
 1. **Each shortcut finds its element.** Press its keys and wait for what it does: a page opens, a menu shows. `toast(page)` returns AnyKey's toast, which appears when a shortcut finds nothing, so expect it to be `null`.
 2. **Each key that gives way reaches the site.** Press it on a page where it yields and check the site acted. On a page where it doesn't yield, check that AnyKey's shortcut ran instead.
 
-The helpers in `e2e/live/live.ts` deal with live pages, which go on loading after their load event: `openOnSite(page, url, 'YouTube')` waits until AnyKey runs there with the preset, `press(page, 'g', 'l')` presses a sequence, and `recordPageKeys` with `pageKeys` (from `e2e/harness.ts`) lists the keys the page itself received. `pressUntil` in the harness presses until a site that sets up its keys late answers. `e2e/live/github.spec.ts` uses all of them.
+The helpers in `e2e/live/live.ts` deal with live pages, which go on loading after their load event: `openOnSite(page, url, 'YouTube')` waits until AnyKey runs there with the preset (for a site with no keys of its own, pass one of the preset's labels as well, as `e2e/live/hacker-news.spec.ts` does), `press(page, 'g', 'l')` presses a sequence, and `recordPageKeys` with `pageKeys` (from `e2e/harness.ts`) lists the keys the page itself received. `pressUntil` in the harness presses until a site that sets up its keys late answers. `e2e/live/github.spec.ts` uses all of them.
 
 ```ts
 import { expect, test, waitForPresets } from '../harness.ts';

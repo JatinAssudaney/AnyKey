@@ -31,7 +31,8 @@ test("GitHub's own keys where AnyKey gives way", async ({ page }) => {
   await page.waitForURL(`${REPO}/discussions`);
 
   // On the issue list GitHub's keys filter by author (u), move the focus (j) and select (x, where AnyKey's would
-  // close the tab). The author filter goes away while an issue is selected, so u comes first.
+  // close the tab). GitHub offers selecting only to people who can triage, so signed out x has to reach the page and
+  // leave the tab open.
   // GitHub sets up the list's keys a while after the page loads.
   await openOnSite(page, `${REPO}/issues`, 'GitHub');
   const authors = page.getByLabel('Filter authors');
@@ -43,8 +44,10 @@ test("GitHub's own keys where AnyKey gives way", async ({ page }) => {
   });
   await page.keyboard.press('j');
   await expect.poll(() => page.evaluate(() => document.activeElement?.tagName)).toBe('LI');
+  await recordPageKeys(page);
   await page.keyboard.press('x');
-  await expect(page.getByRole('listitem', { name: /^Selected\./ })).toBeVisible();
+  await expect.poll(() => pageKeys(page)).toEqual(['keydown:x']);
+  expect(page.isClosed()).toBe(false);
   expect(await scrollY(page)).toBe(0);
 
   await page.goto(`${REPO}/actions`);
