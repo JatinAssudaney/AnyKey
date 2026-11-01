@@ -40,9 +40,11 @@ test("the Wikipedia preset's shortcuts", async ({ page }) => {
     await pressUntil(page, keys, () => Promise.resolve(url.test(decodeURIComponent(page.url()))));
   }
   // A random article: MediaWiki marks articles with the ns-0 class (main namespace). Titles can hold colons.
+  // pressUntil can press g r again before the first random page commits, so a second one may still be on its way.
   await pressUntil(page, ['g', 'r'], () => Promise.resolve(!page.url().endsWith('/wiki/Main_Page')));
-  await page.waitForLoadState();
-  expect(await page.evaluate(() => document.body.classList.contains('ns-0'))).toBe(true);
+  await expect
+    .poll(() => page.evaluate(() => document.body.classList.contains('ns-0')).catch(() => false))
+    .toBe(true);
 
   await openOnSite(page, ARTICLE, 'Wikipedia', 'Go to a random article');
   await press(page, 'g', 'e');
