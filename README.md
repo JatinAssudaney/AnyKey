@@ -115,7 +115,7 @@ Load the build at `chrome://extensions`: turn on **Developer mode**, click **Loa
 ```sh
 pnpm check          # typecheck, lint, em-dash check, unit tests, build
 pnpm test:e2e       # Playwright against the built extension, as this system and as Windows
-pnpm test:live      # the GitHub and YouTube presets on the live sites, signed out
+pnpm test:live      # the GitHub, YouTube, Hacker News and Wikipedia presets on the live sites, signed out
 pnpm store:images   # the Chrome Web Store images, the GitHub banner, and the demo video's stills
 pnpm zip            # the upload for the Chrome Web Store, dist/anykey-<version>-chrome.zip
 ```

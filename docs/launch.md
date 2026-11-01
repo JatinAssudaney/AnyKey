@@ -105,4 +105,4 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] GitHub version 4: its star button is now `[data-testid="star-button"]`, and signed out its issue lists no longer select with `x`, so the live test checks that `x` reaches GitHub and the tab stays open.
 - [ ] Check Gmail and Stack Overflow by hand with `docs/preset-checklist.md`, signed in, and mark their shortcuts `verified: true` in a new `version` of each. Check GitHub's `S` signed in too (starred and not), then mark it verified again.
 - [ ] Render the demo video again: the Settings scene's headline names the new presets (`store/video/README.md`).
-- [ ] Upload `dist/anykey-1.0.2-chrome.zip` and paste the new description from `store/listing.md` (by hand).
+- [x] Upload `dist/anykey-1.0.2-chrome.zip` and paste the new description from `store/listing.md` (by hand). Submitted on 2 November 2026. The first submission was rejected at once for excessive keywords (Yellow Argon: its description listed all seven preset sites, twice), so the description now names three as examples.
