@@ -2,6 +2,7 @@ import { useId, useRef, useState, type SubmitEvent } from 'react';
 import { Dialog } from '@/components/Dialog';
 import { focusAfterRender } from '@/components/focus';
 import { KeyRecorder } from '@/components/KeyRecorder';
+import { rich } from '@/components/rich';
 import { isMac } from '@/components/platform';
 import {
   checkbox,
@@ -20,6 +21,7 @@ import { effectiveDefaults, shortcutsOnSite } from '@/core/resolve';
 import { LIMITS, ShortcutSchema, type ElementTarget, type KeyMode, type Shortcut } from '@/core/schema';
 import { truncate } from '@/core/text';
 import { isHost, siteMatch } from '@/core/url';
+import { t } from '@/i18n';
 import { applyMutation } from '@/storage/mutations';
 import { ACTION_GROUPS, actionOf, choiceValue, CLICK, describeAction, FOCUS, NAVIGATE } from '../actions';
 import { isValidSelector, normalizeHost } from '../fields';
@@ -133,10 +135,10 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
     event.preventDefault();
     const shortcut = candidate();
     const found: Errors = {};
-    if (where === 'site' && !keysOnly && !isHost(site)) found.host = 'Enter a site such as github.com.';
+    if (where === 'site' && !keysOnly && !isHost(site)) found.host = t('dialog.enterSite');
     if (element) {
-      if (selector.trim() === '') found.selector = 'Enter a CSS selector for the element.';
-      else if (!isValidSelector(selector)) found.selector = "This isn't a CSS selector AnyKey can use.";
+      if (selector.trim() === '') found.selector = t('dialog.enterSelector');
+      else if (!isValidSelector(selector)) found.selector = t('dialog.badSelector');
     }
     const parsed = ShortcutSchema.safeParse(shortcut);
     if (!parsed.success) {
@@ -145,10 +147,10 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
         if (field === 'label') found.label ??= issue.message;
         else if (field === 'keys') found.keys ??= issue.message;
         else if (field === 'action' && detail === 'url') found.url ??= issue.message;
-        else if (field === 'action' && detail === 'target' && part === 'selector') found.selector ??= 'Use a shorter selector.';
-        else if (field === 'action' && detail === 'target' && part === 'text') found.text ??= 'Use shorter text.';
+        else if (field === 'action' && detail === 'target' && part === 'selector') found.selector ??= t('dialog.shorterSelector');
+        else if (field === 'action' && detail === 'target' && part === 'text') found.text ??= t('dialog.shorterText');
         else if (field === 'scope') found.pages ??= issue.message;
-        else found.form ??= 'Check the shortcut and try again.';
+        else found.form ??= t('dialog.checkShortcut');
       }
     }
     const mutation: Mutation =
@@ -204,10 +206,10 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
 
   const title =
     original !== null
-      ? `Edit "${original.label}"`
+      ? t('dialog.editTitle', { label: original.label })
       : originalSite === undefined || originalSite === ''
-        ? 'Add a shortcut'
-        : `Add a shortcut for ${originalSite}`;
+        ? t('dialog.addTitle')
+        : t('dialog.addForTitle', { site: originalSite });
   const keysHint = `${ids}-keys-hint`;
   const keysError = `${ids}-keys-error`;
   const conflictsId = `${ids}-conflicts`;
@@ -235,7 +237,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
         {!keysOnly && (
           <div>
             <label htmlFor={`${ids}-where`} className={fieldLabel}>
-              Works on
+              {t('dialog.worksOn')}
             </label>
             <select
               id={`${ids}-where`}
@@ -245,8 +247,8 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               }}
               className={`${textInput} mt-1 max-w-64`}
             >
-              <option value="global">Every site</option>
-              <option value="site">One site</option>
+              <option value="global">{t('dialog.everySite')}</option>
+              <option value="site">{t('dialog.oneSite')}</option>
             </select>
           </div>
         )}
@@ -255,7 +257,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
           <div className="space-y-3">
             <div>
               <label htmlFor={`${ids}-host`} className={fieldLabel}>
-                Site
+                {t('dialog.site')}
               </label>
               <input
                 ref={hostRef}
@@ -273,13 +275,13 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
                 className={`${textInput} mt-1`}
               />
               <p id={`${ids}-host-hint`} className={hintText}>
-                Such as github.com. AnyKey keeps the shortcut with this site&apos;s settings.
+                {t('dialog.siteHint')}
               </p>
               {errorFor('host')}
             </div>
             <div>
               <label htmlFor={`${ids}-pages`} className={fieldLabel}>
-                Pages
+                {t('preset.pages')}
               </label>
               <input
                 ref={pagesRef}
@@ -296,8 +298,10 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
                 className={`${textInput} mt-1 font-mono`}
               />
               <p id={`${ids}-pages-hint`} className={hintText}>
-                A match pattern: <code>*://github.com/*</code> is every page of the site, and{' '}
-                <code>*://github.com/*/issues*</code> only its issue lists.
+                {rich('dialog.pagesHint', {
+                  every: <code>*://github.com/*</code>,
+                  issues: <code>*://github.com/*/issues*</code>,
+                })}
               </p>
               {errorFor('pages')}
             </div>
@@ -306,13 +310,13 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
 
         {keysOnly || choice === null ? (
           <div>
-            <p className={fieldLabel}>Action</p>
+            <p className={fieldLabel}>{t('dialog.action')}</p>
             <p className="mt-1 text-sm">{original === null ? '' : describeAction(original.action)}</p>
           </div>
         ) : (
           <div>
             <label htmlFor={`${ids}-action`} className={fieldLabel}>
-              Action
+              {t('dialog.action')}
             </label>
             <select
               id={`${ids}-action`}
@@ -323,10 +327,10 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               className={`${textInput} mt-1`}
             >
               {ACTION_GROUPS.map((group) => (
-                <optgroup key={group.label} label={group.label}>
+                <optgroup key={group.label} label={t(group.label)}>
                   {group.choices.map((item) => (
                     <option key={item.value} value={item.value}>
-                      {item.name}
+                      {t(item.name)}
                     </option>
                   ))}
                 </optgroup>
@@ -339,7 +343,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
           <div className="space-y-3">
             <div>
               <label htmlFor={`${ids}-selector`} className={fieldLabel}>
-                Element
+                {t('dialog.element')}
               </label>
               <input
                 ref={selectorRef}
@@ -357,15 +361,17 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
                 className={`${textInput} mt-1 font-mono`}
               />
               <p id={`${ids}-selector-hint`} className={hintText}>
-                A CSS selector such as <code>#search</code> or <code>button[aria-label=&quot;Star&quot;]</code>, with{' '}
-                <code>&gt;&gt;&gt;</code> to step into a shadow root. AnyKey&apos;s toolbar button can pick the element
-                on the page for you instead.
+                {rich('dialog.selectorHint', {
+                  id: <code>#search</code>,
+                  attr: <code>button[aria-label=&quot;Star&quot;]</code>,
+                  shadow: <code>&gt;&gt;&gt;</code>,
+                })}
               </p>
               {errorFor('selector')}
             </div>
             <div>
               <label htmlFor={`${ids}-text`} className={fieldLabel}>
-                Text (optional)
+                {t('dialog.text')}
               </label>
               <input
                 ref={textRef}
@@ -382,7 +388,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
                 className={`${textInput} mt-1`}
               />
               <p id={`${ids}-text-hint`} className={hintText}>
-                When the selector finds nothing, AnyKey looks for a button or link with this text.
+                {t('dialog.textHint')}
               </p>
               {errorFor('text')}
             </div>
@@ -392,7 +398,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
         {!keysOnly && choice === NAVIGATE && (
           <div>
             <label htmlFor={`${ids}-url`} className={fieldLabel}>
-              Web address
+              {t('dialog.url')}
             </label>
             <input
               ref={urlRef}
@@ -410,7 +416,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               className={`${textInput} mt-1`}
             />
             <p id={`${ids}-url-hint`} className={hintText}>
-              A full address such as https://example.com, or a path on the current site such as /notifications.
+              {t('dialog.urlHint')}
             </p>
             {errorFor('url')}
           </div>
@@ -426,14 +432,14 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               }}
               className={checkbox}
             />
-            {choice === CLICK ? 'Open links in a new tab' : 'Open in a new tab'}
+            {choice === CLICK ? t('dialog.newTabLinks') : t('dialog.newTab')}
           </label>
         )}
 
         {!keysOnly && (
           <div>
             <label htmlFor={`${ids}-label`} className={fieldLabel}>
-              Name
+              {t('dialog.name')}
             </label>
             <input
               ref={labelRef}
@@ -451,7 +457,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               className={`${textInput} mt-1`}
             />
             <p id={`${ids}-label-hint`} className={hintText}>
-              Shown in the list of shortcuts that ? opens. Leave it empty to describe the action.
+              {t('dialog.nameHint')}
             </p>
             {errorFor('label')}
           </div>
@@ -459,7 +465,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
 
         <div>
           <label htmlFor={`${ids}-keys`} className={fieldLabel}>
-            Keys
+            {t('dialog.keys')}
           </label>
           <div className="mt-1 flex items-center gap-2">
             <input
@@ -487,8 +493,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
             />
           </div>
           <p id={keysHint} className={hintText}>
-            Type keys such as <code>g i</code>, <code>shift+x</code> or <code>mod+k</code> (mod is ⌘ on a Mac and Ctrl
-            elsewhere), or record them.
+            {rich('dialog.keysHint', { a: <code>g i</code>, b: <code>shift+x</code>, c: <code>mod+k</code> })}
           </p>
           {errors.keys !== undefined && (
             <p id={keysError} className={errorText}>
@@ -509,7 +514,7 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
 
         <div>
           <label htmlFor={`${ids}-mode`} className={fieldLabel}>
-            Match keys by
+            {t('dialog.matchBy')}
           </label>
           <select
             id={`${ids}-mode`}
@@ -520,11 +525,11 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
             aria-describedby={`${ids}-mode-hint`}
             className={`${textInput} mt-1 max-w-64`}
           >
-            <option value="key">The character typed</option>
-            <option value="code">The physical key</option>
+            <option value="key">{t('dialog.byKey')}</option>
+            <option value="code">{t('dialog.byCode')}</option>
           </select>
           <p id={`${ids}-mode-hint`} className={hintText}>
-            Physical keys are written as codes such as <code>KeyG</code> and stay put when the keyboard layout changes.
+            {rich('dialog.modeHint', { code: <code>KeyG</code> })}
           </p>
         </div>
 
@@ -538,16 +543,16 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
               }}
               className={checkbox}
             />
-            Also works while typing in text fields
+            {t('dialog.inInputs')}
           </label>
         )}
 
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className={secondaryButton}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className={primaryButton}>
-            Save
+            {t('common.save')}
           </button>
         </div>
       </form>

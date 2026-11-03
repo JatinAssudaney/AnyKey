@@ -3,6 +3,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { focusAfterRender } from '@/components/focus';
 import { isMac } from '@/components/platform';
 import { CommandKeyCaps } from '@/components/KeyCaps';
+import { rich } from '@/components/rich';
 import { card, hintText, linkButton, primaryButton, secondaryButton, sectionHeading } from '@/components/styles';
 import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { findConflicts } from '@/core/conflicts';
@@ -11,6 +12,7 @@ import type { Mutation } from '@/core/messages';
 import type { Preset } from '@/core/presets';
 import { effectiveDefaults } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
+import { t } from '@/i18n';
 import { ShortcutDialog, type Editing } from './ShortcutDialog';
 import { editButtonId, ShortcutTable } from './ShortcutTable';
 
@@ -40,12 +42,12 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
   return (
     <section aria-labelledby="shortcuts-heading" className={card}>
       <h2 id="shortcuts-heading" className={sectionHeading}>
-        Shortcuts
+        {t('shortcuts.heading')}
       </h2>
-      <p className={hintText}>These work on every site. Changes apply to open tabs right away.</p>
+      <p className={hintText}>{t('shortcuts.intro')}</p>
 
       <ShortcutTable
-        caption="Built-in shortcuts"
+        caption={t('shortcuts.builtIn')}
         shortcuts={defaults}
         conflicts={conflicts}
         onToggle={(shortcut, enabled) => {
@@ -65,7 +67,8 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
               }}
               className={linkButton}
             >
-              Reset<span className="sr-only"> {shortcut.label}</span>
+              {t('common.reset')}
+              <span className="sr-only"> {shortcut.label}</span>
             </button>
           ) : null
         }
@@ -73,12 +76,12 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
 
       {state.global.shortcuts.length === 0 ? (
         <>
-          <h3 className="mt-8 text-sm font-semibold">Your shortcuts</h3>
-          <p className={hintText}>None yet. Add one to scroll, switch tabs or open a web address with your own keys.</p>
+          <h3 className="mt-8 text-sm font-semibold">{t('shortcuts.yours')}</h3>
+          <p className={hintText}>{t('shortcuts.noneYet')}</p>
         </>
       ) : (
         <ShortcutTable
-          caption="Your shortcuts"
+          caption={t('shortcuts.yours')}
           shortcuts={state.global.shortcuts}
           conflicts={conflicts}
           describe
@@ -96,7 +99,8 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
               }}
               className={linkButton}
             >
-              Delete<span className="sr-only"> {shortcut.label}</span>
+              {t('common.delete')}
+              <span className="sr-only"> {shortcut.label}</span>
             </button>
           )}
         />
@@ -109,25 +113,20 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
         }}
         className={`${primaryButton} mt-4`}
       >
-        Add shortcut
+        {t('shortcuts.add')}
       </button>
 
       {panelKey !== null && (
         <>
-          <h3 className="mt-8 text-sm font-semibold">AnyKey&apos;s panel</h3>
+          <h3 className="mt-8 text-sm font-semibold">{t('shortcuts.panelHeading')}</h3>
           <p className={hintText}>
-            {panelKey === '' ? (
-              <>No key opens the panel from AnyKey&apos;s toolbar button.</>
-            ) : (
-              <>
-                Press <CommandKeyCaps shortcut={panelKey} /> in any tab to open the panel from AnyKey&apos;s toolbar
-                button, even on pages where AnyKey&apos;s other shortcuts can&apos;t run.
-              </>
-            )}{' '}
-            The browser holds the key, so it is set on the browser&apos;s page for extension shortcuts.
+            {panelKey === ''
+              ? t('shortcuts.noPanelKey')
+              : rich('shortcuts.panelKey', { keys: <CommandKeyCaps shortcut={panelKey} /> })}{' '}
+            {t('shortcuts.browserHolds')}
           </p>
           <button type="button" onClick={openShortcutsPage} className={`${secondaryButton} mt-3`}>
-            {panelKey === '' ? 'Set a key' : 'Change the key'}
+            {panelKey === '' ? t('common.setKey') : t('shortcuts.changeKey')}
           </button>
         </>
       )}
@@ -148,8 +147,8 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
       )}
       {deleting !== null && (
         <ConfirmDialog
-          title={`Delete "${deleting.label}"?`}
-          confirmLabel="Delete"
+          title={t('common.deleteTitle', { label: deleting.label })}
+          confirmLabel={t('common.delete')}
           danger
           onConfirm={() => {
             send({ op: 'deleteShortcut', id: deleting.id });
@@ -160,7 +159,7 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
             setDeleting(null);
           }}
         >
-          <p>This removes the shortcut from every computer you sync with.</p>
+          <p>{t('common.deleteBody')}</p>
         </ConfirmDialog>
       )}
     </section>

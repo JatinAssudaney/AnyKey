@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import iconUrl from '@/assets/icon.svg';
 import { STORE_URL } from '@/core/app';
+import { rich } from '@/components/rich';
 import { focusRing, headerLink } from '@/components/styles';
+import { t } from '@/i18n';
 import { DataSection } from './sections/DataSection';
 import { SettingsSection } from './sections/SettingsSection';
 import { ShortcutsSection } from './sections/ShortcutsSection';
@@ -21,22 +23,22 @@ export function App() {
         href="#main"
         className={`sr-only rounded-md bg-white text-sm font-medium shadow-md focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-10 focus:px-3 focus:py-2 dark:bg-stone-800 ${focusRing}`}
       >
-        Skip to content
+        {t('options.skip')}
       </a>
       <header className="border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-6 py-4">
           <img src={iconUrl} alt="" width={32} height={32} />
-          <h1 className="text-lg font-semibold">AnyKey settings</h1>
+          <h1 className="text-lg font-semibold">{t('options.title')}</h1>
           <p role="status" className="ml-auto text-sm text-stone-600 dark:text-stone-400">
             {status.progress}
           </p>
           {/* The page that opens on install, with the keys to start with. */}
           <a href="/welcome.html" className={headerLink}>
-            Getting started
+            {t('options.gettingStarted')}
           </a>
           {/* Ratings are how the Chrome Web Store ranks AnyKey, and asked for only here, where people already use it. */}
           <a href={`${STORE_URL}/reviews`} target="_blank" rel="noreferrer" className={headerLink}>
-            Rate AnyKey
+            {t('options.rate')}
           </a>
         </div>
       </header>
@@ -50,16 +52,18 @@ export function App() {
           )}
         </div>
         {data === null || presets === null ? (
-          <p className="text-sm text-stone-600 dark:text-stone-400">Loading your settings…</p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">{t('options.loading')}</p>
         ) : (
           <div className="space-y-6">
             {data.problems.size > 0 && (
               <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950">
-                Some of your settings need attention. See{' '}
-                <a href="#data-heading" className={`font-medium underline ${focusRing}`}>
-                  Your data
-                </a>
-                .
+                {rich('options.problems', {
+                  link: (
+                    <a href="#data-heading" className={`font-medium underline ${focusRing}`}>
+                      {t('data.heading')}
+                    </a>
+                  ),
+                })}
               </p>
             )}
             <ShortcutsSection data={data} presets={presets} mutate={mutate} onShowSite={setOpenSite} />

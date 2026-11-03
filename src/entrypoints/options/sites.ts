@@ -18,8 +18,3 @@ export function siteMatches(host: string, presetNames: readonly string[], query:
   const wanted = /[/:]/.test(typed) ? normalizeHost(typed) || typed : typed;
   return [host, ...presetNames].some((name) => name.toLowerCase().includes(wanted));
 }
-
-/** "1 shortcut", "3 shortcuts". */
-export function count(n: number, noun: string): string {
-  return `${n} ${noun}${n === 1 ? '' : 's'}`;
-}

@@ -1,8 +1,8 @@
-import { Fragment } from 'react';
 import { browser } from 'wxt/browser';
 import iconUrl from '@/assets/icon.svg';
 import { CommandKeyCaps, KeyCaps } from '@/components/KeyCaps';
 import { isMac } from '@/components/platform';
+import { listNodes, rich } from '@/components/rich';
 import { card, focusRing, headerLink, hintText, linkButton, primaryButton } from '@/components/styles';
 import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { usePresets } from '@/components/usePresets';
@@ -11,22 +11,23 @@ import { presetHosts } from '@/core/presets';
 import { pageShortcuts, resolve } from '@/core/resolve';
 import type { Action, Shortcut } from '@/core/schema';
 import { urlParts, withoutHash } from '@/dom/url';
+import { locale, t, type MessageKey } from '@/i18n';
 
 /** Section headings: larger than the options page's, over this page's larger text. */
 const heading = 'text-lg font-semibold';
 
 /** The keys the page teaches first, each found by what it does, since the user may have changed its keys. */
-const TRY: readonly { does: (action: Action) => boolean; text: string }[] = [
-  { does: (action) => action.type === 'scroll' && action.direction === 'down', text: 'Scroll down' },
-  { does: (action) => action.type === 'scroll' && action.direction === 'up', text: 'Scroll up' },
-  { does: (action) => action.type === 'cheatsheet', text: 'See every shortcut, on any page' },
+const TRY: readonly { does: (action: Action) => boolean; text: MessageKey }[] = [
+  { does: (action) => action.type === 'scroll' && action.direction === 'down', text: 'welcome.try.scrollDown' },
+  { does: (action) => action.type === 'scroll' && action.direction === 'up', text: 'welcome.try.scrollUp' },
+  { does: (action) => action.type === 'cheatsheet', text: 'welcome.try.cheatsheet' },
   {
     does: (action) => action.type === 'hints' && action.newTab !== true,
-    text: 'Label every link and button, then type a label to click it',
+    text: 'welcome.try.hints',
   },
   {
     does: (action) => action.type === 'hints' && action.newTab === true,
-    text: 'Open a link in a new tab, the same way',
+    text: 'welcome.try.hintsNewTab',
   },
 ];
 
@@ -49,7 +50,7 @@ export function App() {
       const [host] = presetHosts(preset);
       return host === undefined ? [] : [{ name: preset.name, url: `https://${host}/` }];
     })
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => a.name.localeCompare(b.name, locale()));
 
   return (
     // text-base: the browser's own style for extension pages makes text 12px.
@@ -58,23 +59,20 @@ export function App() {
         <header className="flex items-center gap-4">
           <img src={iconUrl} alt="" width={56} height={56} />
           <div>
-            <h1 className="text-2xl font-semibold">Welcome to AnyKey</h1>
-            <p className="text-sm text-stone-600 dark:text-stone-400">Keyboard shortcuts for any website</p>
+            <h1 className="text-2xl font-semibold">{t('welcome.title')}</h1>
+            <p className="text-sm text-stone-600 dark:text-stone-400">{t('common.tagline')}</p>
           </div>
           {/* Also something at the top of the page to try link hints on: a button, which both kinds of hint click. */}
           <button type="button" onClick={openSettings} className={`ml-auto ${headerLink}`}>
-            Settings
+            {t('common.settings')}
           </button>
         </header>
-        <p className="mt-6">
-          Scroll, click links and switch tabs from the keyboard on any website, and give a key to anything on a page.
-          AnyKey works on this page too, so try its keys as you read.
-        </p>
+        <p className="mt-6">{t('welcome.intro')}</p>
 
         {active !== null && tries.length > 0 && (
           <section aria-labelledby="try-heading" className={`${card} mt-8`}>
             <h2 id="try-heading" className={heading}>
-              Try these now
+              {t('welcome.tryHeading')}
             </h2>
             <dl className="mt-2 divide-y divide-stone-100 dark:divide-stone-800">
               {tries.map(({ shortcut, text }) => (
@@ -82,7 +80,7 @@ export function App() {
                   <dt className="w-24 shrink-0 [&_kbd]:px-2 [&_kbd]:py-1">
                     <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
                   </dt>
-                  <dd>{text}</dd>
+                  <dd>{t(text)}</dd>
                 </div>
               ))}
             </dl>
@@ -91,43 +89,41 @@ export function App() {
 
         <section aria-labelledby="picker-heading" className={`${card} mt-6`}>
           <h2 id="picker-heading" className={heading}>
-            Give anything a key
+            {t('welcome.pickerHeading')}
           </h2>
           <ol className="mt-2 list-decimal space-y-2 pl-5">
             <OpenPanelStep />
-            <li>
-              Choose <strong className="font-semibold">Add shortcut for this site</strong>, then click what you want a
-              key for: a button, a link, a menu.
-            </li>
-            <li>
-              Press the keys you want, then Enter. Pick something else for another shortcut, or press Esc when done.
-            </li>
+            <li>{rich('welcome.stepAdd', { button: <strong className="font-semibold">{t('popup.add')}</strong> })}</li>
+            <li>{t('welcome.stepKeys')}</li>
           </ol>
-          <p className={`${hintText} mt-3`}>
-            AnyKey&apos;s button starts in the extensions menu, the puzzle piece in the toolbar. Pin it there to keep it
-            in view.
-          </p>
+          <p className={`${hintText} mt-3`}>{t('welcome.pinHint')}</p>
         </section>
 
         {sites.length > 0 && (
           <section aria-labelledby="presets-heading" className={`${card} mt-6`}>
             <h2 id="presets-heading" className={heading}>
-              Made for your favorite sites
+              {t('welcome.presetsHeading')}
             </h2>
             <p className="mt-2">
-              {sites.map(({ name, url }, i) => (
-                <Fragment key={url}>
-                  {i > 0 && (i === sites.length - 1 ? ' and ' : ', ')}
-                  <a href={url} target="_blank" rel="noreferrer" className={`font-medium underline ${focusRing}`}>
-                    {name}
-                  </a>
-                </Fragment>
-              ))}{' '}
-              {sites.length === 1 ? 'comes' : 'come'} with extra shortcuts, and their own keys keep working.
+              {rich(
+                'welcome.presets',
+                {
+                  sites: listNodes(
+                    sites.map(({ name, url }) => (
+                      <a href={url} target="_blank" rel="noreferrer" className={`font-medium underline ${focusRing}`}>
+                        {name}
+                      </a>
+                    )),
+                  ),
+                },
+                sites.length,
+              )}
               {cheatsheet !== undefined && (
                 <>
                   {' '}
-                  Press <KeyCaps keys={cheatsheet.keys} mode={cheatsheet.keyMode} /> on one of them to see both.
+                  {rich('welcome.presetsCheatsheet', {
+                    keys: <KeyCaps keys={cheatsheet.keys} mode={cheatsheet.keyMode} />,
+                  })}
                 </>
               )}
             </p>
@@ -136,11 +132,9 @@ export function App() {
 
         <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button type="button" onClick={openSettings} className={primaryButton}>
-            Open settings
+            {t('common.openSettings')}
           </button>
-          <p className="text-sm text-stone-600 dark:text-stone-400">
-            Change any key, add your own shortcuts, or turn AnyKey off on a site.
-          </p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">{t('welcome.settingsHint')}</p>
         </div>
       </main>
     </div>
@@ -152,22 +146,19 @@ function OpenPanelStep() {
   const key = usePanelKey();
   return (
     <li>
-      On a website,{' '}
-      {key === null || key === '' ? (
-        'click'
-      ) : (
-        <>
-          press <CommandKeyCaps shortcut={key} /> or click
-        </>
-      )}{' '}
-      AnyKey&apos;s button in the toolbar.
+      {key === null || key === ''
+        ? t('welcome.stepOpen')
+        : rich('welcome.stepOpenKey', { keys: <CommandKeyCaps shortcut={key} /> })}
       {key === '' && (
         <>
           {' '}
-          <button type="button" onClick={openShortcutsPage} className={linkButton}>
-            Set a key
-          </button>{' '}
-          to open it from the keyboard.
+          {rich('welcome.stepSetKey', {
+            setKey: (
+              <button type="button" onClick={openShortcutsPage} className={linkButton}>
+                {t('common.setKey')}
+              </button>
+            ),
+          })}
         </>
       )}
     </li>

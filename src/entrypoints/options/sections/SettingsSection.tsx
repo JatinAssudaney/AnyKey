@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS } from '@/core/defaults';
 import { effectiveSettings, type SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
 import { SettingsSchema, type Settings } from '@/core/schema';
+import { t } from '@/i18n';
 
 /** What was typed into a setting's field: the value to save, or why it can't be saved. */
 type Checked<T> = { value: T } | { error: string };
@@ -22,13 +23,13 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
   return (
     <section aria-labelledby="settings-heading" className={card}>
       <h2 id="settings-heading" className={sectionHeading}>
-        Settings
+        {t('common.settings')}
       </h2>
       <div className="mt-4 space-y-5">
         <SettingField
           numeric
-          label="Time to finish a key sequence (milliseconds)"
-          hint={`How long AnyKey waits for the next key of a sequence such as g g. Default: ${DEFAULT_SETTINGS.sequenceTimeoutMs}.`}
+          label={t('settings.sequenceTimeout')}
+          hint={t('settings.sequenceTimeoutHint', { default: DEFAULT_SETTINGS.sequenceTimeoutMs })}
           value={settings.sequenceTimeoutMs}
           check={(draft) => checkSetting('sequenceTimeoutMs', toNumber(draft))}
           onCommit={(value) => {
@@ -37,8 +38,8 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
         />
         <SettingField
           numeric
-          label="Scroll distance (pixels)"
-          hint={`How far one press of Scroll up or Scroll down moves. Default: ${DEFAULT_SETTINGS.scrollStep}.`}
+          label={t('settings.scrollStep')}
+          hint={t('settings.scrollStepHint', { default: DEFAULT_SETTINGS.scrollStep })}
           value={settings.scrollStep}
           check={(draft) => checkSetting('scrollStep', toNumber(draft))}
           onCommit={(value) => {
@@ -46,8 +47,8 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
           }}
         />
         <SettingField
-          label="Hint characters"
-          hint={`The keys that link hints are labeled with, the easiest to reach first. They pick labels only while hints show, and run your shortcuts the rest of the time. Default: ${DEFAULT_SETTINGS.hintChars}.`}
+          label={t('settings.hintChars')}
+          hint={t('settings.hintCharsHint', { default: DEFAULT_SETTINGS.hintChars })}
           value={settings.hintChars}
           check={(draft) => checkSetting('hintChars', draft.trim().toLowerCase())}
           onCommit={(value) => {
@@ -63,7 +64,7 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
             }}
             className={checkbox}
           />
-          Smooth scrolling
+          {t('settings.smoothScroll')}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -74,7 +75,7 @@ export function SettingsSection({ data, mutate }: SettingsSectionProps) {
             }}
             className={checkbox}
           />
-          Open new tabs behind the current tab
+          {t('settings.newTabInBackground')}
         </label>
       </div>
     </section>
@@ -166,5 +167,5 @@ function checkSetting<K extends 'sequenceTimeoutMs' | 'scrollStep' | 'hintChars'
 ): Checked<Settings[K]> {
   const result = SettingsSchema.shape[name].safeParse(value);
   if (result.success) return { value: result.data as Settings[K] };
-  return { error: result.error.issues[0]?.message ?? 'Check this value.' };
+  return { error: result.error.issues[0]?.message ?? t('settings.checkValue') };
 }

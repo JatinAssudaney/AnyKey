@@ -1,11 +1,12 @@
 import type { Action, ElementTarget, ScrollDirection, TabOp } from '@/core/schema';
+import { t, type MessageKey } from '@/i18n';
 
 // The actions the options page can create, as <select> choices.
 
 export interface ActionChoice {
   /** The <option> value, such as "scroll:down". */
   value: string;
-  name: string;
+  name: MessageKey;
   /** Null for the choices whose action is built from more fields: a web address, or an element. */
   action: Action | null;
 }
@@ -14,54 +15,54 @@ export const NAVIGATE = 'navigate';
 export const CLICK = 'click';
 export const FOCUS = 'focus';
 
-const scroll = (direction: ScrollDirection, name: string): ActionChoice => ({
+const scroll = (direction: ScrollDirection, name: MessageKey): ActionChoice => ({
   value: `scroll:${direction}`,
   name,
   action: { type: 'scroll', direction },
 });
-const history = (op: 'back' | 'forward', name: string): ActionChoice => ({
+const history = (op: 'back' | 'forward', name: MessageKey): ActionChoice => ({
   value: `history:${op}`,
   name,
   action: { type: 'history', op },
 });
-const tab = (op: TabOp, name: string): ActionChoice => ({ value: `tab:${op}`, name, action: { type: 'tab', op } });
+const tab = (op: TabOp, name: MessageKey): ActionChoice => ({ value: `tab:${op}`, name, action: { type: 'tab', op } });
 
-export const ACTION_GROUPS: readonly { label: string; choices: readonly ActionChoice[] }[] = [
+export const ACTION_GROUPS: readonly { label: MessageKey; choices: readonly ActionChoice[] }[] = [
   {
-    label: 'Scroll',
+    label: 'action.groups.scroll',
     choices: [
-      scroll('down', 'Scroll down'),
-      scroll('up', 'Scroll up'),
-      scroll('halfDown', 'Scroll down half a page'),
-      scroll('halfUp', 'Scroll up half a page'),
-      scroll('top', 'Scroll to the top'),
-      scroll('bottom', 'Scroll to the bottom'),
+      scroll('down', 'action.scrollDown'),
+      scroll('up', 'action.scrollUp'),
+      scroll('halfDown', 'action.scrollHalfDown'),
+      scroll('halfUp', 'action.scrollHalfUp'),
+      scroll('top', 'action.scrollTop'),
+      scroll('bottom', 'action.scrollBottom'),
     ],
   },
-  { label: 'History', choices: [history('back', 'Go back'), history('forward', 'Go forward')] },
+  { label: 'action.groups.history', choices: [history('back', 'action.back'), history('forward', 'action.forward')] },
   {
-    label: 'Tabs',
+    label: 'action.groups.tabs',
     choices: [
-      tab('prev', 'Previous tab'),
-      tab('next', 'Next tab'),
-      tab('close', 'Close tab'),
-      tab('duplicate', 'Duplicate tab'),
-    ],
-  },
-  {
-    label: 'Page elements',
-    choices: [
-      { value: 'hints', name: 'Show link hints', action: { type: 'hints' } },
-      { value: 'hints:newTab', name: 'Show link hints to open in a new tab', action: { type: 'hints', newTab: true } },
-      { value: CLICK, name: 'Click an element', action: null },
-      { value: FOCUS, name: 'Focus an element', action: null },
+      tab('prev', 'action.prevTab'),
+      tab('next', 'action.nextTab'),
+      tab('close', 'action.closeTab'),
+      tab('duplicate', 'action.duplicateTab'),
     ],
   },
   {
-    label: 'Other',
+    label: 'action.groups.elements',
     choices: [
-      { value: NAVIGATE, name: 'Go to a web address', action: null },
-      { value: 'cheatsheet', name: 'Show keyboard shortcuts', action: { type: 'cheatsheet' } },
+      { value: 'hints', name: 'action.hints', action: { type: 'hints' } },
+      { value: 'hints:newTab', name: 'action.hintsNewTab', action: { type: 'hints', newTab: true } },
+      { value: CLICK, name: 'action.click', action: null },
+      { value: FOCUS, name: 'action.focus', action: null },
+    ],
+  },
+  {
+    label: 'action.groups.other',
+    choices: [
+      { value: NAVIGATE, name: 'action.navigate', action: null },
+      { value: 'cheatsheet', name: 'action.cheatsheet', action: { type: 'cheatsheet' } },
     ],
   },
 ];
@@ -107,14 +108,15 @@ export function actionOf(value: string, fields: ActionFields): Action {
 export function describeAction(action: Action): string {
   switch (action.type) {
     case 'navigate':
-      return `Go to ${action.url}${action.newTab === true ? ' in a new tab' : ''}`;
+      return t(action.newTab === true ? 'action.goToNewTab' : 'action.goTo', { url: action.url });
     case 'click':
-      return `Click ${action.target.text ?? action.target.selector}`;
+      return t('action.clickTarget', { target: action.target.text ?? action.target.selector });
     case 'focus':
-      return `Focus ${action.target.text ?? action.target.selector}`;
+      return t('action.focusTarget', { target: action.target.text ?? action.target.selector });
     default: {
       const value = choiceValue(action);
-      return (value === null ? undefined : findChoice(value)?.name) ?? action.type;
+      const name = value === null ? undefined : findChoice(value)?.name;
+      return name === undefined ? action.type : t(name);
     }
   }
 }

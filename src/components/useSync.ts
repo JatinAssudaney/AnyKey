@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Backup, SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
+import { t } from '@/i18n';
 import { sendToBackground } from '@/messaging';
 import { applyMutation } from '@/storage/mutations';
 import { watchBackup, watchSync, type Watcher } from '@/storage/read';
 
 export interface SaveStatus {
-  /** For the polite status region: "Saving…", then "Saved." */
+  /** For the polite status region: "Saving…", then "Saved." (in the user's language) */
   progress: string;
   /** For the alert region: why the last change failed. */
   error: string;
@@ -61,7 +62,7 @@ export function useSync(): SyncStore {
     const entry: Pending = { mutation };
     setPending((list) => [...list, entry]);
     saving.current++;
-    setStatus({ progress: 'Saving…', error: '' });
+    setStatus({ progress: t('common.saving'), error: '' });
 
     const response = await sendToBackground({ type: 'mutate', mutation });
     // Mutations are idempotent, so the change may show twice over for a moment, but never not at all.
@@ -72,7 +73,7 @@ export function useSync(): SyncStore {
       setStatus({ progress: '', error: response.error });
       return response.error;
     }
-    if (saving.current === 0) setStatus((current) => ({ progress: 'Saved.', error: current.error }));
+    if (saving.current === 0) setStatus((current) => ({ progress: t('common.saved'), error: current.error }));
     return null;
   }, []);
 

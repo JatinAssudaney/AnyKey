@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { createRecorder, type Recorder, type RecorderStep } from '@/core/recorder';
 import type { KeyMode } from '@/core/schema';
+import { t } from '@/i18n';
 import { isMac } from './platform';
 import { secondaryButton } from './styles';
 
@@ -46,11 +47,11 @@ export function KeyRecorder({ mode, onRecord, describedBy }: KeyRecorderProps) {
     recorder.current = null;
     setKeys(null);
     if (state.status === 'cancelled') {
-      setAnnouncement('Recording cancelled.');
+      setAnnouncement(t('recorder.cancelled'));
     } else if (state.keys === '') {
-      setAnnouncement('Nothing recorded.');
+      setAnnouncement(t('recorder.nothing'));
     } else {
-      setAnnouncement(`Recorded ${state.keys}.`);
+      setAnnouncement(t('recorder.recorded', { keys: state.keys }));
       onRecord(state.keys);
     }
   }
@@ -60,7 +61,7 @@ export function KeyRecorder({ mode, onRecord, describedBy }: KeyRecorderProps) {
     if (active === null) {
       recorder.current = createRecorder({ mode, isMac });
       setKeys('');
-      setAnnouncement('Recording. Press the keys, then pause. Esc cancels.');
+      setAnnouncement(t('recorder.recording'));
     } else if (event.detail > 0) {
       // A mouse click stops recording. Keyboard clicks can't: Space and Enter are keys to record or finish with.
       handle(active.timeout());
@@ -109,11 +110,11 @@ export function KeyRecorder({ mode, onRecord, describedBy }: KeyRecorderProps) {
           aria-hidden="true"
           className={`size-2.5 rounded-full ${recording ? 'animate-pulse bg-red-600 motion-reduce:animate-none' : 'bg-stone-400'}`}
         />
-        Record keys
+        {t('recorder.record')}
       </button>
       {recording && (
         <span aria-hidden="true" className="text-sm text-stone-700 dark:text-stone-300">
-          {keys === '' ? 'Press keys…' : `${keys}…`}
+          {keys === '' ? t('recorder.pressKeys') : `${keys}…`}
         </span>
       )}
       <span role="status" className="sr-only">

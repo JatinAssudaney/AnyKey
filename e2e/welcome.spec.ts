@@ -37,7 +37,7 @@ test("installing AnyKey opens its welcome page, where AnyKey's keys work", async
       'Open a link in a new tab, the same way',
     ]);
     await expect(welcome.getByRole('region', { name: 'Made for your favorite sites' })).toContainText(
-      'GitHub, Gmail, Hacker News, Reddit, Stack Overflow, Wikipedia and YouTube come with extra shortcuts',
+      'GitHub, Gmail, Hacker News, Reddit, Stack Overflow, Wikipedia, and YouTube come with extra shortcuts',
     );
 
     await welcome.bringToFront();

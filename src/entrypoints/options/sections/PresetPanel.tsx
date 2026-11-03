@@ -9,6 +9,7 @@ import type { Mutation } from '@/core/messages';
 import { presetOverride, type Preset } from '@/core/presets';
 import { presetYields, type NativeKey, type SiteShortcuts } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
+import { listText, t } from '@/i18n';
 import type { Editing } from './ShortcutDialog';
 import { editButtonId, ShortcutTable } from './ShortcutTable';
 
@@ -56,15 +57,14 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
   return (
     <section aria-labelledby={headingId} className="mt-8">
       <h4 id={headingId} className="text-sm font-semibold">
-        {preset.name} preset
+        {t('common.presetName', { name: preset.name })}
       </h4>
       <p className={hintText}>
-        Shortcuts AnyKey adds on {preset.name}. Your changes to them stay when AnyKey updates the preset.
-        {preset.shortcuts.some(({ verified }) => !verified) &&
-          " Those marked Unverified haven't been tried on the live site yet: if one can't find what it clicks, AnyKey says so on the page."}
+        {t('preset.intro', { name: preset.name })}
+        {preset.shortcuts.some(({ verified }) => !verified) && ` ${t('preset.unverified')}`}
       </p>
       <ShortcutTable
-        caption={`${preset.name} preset shortcuts`}
+        caption={t('preset.tableCaption', { name: preset.name })}
         hideCaption
         shortcuts={shortcuts}
         conflicts={conflicts}
@@ -90,7 +90,8 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
               }}
               className={linkButton}
             >
-              Reset<span className="sr-only"> {shortcut.label}</span>
+              {t('common.reset')}
+              <span className="sr-only"> {shortcut.label}</span>
             </button>
           ) : null
         }
@@ -100,20 +101,16 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
         <details className="group mt-6">
           <summary className={summaryClass}>
             <Chevron className="group-open:rotate-90" />
-            Built-in shortcuts that give way to {preset.name}
+            {t('preset.yieldsHeading', { name: preset.name })}
             <Count n={yields.length} />
           </summary>
-          <p className={hintText}>
-            Where {preset.name} uses one of these keys itself, AnyKey leaves the key to {preset.name}. Keep a shortcut
-            to have AnyKey&apos;s run there instead.
-          </p>
+          <p className={hintText}>{t('preset.yieldsHelp', { name: preset.name })}</p>
           <ul className="mt-3 space-y-3">
             {yields.map(({ shortcut, natives }) => {
               const kept = siteState?.globals.get(shortcut.id) === true;
               const noteId = `${ids}-${shortcut.id}-note`;
               const labels = [...new Set(natives.map(({ label }) => label))];
-              const one = labels.length === 1;
-              const own = `${preset.name}'s own ${quoted(labels)}`;
+              const note = { name: preset.name, labels: quoted(labels), host };
               return (
                 <li key={shortcut.id}>
                   <label className="flex flex-wrap items-center gap-2 text-sm">
@@ -132,13 +129,13 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
                       }}
                       className={checkbox}
                     />
-                    Keep &quot;{shortcut.label}&quot;
+                    {t('preset.keep', { label: shortcut.label })}
                     <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
                   </label>
                   <p id={noteId} className={`${hintText} ml-6`}>
                     {kept
-                      ? `AnyKey keeps the keys on ${host}, so ${own} ${one ? "doesn't" : "don't"} run.`
-                      : `${own} ${one ? 'gets' : 'get'} the keys where ${one ? 'it works' : 'they work'}.`}
+                      ? t('preset.keptNote', labels.length, note)
+                      : t('preset.yieldedNote', labels.length, note)}
                   </p>
                 </li>
               );
@@ -150,25 +147,22 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
       <details className={`group ${yields.length > 0 ? 'mt-4' : 'mt-6'}`}>
         <summary className={summaryClass}>
           <Chevron className="group-open:rotate-90" />
-          {preset.name}&apos;s own keys
+          {t('preset.ownKeys', { name: preset.name })}
           <Count n={native.length} />
         </summary>
-        <p className={hintText}>
-          What {preset.name} does with its keys, as far as AnyKey knows. AnyKey passes them to {preset.name}, except
-          those a shortcut here takes.
-        </p>
+        <p className={hintText}>{t('preset.ownKeysHelp', { name: preset.name })}</p>
         <table className="mt-3 w-full table-fixed border-collapse text-left text-sm">
-          <caption className="sr-only">{preset.name}&apos;s own keys</caption>
+          <caption className="sr-only">{t('preset.ownKeys', { name: preset.name })}</caption>
           <thead>
             <tr className="border-b border-stone-200 text-xs text-stone-600 dark:border-stone-700 dark:text-stone-400">
               <th scope="col" className="w-40 py-2 pr-4 font-medium">
-                Keys
+                {t('table.keys')}
               </th>
               <th scope="col" className="py-2 pr-4 font-medium">
-                What it does
+                {t('preset.whatItDoes')}
               </th>
               <th scope="col" className="w-44 py-2 font-medium">
-                Pages
+                {t('preset.pages')}
               </th>
             </tr>
           </thead>
@@ -182,7 +176,7 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
                   {key.label}
                   {(takers.get(key) ?? []).map((shortcut) => (
                     <span key={shortcut.id} className="block text-xs text-amber-800 dark:text-amber-300">
-                      Doesn&apos;t run: &quot;{shortcut.label}&quot; takes its keys.
+                      {t('preset.takenBy', { label: shortcut.label })}
                     </span>
                   ))}
                 </th>
@@ -197,7 +191,7 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
 
       {changed && (
         <button type="button" onClick={onReset} className={`${secondaryButton} mt-6`}>
-          Reset to the {preset.name} preset
+          {t('preset.reset', { name: preset.name })}
         </button>
       )}
     </section>
@@ -215,14 +209,12 @@ function Count({ n }: { n: number }) {
 
 /** Names in a sentence, each in quotes: "a", "a" and "b", "a", "b" and "c". */
 function quoted(names: readonly string[]): string {
-  const all = names.map((name) => `"${name}"`);
-  const last = all.at(-1) ?? '';
-  return all.length < 2 ? last : `${all.slice(0, -1).join(', ')} and ${last}`;
+  return listText(names.map((text) => t('common.quoted', { text })));
 }
 
 /** Where a site key works: every page, or the path part of each of its match patterns (what follows the host). */
 function Pages({ matches }: { matches: readonly string[] | undefined }) {
-  if (matches === undefined) return 'Every page';
+  if (matches === undefined) return t('preset.everyPage');
   return matches.map((pattern) => (
     <code key={pattern} className="block">
       {pattern.replace(/^\*:\/\/[^/]*/, '')}

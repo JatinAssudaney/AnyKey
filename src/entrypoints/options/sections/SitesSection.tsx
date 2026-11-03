@@ -20,7 +20,8 @@ import type { Mutation } from '@/core/messages';
 import { presetHosts, type Preset } from '@/core/presets';
 import { shortcutsOnSite, type SiteShortcuts } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
-import { count, siteMatches, sortHosts } from '../sites';
+import { t } from '@/i18n';
+import { siteMatches, sortHosts } from '../sites';
 import { PresetPanel } from './PresetPanel';
 import { ShortcutDialog, type Editing } from './ShortcutDialog';
 import { ShortcutTable } from './ShortcutTable';
@@ -90,7 +91,11 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
   }
   const typed = query.trim();
   const found =
-    typed === '' ? '' : shown.length === 0 ? `No site matches "${typed}".` : `${shown.length} of ${count(rows.length, 'site')}`;
+    typed === ''
+      ? ''
+      : shown.length === 0
+        ? t('sites.noMatch', { query: typed })
+        : t('sites.found', rows.length, { shown: shown.length, count: rows.length });
 
   const send = (mutation: Mutation): void => {
     void mutate(mutation);
@@ -116,17 +121,14 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
   return (
     <section aria-labelledby="sites-heading" className={card}>
       <h2 id="sites-heading" className={sectionHeading}>
-        Sites
+        {t('sites.heading')}
       </h2>
-      <p className={hintText}>
-        Shortcuts for one site, the presets AnyKey has for some sites, and sites where AnyKey is off. To bind a key to
-        something on a page, open the page and use AnyKey&apos;s button in the toolbar.
-      </p>
+      <p className={hintText}>{t('sites.intro')}</p>
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <div className="min-w-48 grow">
           <label htmlFor={searchId} className={fieldLabel}>
-            Find a site
+            {t('sites.find')}
           </label>
           <input
             id={searchId}
@@ -156,7 +158,7 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
           }}
           className={primaryButton}
         >
-          Add a site shortcut
+          {t('sites.add')}
         </button>
       </div>
       {/* Always in the page, so screen readers announce what the search finds. */}
@@ -164,7 +166,7 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
         {found}
       </p>
 
-      {rows.length === 0 && <p className={`${hintText} mt-4`}>No sites yet.</p>}
+      {rows.length === 0 && <p className={`${hintText} mt-4`}>{t('sites.none')}</p>}
       {shown.length > 0 && (
         <ul className="mt-3 divide-y divide-stone-200 overflow-clip rounded-md border border-stone-200 [overflow-anchor:none] dark:divide-stone-800 dark:border-stone-800">
           {shown.map((row) => {
@@ -208,7 +210,8 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
                       }}
                       className={checkbox}
                     />
-                    Use AnyKey<span className="sr-only"> on {host}</span>
+                    {t('sites.use')}
+                    <span className="sr-only"> {t('sites.onHost', { host })}</span>
                   </label>
                 </div>
 
@@ -220,14 +223,14 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
                     className="border-t border-stone-200 px-4 pb-6 sm:pl-11 dark:border-stone-800"
                   >
                     {site.disabled && (
-                      <p className={`${hintText} mt-4`}>AnyKey is off on this site, so every key goes to the site.</p>
+                      <p className={`${hintText} mt-4`}>{t('sites.offHere')}</p>
                     )}
-                    {whole.presets.length > 0 && <h4 className="mt-4 text-sm font-semibold">Your shortcuts</h4>}
+                    {whole.presets.length > 0 && <h4 className="mt-4 text-sm font-semibold">{t('shortcuts.yours')}</h4>}
                     {site.shortcuts.length === 0 ? (
-                      <p className={`${hintText} mt-4`}>No shortcuts for this site.</p>
+                      <p className={`${hintText} mt-4`}>{t('sites.noShortcuts')}</p>
                     ) : (
                       <ShortcutTable
-                        caption={`Shortcuts for ${host}`}
+                        caption={t('sites.caption', { host })}
                         hideCaption
                         shortcuts={site.shortcuts}
                         conflicts={conflicts}
@@ -246,7 +249,8 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
                             }}
                             className={linkButton}
                           >
-                            Delete<span className="sr-only"> {shortcut.label}</span>
+                            {t('common.delete')}
+                            <span className="sr-only"> {shortcut.label}</span>
                           </button>
                         )}
                       />
@@ -259,7 +263,7 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
                       }}
                       className={`${secondaryButton} mt-3`}
                     >
-                      Add shortcut for {host}
+                      {t('sites.addFor', { host })}
                     </button>
                     {whole.presets.map((preset) => (
                       <PresetPanel
@@ -304,8 +308,8 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
       )}
       {deleting !== null && (
         <ConfirmDialog
-          title={`Delete "${deleting.shortcut.label}"?`}
-          confirmLabel="Delete"
+          title={t('common.deleteTitle', { label: deleting.shortcut.label })}
+          confirmLabel={t('common.delete')}
           danger
           onConfirm={() => {
             keep(deleting.site);
@@ -318,7 +322,7 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
             setDeleting(null);
           }}
         >
-          <p>This removes the shortcut from every computer you sync with.</p>
+          <p>{t('common.deleteBody')}</p>
         </ConfirmDialog>
       )}
       {resetting !== null && (
@@ -348,11 +352,11 @@ function SiteSummary({ id, row }: { id: string; row: Row }) {
   const listed = [...site.shortcuts, ...whole.shortcuts.filter(({ source }) => source === 'preset')];
   const warnings = listed.filter((shortcut) => (conflicts.get(shortcut.id)?.length ?? 0) > 0).length;
   const parts = [
-    ...whole.presets.map(({ name }) => `${name} preset`),
+    ...whole.presets.map(({ name }) => t('common.presetName', { name })),
     ...(site.shortcuts.length > 0
-      ? [count(site.shortcuts.length, 'shortcut')]
+      ? [t('sites.shortcutCount', site.shortcuts.length, { count: site.shortcuts.length })]
       : whole.presets.length === 0
-        ? ['No shortcuts']
+        ? [t('sites.noShortcutsShort')]
         : []),
   ];
   return (
@@ -368,7 +372,7 @@ function SiteSummary({ id, row }: { id: string; row: Row }) {
           {parts.length > 0 && <span aria-hidden="true">·</span>}
           <span className="font-medium text-amber-800 dark:text-amber-300">
             <span aria-hidden="true">⚠ </span>
-            {count(warnings, 'warning')}
+            {t('sites.warnings', warnings, { count: warnings })}
           </span>
         </>
       )}
@@ -389,16 +393,13 @@ function ResetDialog({ resetting, shortcuts, onChange, onConfirm, onClose }: Res
   const { preset, site } = resetting;
   return (
     <ConfirmDialog
-      title={`Reset ${site} to the ${preset.name} preset?`}
-      confirmLabel="Reset"
+      title={t('sites.resetTitle', { site, name: preset.name })}
+      confirmLabel={t('common.reset')}
       danger
       onConfirm={onConfirm}
       onClose={onClose}
     >
-      <p>
-        The {preset.name} preset&apos;s shortcuts go back to their own keys and are all on again, and built-in
-        shortcuts give way to {preset.name}&apos;s keys again. This applies on every computer you sync with.
-      </p>
+      <p>{t('sites.resetBody', { name: preset.name })}</p>
       {shortcuts > 0 && (
         <label className="flex items-center gap-2">
           <input
@@ -409,7 +410,7 @@ function ResetDialog({ resetting, shortcuts, onChange, onConfirm, onClose }: Res
             }}
             className={checkbox}
           />
-          Also delete your {shortcuts === 1 ? 'shortcut' : `${shortcuts} shortcuts`} for {site}
+          {t('sites.alsoDelete', shortcuts, { count: shortcuts, site })}
         </label>
       )}
     </ConfirmDialog>

@@ -1,5 +1,18 @@
 // Text helpers shared by the picker, targets and the options page.
 
+// Generated from src/locales/en.json by `wxt prepare`: types only, so core stays free of the extension APIs.
+import type { GeneratedI18nStructure } from '../../.wxt/i18n/structure';
+
+/**
+ * Words core hands to the UI: a message in src/locales, with its `{name}` substitutions and, for a plural, the count.
+ * Core never holds English of its own; callers turn this into the user's language (`textOf` in src/i18n.ts).
+ */
+export interface Text {
+  key: keyof GeneratedI18nStructure;
+  args?: Readonly<Record<string, string | number>>;
+  count?: number;
+}
+
 /** Text as AnyKey stores and compares it: runs of whitespace become one space, and the ends are trimmed. */
 export function normalizeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();

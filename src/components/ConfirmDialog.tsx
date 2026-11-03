@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { t } from '@/i18n';
 import { Dialog } from './Dialog';
 import { dangerButton, primaryButton, secondaryButton } from './styles';
 
@@ -19,7 +20,7 @@ export function ConfirmDialog({ title, children, confirmLabel, danger = false, o
       <div className="mt-3 space-y-3 text-sm">{children}</div>
       <div className="mt-6 flex justify-end gap-2">
         <button type="button" onClick={onClose} className={secondaryButton}>
-          Cancel
+          {t('common.cancel')}
         </button>
         <button
           type="button"

@@ -1,6 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
-import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from './src/core/app';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -9,15 +8,17 @@ export default defineConfig({
   outDir: 'dist',
   // Explicit imports everywhere: easier to read, lint and grep than auto-imports.
   imports: false,
-  modules: ['@wxt-dev/module-react', '@wxt-dev/auto-icons'],
+  modules: ['@wxt-dev/module-react', '@wxt-dev/auto-icons', '@wxt-dev/i18n/module'],
   autoIcons: {
     baseIconPath: 'assets/icon.svg',
     developmentIndicator: 'overlay',
   },
   manifest: {
-    name: APP_NAME,
-    short_name: APP_SHORT_NAME,
-    description: APP_DESCRIPTION,
+    // The text lives in src/locales/<lang>.json (the manifest group); the browser picks the user's language.
+    default_locale: 'en',
+    name: '__MSG_manifest_name__',
+    short_name: '__MSG_manifest_shortName__',
+    description: '__MSG_manifest_description__',
     // scripting and host access to every site (which the content script has already) let AnyKey start in the tabs
     // that were open when it was installed or updated, without reloading them.
     permissions: ['storage', 'scripting'],

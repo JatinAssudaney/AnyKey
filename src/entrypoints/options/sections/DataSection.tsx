@@ -14,6 +14,7 @@ import {
   type SyncData,
 } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
+import { listText, locale, t } from '@/i18n';
 import { docName, problemMessage } from '@/storage/mutations';
 
 interface DataSectionProps {
@@ -60,12 +61,12 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
   return (
     <section aria-labelledby="data-heading" className={card}>
       <h2 id="data-heading" className={sectionHeading}>
-        Your data
+        {t('data.heading')}
       </h2>
 
       {data.problems.size > 0 && (
         <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950">
-          <h3 className="text-sm font-semibold">Needs attention</h3>
+          <h3 className="text-sm font-semibold">{t('data.attention')}</h3>
           <ul ref={repairList} className="mt-2 space-y-2 text-sm">
             {[...data.problems].map(([key, problem]) => (
               <li key={key} className="flex flex-wrap items-center justify-between gap-2">
@@ -77,7 +78,8 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
                   }}
                   className={secondaryButton}
                 >
-                  Repair<span className="sr-only"> {docName(key)}</span>
+                  {t('data.repair')}
+                  <span className="sr-only"> {docName(key)}</span>
                 </button>
               </li>
             ))}
@@ -85,10 +87,7 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
         </div>
       )}
 
-      <p className={hintText}>
-        Your shortcuts and settings sync to every computer where you're signed in to the browser. Export them to keep a
-        copy or move them elsewhere.
-      </p>
+      <p className={hintText}>{t('data.intro')}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           ref={exportButton}
@@ -98,7 +97,7 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
           }}
           className={secondaryButton}
         >
-          Export to a file
+          {t('data.export')}
         </button>
         <button
           type="button"
@@ -107,13 +106,13 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
           }}
           className={secondaryButton}
         >
-          Import from a file…
+          {t('data.import')}
         </button>
         <input
           ref={fileInput}
           type="file"
           accept=".json,application/json"
-          aria-label="Settings file to import"
+          aria-label={t('data.fileLabel')}
           tabIndex={-1}
           hidden
           onChange={(event) => void onFile(event)}
@@ -125,12 +124,12 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
         </p>
       )}
 
-      <h3 className="mt-6 text-sm font-semibold">Backup</h3>
+      <h3 className="mt-6 text-sm font-semibold">{t('data.backup')}</h3>
       {backup === null ? (
-        <p className={hintText}>No backup yet. Importing saves your settings as they were first.</p>
+        <p className={hintText}>{t('data.noBackup')}</p>
       ) : (
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="text-sm">Saved {formatTime(backup.savedAt)}, before your last import or restore.</p>
+          <p className="text-sm">{t('data.backupSaved', { time: formatTime(backup.savedAt) })}</p>
           <button
             type="button"
             onClick={() => {
@@ -138,18 +137,18 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
             }}
             className={secondaryButton}
           >
-            Restore backup
+            {t('data.restore')}
           </button>
         </div>
       )}
 
-      <h3 className="mt-6 text-sm font-semibold">Storage</h3>
+      <h3 className="mt-6 text-sm font-semibold">{t('data.storage')}</h3>
       <StorageMeters data={data} />
 
       {preview !== null && (
         <ConfirmDialog
-          title="Replace your settings?"
-          confirmLabel="Replace my settings"
+          title={t('data.replaceTitle')}
+          confirmLabel={t('data.replaceConfirm')}
           onConfirm={() => {
             send({ op: 'replaceAll', items: preview.file.items });
           }}
@@ -158,13 +157,13 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
           }}
         >
           <ImportSummary preview={preview} />
-          <p>Your current settings are saved as a backup first, so you can restore them from this page.</p>
+          <p>{t('data.replaceBody')}</p>
         </ConfirmDialog>
       )}
       {restoring && backup !== null && (
         <ConfirmDialog
-          title="Restore the backup?"
-          confirmLabel="Restore backup"
+          title={t('data.restoreTitle')}
+          confirmLabel={t('data.restore')}
           onConfirm={() => {
             send({ op: 'restoreBackup' });
           }}
@@ -172,16 +171,13 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
             setRestoring(false);
           }}
         >
-          <p>
-            Your settings go back to how they were {formatTime(backup.savedAt)}. Your current settings become the backup,
-            so you can switch back.
-          </p>
+          <p>{t('data.restoreBody', { time: formatTime(backup.savedAt) })}</p>
         </ConfirmDialog>
       )}
       {repairing !== null && (
         <ConfirmDialog
-          title={`Repair ${docName(repairing)}?`}
-          confirmLabel="Repair"
+          title={t('data.repairTitle', { name: docName(repairing) })}
+          confirmLabel={t('data.repair')}
           danger
           onConfirm={() => {
             send({ op: 'repairDoc', key: repairing });
@@ -193,10 +189,8 @@ export function DataSection({ data, backup, mutate }: DataSectionProps) {
             setRepairing(null);
           }}
         >
-          <p>AnyKey keeps everything this version can read and deletes the rest.</p>
-          {data.problems.get(repairing) === 'newer' && (
-            <p>A newer version of AnyKey saved these. Updating AnyKey instead keeps all of them.</p>
-          )}
+          <p>{t('data.repairBody')}</p>
+          {data.problems.get(repairing) === 'newer' && <p>{t('data.repairNewer')}</p>}
         </ConfirmDialog>
       )}
     </section>
@@ -208,26 +202,24 @@ function ImportSummary({ preview }: { preview: ImportPreview }) {
   const siteShortcuts = [...state.sites.values()].reduce((sum, site) => sum + site.shortcuts.length, 0);
   const presetChanges = [...state.presets.values()].reduce((sum, overrides) => sum + overrides.size, 0);
   const exported = preview.file.exportedAt === undefined ? Number.NaN : Date.parse(preview.file.exportedAt);
+  const count = (n: number) => [n, { count: n }] as const;
   const lines = [
-    count(Object.keys(state.settings).length, 'changed setting'),
-    count(state.global.overrides.size, 'changed built-in shortcut'),
-    count(presetChanges, 'changed preset shortcut'),
-    count(state.global.shortcuts.length + siteShortcuts, 'shortcut of your own', 'shortcuts of your own'),
-    count(state.sites.size, 'site with its own settings', 'sites with their own settings'),
+    t('data.settingsCount', ...count(Object.keys(state.settings).length)),
+    t('data.builtInCount', ...count(state.global.overrides.size)),
+    t('data.presetCount', ...count(presetChanges)),
+    t('data.ownCount', ...count(state.global.shortcuts.length + siteShortcuts)),
+    t('data.sitesCount', ...count(state.sites.size)),
   ];
   return (
     <>
-      <p>{Number.isNaN(exported) ? 'The file holds:' : `The file was exported ${formatTime(exported)} and holds:`}</p>
+      <p>{Number.isNaN(exported) ? t('data.fileHolds') : t('data.fileExported', { time: formatTime(exported) })}</p>
       <ul className="list-disc space-y-0.5 pl-5">
         {lines.map((line) => (
           <li key={line}>{line}</li>
         ))}
       </ul>
       {problems.size > 0 && (
-        <p>
-          Some parts can't be read by this version of AnyKey and are left out:{' '}
-          {[...problems.keys()].map(docName).join(', ')}.
-        </p>
+        <p>{t('data.leftOut', { parts: listText([...problems.keys()].map(docName)) })}</p>
       )}
     </>
   );
@@ -245,7 +237,7 @@ function StorageMeters({ data }: { data: SyncData }) {
     <div className="mt-2 grid gap-4 sm:grid-cols-2">
       <div>
         <label htmlFor={`${id}-total`} className="block text-sm">
-          All synced settings
+          {t('data.allSynced')}
         </label>
         <meter
           id={`${id}-total`}
@@ -256,12 +248,12 @@ function StorageMeters({ data }: { data: SyncData }) {
           className="mt-1 h-3 w-full"
         />
         <p className={hintText}>
-          {formatBytes(total)} of {formatBytes(SYNC_QUOTA.totalBytes)}
+          {t('data.ofTotal', { used: formatBytes(total), total: formatBytes(SYNC_QUOTA.totalBytes) })}
         </p>
       </div>
       <div>
         <label htmlFor={`${id}-item`} className="block text-sm">
-          Largest part{fullest === null ? '' : `: ${docName(fullest.key)}`}
+          {fullest === null ? t('data.largest') : t('data.largestNamed', { name: docName(fullest.key) })}
         </label>
         <meter
           id={`${id}-item`}
@@ -272,7 +264,7 @@ function StorageMeters({ data }: { data: SyncData }) {
           className="mt-1 h-3 w-full"
         />
         <p className={hintText}>
-          {formatBytes(fullest?.bytes ?? 0)} of {formatBytes(SYNC_QUOTA.itemBytes)}. Each part must fit on its own.
+          {t('data.ofItem', { used: formatBytes(fullest?.bytes ?? 0), total: formatBytes(SYNC_QUOTA.itemBytes) })}
         </p>
       </div>
     </div>
@@ -281,7 +273,7 @@ function StorageMeters({ data }: { data: SyncData }) {
 
 /** Checks a chosen file. Returns what it holds, or a message for the user. */
 async function readImport(file: File): Promise<ImportPreview | string> {
-  const notSettings = "This file isn't an AnyKey settings export.";
+  const notSettings = t('data.notSettings');
   if (file.size > MAX_IMPORT_BYTES) return notSettings;
   let json: unknown;
   try {
@@ -292,7 +284,7 @@ async function readImport(file: File): Promise<ImportPreview | string> {
   const parsed = ExportFileSchema.safeParse(json);
   if (!parsed.success) return notSettings;
   if (parsed.data.version > EXPORT_VERSION) {
-    return 'This file comes from a newer version of AnyKey. Update AnyKey, then import it again.';
+    return t('data.newer');
   }
   return { file: parsed.data, data: parseSync(parsed.data.items) };
 }
@@ -321,13 +313,14 @@ function localDate(date: Date): string {
 }
 
 function formatTime(ms: number): string {
-  return `on ${new Date(ms).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`;
+  return new Date(ms).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+/** "512 bytes", "1.5 kB", in the language's own words and digits. */
 function formatBytes(bytes: number): string {
-  return bytes < 1024 ? `${bytes} bytes` : `${Number((bytes / 1024).toFixed(1))} KB`;
-}
-
-function count(n: number, one: string, many = `${one}s`): string {
-  return `${n} ${n === 1 ? one : many}`;
+  return bytes < 1024
+    ? new Intl.NumberFormat(locale(), { style: 'unit', unit: 'byte', unitDisplay: 'long' }).format(bytes)
+    : new Intl.NumberFormat(locale(), { style: 'unit', unit: 'kilobyte', maximumFractionDigits: 1 }).format(
+        bytes / 1024,
+      );
 }

@@ -8,5 +8,6 @@ export default defineConfig({
     // Pure logic runs in Node; DOM tests opt in per file with `// @vitest-environment happy-dom`.
     environment: 'node',
     restoreMocks: true,
+    setupFiles: ['vitest.setup.ts'],
   },
 });

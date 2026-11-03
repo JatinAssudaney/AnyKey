@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { actionOf, choiceValue, describeAction, findChoice } from './actions';
+import { actionOf, choiceValue, describeAction } from './actions';
 
 const FIELDS = { url: '', newTab: false, target: { selector: '' } };
 
@@ -13,7 +13,7 @@ describe('link hint choices', () => {
   });
 
   it('describe what they do', () => {
-    expect(describeAction({ type: 'hints' })).toBe(findChoice('hints')?.name);
+    expect(describeAction({ type: 'hints' })).toBe('Show link hints');
     expect(describeAction({ type: 'hints', newTab: true })).toBe('Show link hints to open in a new tab');
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { count, siteMatches, sortHosts } from './sites';
+import { t } from '@/i18n';
+import { siteMatches, sortHosts } from './sites';
 
 describe('sortHosts', () => {
   it('sorts by host, leaving out a leading "www."', () => {
@@ -31,9 +32,10 @@ describe('siteMatches', () => {
   });
 });
 
-describe('count', () => {
-  it('says one or many', () => {
-    expect([count(0, 'shortcut'), count(1, 'shortcut'), count(12, 'warning')]).toEqual([
+describe('counts', () => {
+  it('say one or many', () => {
+    const shortcuts = (n: number): string => t('sites.shortcutCount', n, { count: n });
+    expect([shortcuts(0), shortcuts(1), t('sites.warnings', 12, { count: 12 })]).toEqual([
       '0 shortcuts',
       '1 shortcut',
       '12 warnings',

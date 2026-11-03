@@ -27,16 +27,19 @@ export async function launchExtensionContext(
   options: Pick<BrowserContextOptions, 'viewport' | 'deviceScaleFactor'> & {
     platform?: Platform;
     backForwardCache?: boolean;
+    /** The browser's language, which picks AnyKey's: English unless a test asks for another. */
+    lang?: string;
   } = {},
 ): Promise<BrowserContext> {
-  const { platform = 'host', backForwardCache = false, ...contextOptions } = options;
+  const { platform = 'host', backForwardCache = false, lang = 'en-US', ...contextOptions } = options;
   // Branded Chrome 137+ ignores --load-extension, so this uses Playwright's bundled Chromium.
   return chromium.launchPersistentContext('', {
     ...contextOptions,
     ...(platform === 'windows' ? { userAgent: WINDOWS_USER_AGENT } : {}),
     ...(backForwardCache ? { ignoreDefaultArgs: ['--disable-back-forward-cache'] } : {}),
     channel: 'chromium',
-    args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
+    locale: lang,
+    args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`, `--lang=${lang}`],
   });
 }
 
@@ -49,7 +52,8 @@ export async function launchContextWithoutExtension(): Promise<BrowserContext> {
     channel: 'chromium',
     // Playwright turns extensions off unless it loads them itself; this one loads through the DevTools protocol.
     ignoreDefaultArgs: ['--disable-extensions'],
-    args: ['--enable-unsafe-extension-debugging'],
+    locale: 'en-US',
+    args: ['--enable-unsafe-extension-debugging', '--lang=en-US'],
   });
 }
 

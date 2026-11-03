@@ -3,11 +3,16 @@ import { createRoot } from 'react-dom/client';
 import { ContentScriptContext } from 'wxt/utils/content-script-context';
 import '@/assets/tailwind.css';
 import { startAnyKey } from '@/dom/app';
+import { locale, t } from '@/i18n';
 import { App } from './App';
 
 // The browser runs no content script in extension pages, and this page teaches AnyKey's keys, which people press
 // right away. So AnyKey starts here itself, all but the picker: site shortcuts are for web pages.
 startAnyKey(new ContentScriptContext('welcome', { noScriptStartedPostMessage: true }), { picker: false });
+
+// The page is in the language of the text AnyKey shows, which the browser picks.
+document.documentElement.lang = locale();
+document.title = t('welcome.title');
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');

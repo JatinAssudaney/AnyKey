@@ -3,6 +3,7 @@ import { KeyCaps } from '@/components/KeyCaps';
 import { checkbox, linkButton } from '@/components/styles';
 import { describeConflicts, type Conflict } from '@/core/conflicts';
 import type { Shortcut } from '@/core/schema';
+import { t } from '@/i18n';
 import { describeAction } from '../actions';
 
 interface ShortcutTableProps {
@@ -35,16 +36,16 @@ export function ShortcutTable({
       <thead>
         <tr className="border-b border-stone-200 text-xs text-stone-600 dark:border-stone-700 dark:text-stone-400">
           <th scope="col" className="w-12 py-2 pr-2 font-medium">
-            On
+            {t('table.on')}
           </th>
           <th scope="col" className="py-2 pr-4 font-medium">
-            Name
+            {t('table.name')}
           </th>
           <th scope="col" className="w-44 py-2 pr-4 font-medium">
-            Keys
+            {t('table.keys')}
           </th>
           <th scope="col" className="w-32 py-2 font-medium">
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">{t('table.actions')}</span>
           </th>
         </tr>
       </thead>
@@ -61,7 +62,7 @@ export function ShortcutTable({
                   onChange={(event) => {
                     onToggle(shortcut, event.target.checked);
                   }}
-                  aria-label={`Use ${shortcut.label}`}
+                  aria-label={t('table.use', { label: shortcut.label })}
                   className={`${checkbox} mt-0.5`}
                 />
               </td>
@@ -69,7 +70,7 @@ export function ShortcutTable({
                 <span className={shortcut.enabled ? '' : 'text-stone-500 dark:text-stone-400'}>{shortcut.label}</span>
                 {shortcut.source === 'preset' && shortcut.verified !== true && (
                   <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-                    Unverified
+                    {t('table.unverified')}
                   </span>
                 )}
                 {describe && description !== shortcut.label && (
@@ -98,7 +99,8 @@ export function ShortcutTable({
                   }}
                   className={linkButton}
                 >
-                  Edit<span className="sr-only"> {shortcut.label}</span>
+                  {t('common.edit')}
+                  <span className="sr-only"> {shortcut.label}</span>
                 </button>
                 {extra(shortcut)}
               </td>

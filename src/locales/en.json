@@ -1,0 +1,302 @@
+{
+  "locale": "en",
+  "manifest": {
+    "name": "AnyKey: Keyboard Shortcuts for Any Website",
+    "shortName": "AnyKey",
+    "description": "Browse any website from the keyboard: link hints, scroll keys, custom shortcuts for any button, and site presets."
+  },
+  "common": {
+    "tagline": "Keyboard shortcuts for any website",
+    "loading": "Loading…",
+    "settings": "Settings",
+    "openSettings": "Open settings",
+    "setKey": "Set a key",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "reset": "Reset",
+    "delete": "Delete",
+    "deleteTitle": "Delete \"{label}\"?",
+    "deleteBody": "This removes the shortcut from every computer you sync with.",
+    "presetName": "{name} preset",
+    "quoted": "\"{text}\"",
+    "saving": "Saving…",
+    "saved": "Saved."
+  },
+  "keys": {
+    "then": "then"
+  },
+  "recorder": {
+    "record": "Record keys",
+    "pressKeys": "Press keys…",
+    "recording": "Recording. Press the keys, then pause. Esc cancels.",
+    "cancelled": "Recording cancelled.",
+    "nothing": "Nothing recorded.",
+    "recorded": "Recorded {keys}."
+  },
+  "action": {
+    "groups": {
+      "scroll": "Scroll",
+      "history": "History",
+      "tabs": "Tabs",
+      "elements": "Page elements",
+      "other": "Other"
+    },
+    "scrollDown": "Scroll down",
+    "scrollUp": "Scroll up",
+    "scrollHalfDown": "Scroll down half a page",
+    "scrollHalfUp": "Scroll up half a page",
+    "scrollTop": "Scroll to the top",
+    "scrollBottom": "Scroll to the bottom",
+    "back": "Go back",
+    "forward": "Go forward",
+    "prevTab": "Previous tab",
+    "nextTab": "Next tab",
+    "closeTab": "Close tab",
+    "duplicateTab": "Duplicate tab",
+    "hints": "Show link hints",
+    "hintsNewTab": "Show link hints to open in a new tab",
+    "click": "Click an element",
+    "focus": "Focus an element",
+    "navigate": "Go to a web address",
+    "cheatsheet": "Show keyboard shortcuts",
+    "goTo": "Go to {url}",
+    "goToNewTab": "Go to {url} in a new tab",
+    "clickTarget": "Click {target}",
+    "focusTarget": "Focus {target}"
+  },
+  "popup": {
+    "thisPage": "This page",
+    "unavailable": "AnyKey isn't running in this tab.",
+    "unavailableHint": "If this is a web page, reload it to start AnyKey. Browser pages, such as settings and the extension store, don't allow extensions.",
+    "reload": "Reload this tab",
+    "noPanelKey": "No key opens this panel. {setKey}",
+    "setOne": "Set one",
+    "panelKey": "Press {keys} to open this panel from any tab.",
+    "webPagesOnly": "Shortcuts for one site work on web pages only.",
+    "useHere": "Use AnyKey on this site",
+    "offHere": "AnyKey is off here, so every key goes to the site.",
+    "siteShortcuts": "Shortcuts for this site",
+    "noneYet": "None yet.",
+    "add": "Add shortcut for this site",
+    "addHint": "Pick something on the page, then press the keys you want for it.",
+    "cheatsheetHint": "Press {keys} on the page to see every shortcut.",
+    "yielded": {
+      "1": "On this page, {keys} runs {site}'s own shortcut instead of AnyKey's.",
+      "n": "On this page, {keys} run {site}'s own shortcuts instead of AnyKey's."
+    },
+    "hintMode": "Hint mode",
+    "hintModeHelp": "Press {keys} on the page to label every link and button, then type a label to click it. While labels show, keys pick labels instead of running your shortcuts, until you pick one or press {esc}.",
+    "labelOff": "{label} (off)",
+    "labelReplaced": "{label} (replaced by yours)"
+  },
+  "welcome": {
+    "title": "Welcome to AnyKey",
+    "intro": "Scroll, click links and switch tabs from the keyboard on any website, and give a key to anything on a page. AnyKey works on this page too, so try its keys as you read.",
+    "tryHeading": "Try these now",
+    "try": {
+      "scrollDown": "Scroll down",
+      "scrollUp": "Scroll up",
+      "cheatsheet": "See every shortcut, on any page",
+      "hints": "Label every link and button, then type a label to click it",
+      "hintsNewTab": "Open a link in a new tab, the same way"
+    },
+    "pickerHeading": "Give anything a key",
+    "stepOpen": "On a website, click AnyKey's button in the toolbar.",
+    "stepOpenKey": "On a website, press {keys} or click AnyKey's button in the toolbar.",
+    "stepSetKey": "{setKey} to open it from the keyboard.",
+    "stepAdd": "Choose {button}, then click what you want a key for: a button, a link, a menu.",
+    "stepKeys": "Press the keys you want, then Enter. Pick something else for another shortcut, or press Esc when done.",
+    "pinHint": "AnyKey's button starts in the extensions menu, the puzzle piece in the toolbar. Pin it there to keep it in view.",
+    "presetsHeading": "Made for your favorite sites",
+    "presets": {
+      "1": "{sites} comes with extra shortcuts, and its own keys keep working.",
+      "n": "{sites} come with extra shortcuts, and their own keys keep working."
+    },
+    "presetsCheatsheet": "Press {keys} on one of them to see both.",
+    "settingsHint": "Change any key, add your own shortcuts, or turn AnyKey off on a site."
+  },
+  "options": {
+    "title": "AnyKey settings",
+    "skip": "Skip to content",
+    "gettingStarted": "Getting started",
+    "rate": "Rate AnyKey",
+    "loading": "Loading your settings…",
+    "problems": "Some of your settings need attention. See {link}."
+  },
+  "shortcuts": {
+    "heading": "Shortcuts",
+    "intro": "These work on every site. Changes apply to open tabs right away.",
+    "builtIn": "Built-in shortcuts",
+    "yours": "Your shortcuts",
+    "noneYet": "None yet. Add one to scroll, switch tabs or open a web address with your own keys.",
+    "add": "Add shortcut",
+    "panelHeading": "AnyKey's panel",
+    "noPanelKey": "No key opens the panel from AnyKey's toolbar button.",
+    "panelKey": "Press {keys} in any tab to open the panel from AnyKey's toolbar button, even on pages where AnyKey's other shortcuts can't run.",
+    "browserHolds": "The browser holds the key, so it is set on the browser's page for extension shortcuts.",
+    "changeKey": "Change the key"
+  },
+  "table": {
+    "on": "On",
+    "name": "Name",
+    "keys": "Keys",
+    "actions": "Actions",
+    "use": "Use {label}",
+    "unverified": "Unverified"
+  },
+  "sites": {
+    "heading": "Sites",
+    "intro": "Shortcuts for one site, the presets AnyKey has for some sites, and sites where AnyKey is off. To bind a key to something on a page, open the page and use AnyKey's button in the toolbar.",
+    "find": "Find a site",
+    "add": "Add a site shortcut",
+    "noMatch": "No site matches \"{query}\".",
+    "found": {
+      "1": "{shown} of 1 site",
+      "n": "{shown} of {count} sites"
+    },
+    "none": "No sites yet.",
+    "use": "Use AnyKey",
+    "onHost": "on {host}",
+    "offHere": "AnyKey is off on this site, so every key goes to the site.",
+    "noShortcuts": "No shortcuts for this site.",
+    "caption": "Shortcuts for {host}",
+    "addFor": "Add shortcut for {host}",
+    "shortcutCount": {
+      "1": "1 shortcut",
+      "n": "{count} shortcuts"
+    },
+    "noShortcutsShort": "No shortcuts",
+    "warnings": {
+      "1": "1 warning",
+      "n": "{count} warnings"
+    },
+    "resetTitle": "Reset {site} to the {name} preset?",
+    "resetBody": "The {name} preset's shortcuts go back to their own keys and are all on again, and built-in shortcuts give way to {name}'s keys again. This applies on every computer you sync with.",
+    "alsoDelete": {
+      "1": "Also delete your shortcut for {site}",
+      "n": "Also delete your {count} shortcuts for {site}"
+    }
+  },
+  "preset": {
+    "intro": "Shortcuts AnyKey adds on {name}. Your changes to them stay when AnyKey updates the preset.",
+    "unverified": "Those marked Unverified haven't been tried on the live site yet: if one can't find what it clicks, AnyKey says so on the page.",
+    "tableCaption": "{name} preset shortcuts",
+    "yieldsHeading": "Built-in shortcuts that give way to {name}",
+    "yieldsHelp": "Where {name} uses one of these keys itself, AnyKey leaves the key to {name}. Keep a shortcut to have AnyKey's run there instead.",
+    "keep": "Keep \"{label}\"",
+    "keptNote": {
+      "1": "AnyKey keeps the keys on {host}, so {name}'s own {labels} doesn't run.",
+      "n": "AnyKey keeps the keys on {host}, so {name}'s own {labels} don't run."
+    },
+    "yieldedNote": {
+      "1": "{name}'s own {labels} gets the keys where it works.",
+      "n": "{name}'s own {labels} get the keys where they work."
+    },
+    "ownKeys": "{name}'s own keys",
+    "ownKeysHelp": "What {name} does with its keys, as far as AnyKey knows. AnyKey passes them to {name}, except those a shortcut here takes.",
+    "whatItDoes": "What it does",
+    "pages": "Pages",
+    "everyPage": "Every page",
+    "takenBy": "Doesn't run: \"{label}\" takes its keys.",
+    "reset": "Reset to the {name} preset"
+  },
+  "settings": {
+    "sequenceTimeout": "Time to finish a key sequence (milliseconds)",
+    "sequenceTimeoutHint": "How long AnyKey waits for the next key of a sequence such as g g. Default: {default}.",
+    "scrollStep": "Scroll distance (pixels)",
+    "scrollStepHint": "How far one press of Scroll up or Scroll down moves. Default: {default}.",
+    "hintChars": "Hint characters",
+    "hintCharsHint": "The keys that link hints are labeled with, the easiest to reach first. They pick labels only while hints show, and run your shortcuts the rest of the time. Default: {default}.",
+    "smoothScroll": "Smooth scrolling",
+    "newTabInBackground": "Open new tabs behind the current tab",
+    "checkValue": "Check this value."
+  },
+  "data": {
+    "heading": "Your data",
+    "attention": "Needs attention",
+    "repair": "Repair",
+    "intro": "Your shortcuts and settings sync to every computer where you're signed in to the browser. Export them to keep a copy or move them elsewhere.",
+    "export": "Export to a file",
+    "import": "Import from a file…",
+    "fileLabel": "Settings file to import",
+    "backup": "Backup",
+    "noBackup": "No backup yet. Importing saves your settings as they were first.",
+    "backupSaved": "Saved on {time}, before your last import or restore.",
+    "restore": "Restore backup",
+    "storage": "Storage",
+    "replaceTitle": "Replace your settings?",
+    "replaceConfirm": "Replace my settings",
+    "replaceBody": "Your current settings are saved as a backup first, so you can restore them from this page.",
+    "restoreTitle": "Restore the backup?",
+    "restoreBody": "Your settings go back to how they were on {time}. Your current settings become the backup, so you can switch back.",
+    "repairTitle": "Repair {name}?",
+    "repairBody": "AnyKey keeps everything this version can read and deletes the rest.",
+    "repairNewer": "A newer version of AnyKey saved these. Updating AnyKey instead keeps all of them.",
+    "fileHolds": "The file holds:",
+    "fileExported": "The file was exported on {time} and holds:",
+    "settingsCount": {
+      "1": "1 changed setting",
+      "n": "{count} changed settings"
+    },
+    "builtInCount": {
+      "1": "1 changed built-in shortcut",
+      "n": "{count} changed built-in shortcuts"
+    },
+    "presetCount": {
+      "1": "1 changed preset shortcut",
+      "n": "{count} changed preset shortcuts"
+    },
+    "ownCount": {
+      "1": "1 shortcut of your own",
+      "n": "{count} shortcuts of your own"
+    },
+    "sitesCount": {
+      "1": "1 site with its own settings",
+      "n": "{count} sites with their own settings"
+    },
+    "leftOut": "Some parts can't be read by this version of AnyKey and are left out: {parts}.",
+    "allSynced": "All synced settings",
+    "largest": "Largest part",
+    "largestNamed": "Largest part: {name}",
+    "ofTotal": "{used} of {total}",
+    "ofItem": "{used} of {total}. Each part must fit on its own.",
+    "notSettings": "This file isn't an AnyKey settings export.",
+    "newer": "This file comes from a newer version of AnyKey. Update AnyKey, then import it again."
+  },
+  "dialog": {
+    "editTitle": "Edit \"{label}\"",
+    "addTitle": "Add a shortcut",
+    "addForTitle": "Add a shortcut for {site}",
+    "worksOn": "Works on",
+    "everySite": "Every site",
+    "oneSite": "One site",
+    "site": "Site",
+    "siteHint": "Such as github.com. AnyKey keeps the shortcut with this site's settings.",
+    "pagesHint": "A match pattern: {every} is every page of the site, and {issues} only its issue lists.",
+    "action": "Action",
+    "element": "Element",
+    "selectorHint": "A CSS selector such as {id} or {attr}, with {shadow} to step into a shadow root. AnyKey's toolbar button can pick the element on the page for you instead.",
+    "text": "Text (optional)",
+    "textHint": "When the selector finds nothing, AnyKey looks for a button or link with this text.",
+    "url": "Web address",
+    "urlHint": "A full address such as https://example.com, or a path on the current site such as /notifications.",
+    "newTabLinks": "Open links in a new tab",
+    "newTab": "Open in a new tab",
+    "name": "Name",
+    "nameHint": "Shown in the list of shortcuts that ? opens. Leave it empty to describe the action.",
+    "keys": "Keys",
+    "keysHint": "Type keys such as {a}, {b} or {c} (mod is ⌘ on a Mac and Ctrl elsewhere), or record them.",
+    "matchBy": "Match keys by",
+    "byKey": "The character typed",
+    "byCode": "The physical key",
+    "modeHint": "Physical keys are written as codes such as {code} and stay put when the keyboard layout changes.",
+    "inInputs": "Also works while typing in text fields",
+    "enterSite": "Enter a site such as github.com.",
+    "enterSelector": "Enter a CSS selector for the element.",
+    "badSelector": "This isn't a CSS selector AnyKey can use.",
+    "shorterSelector": "Use a shorter selector.",
+    "shorterText": "Use shorter text.",
+    "checkShortcut": "Check the shortcut and try again."
+  }
+}

@@ -1,8 +1,9 @@
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { browser } from 'wxt/browser';
 import iconUrl from '@/assets/icon.svg';
 import { CommandKeyCaps, KeyCaps } from '@/components/KeyCaps';
 import { isMac } from '@/components/platform';
+import { listNodes, rich } from '@/components/rich';
 import { checkbox, errorText, hintText, linkButton, primaryButton, secondaryButton } from '@/components/styles';
 import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { usePresets } from '@/components/usePresets';
@@ -13,6 +14,7 @@ import { pageShortcuts, resolve, type Yielded } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
 import { isHost } from '@/core/url';
 import { urlParts } from '@/dom/url';
+import { t } from '@/i18n';
 import { sendToBackground } from '@/messaging';
 
 type Page =
@@ -52,7 +54,7 @@ export function App() {
         <div className="min-w-0">
           <h1 className="text-base leading-tight font-semibold">AnyKey</h1>
           <p className="truncate text-xs text-stone-600 dark:text-stone-400">
-            {page.status === 'ready' ? hostOf(page.url) || 'This page' : 'Keyboard shortcuts for any website'}
+            {page.status === 'ready' ? hostOf(page.url) || t('popup.thisPage') : t('common.tagline')}
           </p>
         </div>
       </header>
@@ -62,15 +64,12 @@ export function App() {
         {(error !== '' || status.error !== '') && <p className={`${errorText} mt-3`}>{error || status.error}</p>}
       </div>
 
-      {page.status === 'loading' && <p className={`${hintText} mt-4`}>Loading…</p>}
+      {page.status === 'loading' && <p className={`${hintText} mt-4`}>{t('common.loading')}</p>}
 
       {page.status === 'unavailable' && (
         <div className="mt-4 space-y-3">
-          <p className="font-medium">AnyKey isn&apos;t running in this tab.</p>
-          <p className={hintText}>
-            If this is a web page, reload it to start AnyKey. Browser pages, such as settings and the extension store,
-            don&apos;t allow extensions.
-          </p>
+          <p className="font-medium">{t('popup.unavailable')}</p>
+          <p className={hintText}>{t('popup.unavailableHint')}</p>
           {reloadable !== null && (
             <button
               type="button"
@@ -81,7 +80,7 @@ export function App() {
               }}
               className={`${primaryButton} w-full`}
             >
-              Reload this tab
+              {t('popup.reload')}
             </button>
           )}
         </div>
@@ -124,7 +123,7 @@ export function App() {
         onClick={() => void browser.runtime.openOptionsPage()}
         className={`${secondaryButton} mt-4 w-full`}
       >
-        Open settings
+        {t('common.openSettings')}
       </button>
       <PanelKey />
     </main>
@@ -137,18 +136,15 @@ function PanelKey() {
   if (key === null) return null;
   return (
     <p className={`${hintText} mt-3`}>
-      {key === '' ? (
-        <>
-          No key opens this panel.{' '}
-          <button type="button" onClick={openShortcutsPage} className={linkButton}>
-            Set one
-          </button>
-        </>
-      ) : (
-        <>
-          Press <CommandKeyCaps shortcut={key} /> to open this panel from any tab.
-        </>
-      )}
+      {key === ''
+        ? rich('popup.noPanelKey', {
+            setKey: (
+              <button type="button" onClick={openShortcutsPage} className={linkButton}>
+                {t('popup.setOne')}
+              </button>
+            ),
+          })
+        : rich('popup.panelKey', { keys: <CommandKeyCaps shortcut={key} /> })}
     </p>
   );
 }
@@ -190,7 +186,7 @@ function SiteControls({
 }: SiteControlsProps) {
   const host = hostOf(page.url);
   if (!isHost(host)) {
-    return <p className={`${hintText} mt-4`}>Shortcuts for one site work on web pages only.</p>;
+    return <p className={`${hintText} mt-4`}>{t('popup.webPagesOnly')}</p>;
   }
   return (
     <div className="mt-4 space-y-4">
@@ -204,33 +200,35 @@ function SiteControls({
           }}
           className={checkbox}
         />
-        Use AnyKey on this site
+        {t('popup.useHere')}
       </label>
 
       {disabled ? (
-        <p className={hintText}>AnyKey is off here, so every key goes to the site.</p>
+        <p className={hintText}>{t('popup.offHere')}</p>
       ) : (
         <>
           <section aria-labelledby="site-shortcuts-heading">
             <h2 id="site-shortcuts-heading" className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400">
-              Shortcuts for this site
+              {t('popup.siteShortcuts')}
             </h2>
             {shortcuts.length === 0 ? (
-              <p className={hintText}>None yet.</p>
+              <p className={hintText}>{t('popup.noneYet')}</p>
             ) : (
               <ShortcutList shortcuts={shortcuts} />
             )}
           </section>
           <div>
             <button type="button" onClick={onAdd} className={`${primaryButton} w-full`}>
-              Add shortcut for this site
+              {t('popup.add')}
             </button>
             <p className={hintText}>
-              Pick something on the page, then press the keys you want for it.
+              {t('popup.addHint')}
               {cheatsheet !== undefined && (
                 <>
                   {' '}
-                  Press <KeyCaps keys={cheatsheet.keys} mode={cheatsheet.keyMode} /> on the page to see every shortcut.
+                  {rich('popup.cheatsheetHint', {
+                    keys: <KeyCaps keys={cheatsheet.keys} mode={cheatsheet.keyMode} />,
+                  })}
                 </>
               )}
             </p>
@@ -242,14 +240,16 @@ function SiteControls({
                   id={`preset-${preset.id}-heading`}
                   className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400"
                 >
-                  {preset.name} preset
+                  {t('common.presetName', { name: preset.name })}
                 </h2>
                 {fromPreset.length > 0 && <ShortcutList shortcuts={fromPreset} replaced={replaced} />}
                 {yielded.length > 0 && (
                   <p className={hintText}>
-                    On this page, <KeyList shortcuts={yielded.map(({ shortcut }) => shortcut)} />{' '}
-                    {yielded.length === 1 ? 'runs' : 'run'} {preset.name}&apos;s own{' '}
-                    {yielded.length === 1 ? 'shortcut' : 'shortcuts'} instead of AnyKey&apos;s.
+                    {rich(
+                      'popup.yielded',
+                      { keys: <KeyList shortcuts={yielded.map(({ shortcut }) => shortcut)} />, site: preset.name },
+                      yielded.length,
+                    )}
                   </p>
                 )}
               </section>
@@ -258,12 +258,13 @@ function SiteControls({
           {hints !== undefined && (
             <section aria-labelledby="hint-mode-heading">
               <h2 id="hint-mode-heading" className="text-xs font-semibold text-stone-600 uppercase dark:text-stone-400">
-                Hint mode
+                {t('popup.hintMode')}
               </h2>
               <p className={hintText}>
-                Press <KeyCaps keys={hints.keys} mode={hints.keyMode} /> on the page to label every link and button,
-                then type a label to click it. While labels show, keys pick labels instead of running your shortcuts,
-                until you pick one or press <KeyCaps keys="escape" mode="key" />.
+                {rich('popup.hintModeHelp', {
+                  keys: <KeyCaps keys={hints.keys} mode={hints.keyMode} />,
+                  esc: <KeyCaps keys="escape" mode="key" />,
+                })}
               </p>
             </section>
           )}
@@ -278,12 +279,16 @@ function ShortcutList({ shortcuts, replaced }: { shortcuts: readonly Shortcut[];
   return (
     <ul className="mt-2 space-y-1.5">
       {shortcuts.map((shortcut) => {
-        const note = !shortcut.enabled ? ' (off)' : replaced?.has(shortcut.id) === true ? ' (replaced by yours)' : '';
+        const label = { label: shortcut.label };
+        const dimmed = !shortcut.enabled || replaced?.has(shortcut.id) === true;
         return (
           <li key={shortcut.id} className="flex items-center justify-between gap-3">
-            <span className={`truncate ${note === '' ? '' : 'text-stone-500 dark:text-stone-400'}`}>
-              {shortcut.label}
-              {note}
+            <span className={`truncate ${dimmed ? 'text-stone-500 dark:text-stone-400' : ''}`}>
+              {!shortcut.enabled
+                ? t('popup.labelOff', label)
+                : dimmed
+                  ? t('popup.labelReplaced', label)
+                  : shortcut.label}
             </span>
             <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
           </li>
@@ -295,12 +300,7 @@ function ShortcutList({ shortcuts, replaced }: { shortcuts: readonly Shortcut[];
 
 /** Keys in a sentence: [j], [k] and [x]. */
 function KeyList({ shortcuts }: { shortcuts: readonly Shortcut[] }) {
-  return shortcuts.map((shortcut, i) => (
-    <Fragment key={shortcut.id}>
-      {i > 0 && (i === shortcuts.length - 1 ? ' and ' : ', ')}
-      <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
-    </Fragment>
-  ));
+  return listNodes(shortcuts.map((shortcut) => <KeyCaps key={shortcut.id} keys={shortcut.keys} mode={shortcut.keyMode} />));
 }
 
 /** The tab the popup is for: the active tab, or `?tab=` (the E2E tests open the popup as a page of its own). */
