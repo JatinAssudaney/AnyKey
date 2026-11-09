@@ -11,6 +11,7 @@ import { t } from '../i18n';
 import { errorMessage } from '../messaging';
 import type { Writer } from '../storage/writer';
 import { endSession, hasSession, startPicker } from './picker';
+import { recordRatingAnswer, recordUse } from './rating';
 import { openTab, runTabOp } from './tabs';
 
 /**
@@ -66,6 +67,13 @@ async function handle(message: BackgroundMessage, sender: Browser.runtime.Messag
     }
     case 'pickerDone':
       await endSession(pickerPage(sender).tabId);
+      return;
+    case 'used':
+      await recordUse();
+      return;
+    case 'ratingDone':
+      if (!isExtensionPage(sender)) throw new Error(t('errors.onlyPagesSettings'));
+      await recordRatingAnswer();
       return;
   }
 }

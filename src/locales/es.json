@@ -1,7 +1,7 @@
 {
   "locale": "es",
   "manifest": {
-    "name": "AnyKey: atajos de teclado para cualquier sitio web",
+    "name": "AnyKey: atajos de teclado personalizados para cualquier web",
     "shortName": "AnyKey",
     "description": "Navega por cualquier web con el teclado: etiquetas en enlaces, desplazamiento, atajos para cualquier botón y paquetes por sitio."
   },
@@ -107,7 +107,9 @@
     "hintMode": "Modo de etiquetas",
     "hintModeHelp": "Pulsa {keys} en la página para etiquetar cada enlace y botón, y escribe una etiqueta para hacer clic. Mientras se muestran las etiquetas, las teclas eligen etiquetas en lugar de ejecutar tus atajos, hasta que elijas una o pulses {esc}.",
     "labelOff": "{label} (desactivado)",
-    "labelReplaced": "{label} (sustituido por el tuyo)"
+    "labelReplaced": "{label} (sustituido por el tuyo)",
+    "ratePrompt": "¿Te resulta útil AnyKey? Una valoración ayuda a que otras personas lo encuentren.",
+    "rateLater": "Ahora no"
   },
   "welcome": {
     "title": "Te damos la bienvenida a AnyKey",

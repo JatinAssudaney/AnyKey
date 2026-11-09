@@ -1,7 +1,7 @@
 {
   "locale": "zh-CN",
   "manifest": {
-    "name": "AnyKey：任意网站的键盘快捷键与键盘导航",
+    "name": "AnyKey：任意网站自定义快捷键，无鼠标键盘浏览",
     "shortName": "AnyKey",
     "description": "无需鼠标，用键盘浏览任意网站：链接提示、滚动按键、为任意按钮自定义快捷键，以及常用网站的快捷键预设。"
   },
@@ -107,7 +107,9 @@
     "hintMode": "提示模式",
     "hintModeHelp": "在页面上按 {keys} 为每个链接和按钮加上标记，然后输入标记即可点击。显示标记时，按键用于选择标记，不会运行你的快捷键，直到你选中一个或按 {esc}。",
     "labelOff": "{label}（已关闭）",
-    "labelReplaced": "{label}（已被你的快捷键替换）"
+    "labelReplaced": "{label}（已被你的快捷键替换）",
+    "ratePrompt": "AnyKey 对你有帮助吗？你的评分能让更多人发现它。",
+    "rateLater": "以后再说"
   },
   "welcome": {
     "title": "欢迎使用 AnyKey",

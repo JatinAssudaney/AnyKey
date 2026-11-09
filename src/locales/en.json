@@ -107,7 +107,9 @@
     "hintMode": "Hint mode",
     "hintModeHelp": "Press {keys} on the page to label every link and button, then type a label to click it. While labels show, keys pick labels instead of running your shortcuts, until you pick one or press {esc}.",
     "labelOff": "{label} (off)",
-    "labelReplaced": "{label} (replaced by yours)"
+    "labelReplaced": "{label} (replaced by yours)",
+    "ratePrompt": "Has AnyKey been useful? A rating helps other people find it.",
+    "rateLater": "Not now"
   },
   "welcome": {
     "title": "Welcome to AnyKey",

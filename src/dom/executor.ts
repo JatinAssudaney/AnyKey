@@ -67,8 +67,16 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
     click(element, newTab, options.settings());
   }
 
+  /** A shortcut or hint did its job. Scrolling and the cheatsheet don't count: only what acts on the page does. */
+  function used(): void {
+    void sendToBackground({ type: 'used' });
+  }
+
   return ({ action, label }, repeat) => {
     const settings = options.settings();
+    const usedOnce = (): void => {
+      if (!repeat) used();
+    };
     switch (action.type) {
       case 'scroll': {
         // Smooth scrolling restarts on every key repeat and stutters, so held keys scroll instantly.
@@ -79,12 +87,15 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
       case 'history':
         if (action.op === 'back') history.back();
         else history.forward();
+        usedOnce();
         return;
       case 'tab':
         void request({ type: 'tab', op: action.op });
+        usedOnce();
         return;
       case 'navigate':
         navigate(action.url, action.newTab ?? false, settings);
+        usedOnce();
         return;
       case 'cheatsheet':
         options.openCheatsheet();
@@ -96,18 +107,21 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
           return;
         }
         click(element, action.newTab === true, settings);
+        usedOnce();
         return;
       }
       case 'focus': {
         const element = findTarget(action.target);
         if (element === null) toast(notFound(label));
         else if (!focusElement(element)) toast(t('page.noFocus', { label }));
+        else usedOnce();
         return;
       }
       case 'hints': {
         const newTab = action.newTab === true;
         options.openHints((element) => {
           activate(element, newTab);
+          if (element.isConnected) used();
         }, newTab);
         return;
       }

@@ -22,6 +22,7 @@ In your browser's extension storage:
 - your shortcuts (with the element descriptions above), your settings, the sites where you turned AnyKey off, and your changes to the site presets. If you turned on your browser's sync, the browser syncs these between your devices through your browser account, as it does for other extensions' settings. The developer has no access to them;
 - a backup of your settings, made before an import replaces them, on this device only;
 - the site presets that come with AnyKey (for GitHub, Gmail, YouTube, Reddit, Stack Overflow, Hacker News and Wikipedia), on this device only;
+- how many times you have used a shortcut or link hint (counted up to 25) and when you first did, on this device only, so AnyKey can ask once for a rating;
 - while you pick an element, which tab you are picking in, until the browser closes.
 
 You can export your settings to a file from AnyKey's settings page. The file is saved only where you choose.

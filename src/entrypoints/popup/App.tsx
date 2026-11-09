@@ -8,14 +8,17 @@ import { checkbox, errorText, hintText, linkButton, primaryButton, secondaryButt
 import { openShortcutsPage, usePanelKey } from '@/components/usePanelKey';
 import { usePresets } from '@/components/usePresets';
 import { useSync } from '@/components/useSync';
+import { STORE_URL } from '@/core/app';
 import type { PageInfo, PageRequest } from '@/core/messages';
 import type { Preset } from '@/core/presets';
+import { shouldAskForRating } from '@/core/rating';
 import { pageShortcuts, resolve, type Yielded } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
 import { isHost } from '@/core/url';
 import { urlParts } from '@/dom/url';
 import { t } from '@/i18n';
 import { sendToBackground } from '@/messaging';
+import { loadRating } from '@/storage/read';
 
 type Page =
   | { status: 'loading' }
@@ -118,6 +121,7 @@ export function App() {
         />
       )}
 
+      <RatingPrompt />
       <button
         type="button"
         onClick={() => void browser.runtime.openOptionsPage()}
@@ -127,6 +131,40 @@ export function App() {
       </button>
       <PanelKey />
     </main>
+  );
+}
+
+/** Asks for a rating once, after real use. Either answer ends it, and nothing is offered in return. */
+function RatingPrompt() {
+  const [ask, setAsk] = useState(false);
+  useEffect(() => {
+    void loadRating().then((rating) => {
+      setAsk(shouldAskForRating(rating, Date.now()));
+    });
+  }, []);
+  if (!ask) return null;
+  const answered = (): void => {
+    void sendToBackground({ type: 'ratingDone' });
+  };
+  return (
+    <section className="mt-4">
+      <p className={hintText}>{t('popup.ratePrompt')}</p>
+      <div className="mt-1 flex gap-2">
+        <a href={`${STORE_URL}/reviews`} target="_blank" rel="noreferrer" onClick={answered} className={linkButton}>
+          {t('options.rate')}
+        </a>
+        <button
+          type="button"
+          onClick={() => {
+            answered();
+            setAsk(false);
+          }}
+          className={linkButton}
+        >
+          {t('popup.rateLater')}
+        </button>
+      </div>
+    </section>
   );
 }
 

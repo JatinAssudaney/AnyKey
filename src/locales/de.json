@@ -1,7 +1,7 @@
 {
   "locale": "de",
   "manifest": {
-    "name": "AnyKey: Tastenkürzel und Tastatursteuerung für jede Website",
+    "name": "AnyKey: eigene Tastenkürzel und Tastenkombinationen für jede Website",
     "shortName": "AnyKey",
     "description": "Jede Website per Tastatur bedienen: Sprungmarken für Links, Scrolltasten, eigene Tastenkürzel für jede Schaltfläche und Vorlagen."
   },
@@ -107,7 +107,9 @@
     "hintMode": "Sprungmarken-Modus",
     "hintModeHelp": "Drücke {keys} auf der Seite, um jeden Link und jede Schaltfläche mit einer Sprungmarke zu versehen, und tippe dann eine Sprungmarke, um das Element anzuklicken. Solange Sprungmarken sichtbar sind, wählen Tasten Sprungmarken aus, statt deine Tastenkürzel auszuführen, bis du eine wählst oder {esc} drückst.",
     "labelOff": "{label} (aus)",
-    "labelReplaced": "{label} (durch deins ersetzt)"
+    "labelReplaced": "{label} (durch deins ersetzt)",
+    "ratePrompt": "Ist AnyKey nützlich für dich? Eine Bewertung hilft anderen, es zu finden.",
+    "rateLater": "Nicht jetzt"
   },
   "welcome": {
     "title": "Willkommen bei AnyKey",

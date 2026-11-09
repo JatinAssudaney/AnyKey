@@ -1,6 +1,7 @@
 import { browser, type Browser } from 'wxt/browser';
 import { BACKUP_KEY, BackupSchema, parseSync, type Backup, type SyncData } from '../core/docs';
 import { parsePresets, PRESETS_KEY, type Preset } from '../core/presets';
+import { RATING_KEY, RatingSchema, type Rating } from '../core/rating';
 
 // Reading storage. Every context reads; only the background writer (./writer.ts) writes.
 
@@ -19,6 +20,13 @@ export async function loadBackup(): Promise<Backup | null> {
 export async function loadPresets(): Promise<Preset[]> {
   const { [PRESETS_KEY]: raw } = await browser.storage.local.get(PRESETS_KEY);
   return parsePresets(raw);
+}
+
+/** How much AnyKey has been used, for the one time it asks for a rating, or null before the first use. */
+export async function loadRating(): Promise<Rating | null> {
+  const { [RATING_KEY]: raw } = await browser.storage.local.get(RATING_KEY);
+  const parsed = RatingSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
 }
 
 export interface Watcher {

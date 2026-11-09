@@ -91,6 +91,10 @@ export const BackgroundMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('addSiteShortcut'), shortcut: PickedShortcutSchema }),
   /** From the picker in a page: it closed without saving. */
   z.object({ type: z.literal('pickerDone') }),
+  /** From a page: a shortcut or hint just did its job. Counted for the one time AnyKey asks for a rating. */
+  z.object({ type: z.literal('used') }),
+  /** From the popup: the person answered the request for a rating. */
+  z.object({ type: z.literal('ratingDone') }),
 ]);
 export type BackgroundMessage = z.infer<typeof BackgroundMessageSchema>;
 

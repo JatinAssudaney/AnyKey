@@ -9,6 +9,38 @@ test("the popup says when AnyKey isn't running in a tab", async ({ page, extensi
   await expect(page.getByRole('button', { name: 'Open settings' })).toBeVisible();
 });
 
+test('the popup asks for a rating once, after real use', async ({ page, extensionContext, extensionId }) => {
+  const popup = await extensionContext.newPage();
+  const url = `chrome-extension://${extensionId}/popup.html?tab=999999`;
+  await popup.goto(url);
+  const seed = (uses: number) =>
+    popup.evaluate((count) => chrome.storage.local.set({ rating: { uses: count, since: 0 } }), uses);
+  const rating = () => popup.evaluate(async () => (await chrome.storage.local.get('rating')).rating as { uses: number; done?: boolean });
+  try {
+    // One short of the threshold: no question yet, and using a shortcut counts.
+    await seed(24);
+    await popup.reload();
+    await expect(popup.getByRole('button', { name: 'Open settings' })).toBeVisible();
+    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+    await page.goto(`${FIXTURE_ORIGIN}/picker.html#one`);
+    await page.goto(PICKER);
+    await page.bringToFront();
+    await pressUntil(page, ['Shift+H'], async () => (await rating()).uses === 25);
+
+    await popup.reload();
+    await expect(popup.getByText('A rating helps other people find it.')).toBeVisible();
+    await expect(popup.getByRole('link', { name: 'Rate AnyKey' })).toHaveAttribute('href', /\/reviews$/);
+    await popup.getByRole('button', { name: 'Not now' }).click();
+    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+    await expect.poll(async () => (await rating()).done).toBe(true);
+    await popup.reload();
+    await expect(popup.getByRole('button', { name: 'Open settings' })).toBeVisible();
+    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+  } finally {
+    await popup.evaluate(() => chrome.storage.local.remove('rating'));
+  }
+});
+
 test('the popup teaches the key that opens it, as the browser writes it', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/popup.html?tab=999999`);
   const commands = await page.evaluate(() => chrome.commands.getAll());
