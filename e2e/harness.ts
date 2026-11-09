@@ -84,6 +84,8 @@ export async function welcomePage(context: BrowserContext): Promise<Page> {
 
 interface WorkerFixtures {
   platform: Platform;
+  /** The browser's language. A spec sets it with `test.use`. */
+  lang: string;
   extensionContext: BrowserContext;
   serviceWorker: Worker;
   extensionId: string;
@@ -97,9 +99,10 @@ interface TestFixtures {
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   platform: ['host', { scope: 'worker', option: true }],
+  lang: ['en-US', { scope: 'worker', option: true }],
   extensionContext: [
-    async ({ platform }, use) => {
-      const context = await launchExtensionContext({ platform });
+    async ({ platform, lang }, use) => {
+      const context = await launchExtensionContext({ platform, lang });
       // Tests start without the page that installing AnyKey opens, so none finds a tab it didn't open.
       await (await welcomePage(context)).close();
       await use(context);
