@@ -96,6 +96,10 @@ Presets add keys a site lacks and step aside where it has its own: on a YouTube 
 
 Want one for another site? [Request a preset](https://github.com/JatinAssudaney/AnyKey/issues/new?template=preset_request.yml), or [add one yourself](CONTRIBUTING.md#presets): a preset is a JSON file plus a Playwright test that checks it on the live site.
 
+## Languages
+
+AnyKey follows your browser's language: English, Spanish, German, Hindi and Simplified Chinese. A new language is one JSON file, so [add yours](CONTRIBUTING.md#translations) or [report a bad translation](https://github.com/JatinAssudaney/AnyKey/issues/new?template=translation.yml). Preset labels are in English for now.
+
 ## Privacy
 
 AnyKey collects no data and makes no network requests. Your shortcuts stay in your browser, and sync through the browser's own sync if you have it on. [PRIVACY.md](PRIVACY.md) is the privacy policy, and [PERMISSIONS.md](PERMISSIONS.md) says why AnyKey asks for each permission.
@@ -124,7 +128,7 @@ The first E2E run needs Playwright's Chromium: `pnpm exec playwright install chr
 
 **Docs:**
 
-- [CONTRIBUTING.md](CONTRIBUTING.md): setup, and how to add or change a preset
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, and how to add or change a preset or a language
 - [CLAUDE.md](CLAUDE.md): architecture and conventions
 - [docs/design.md](docs/design.md): design rules and milestones
 - [docs/preset-checklist.md](docs/preset-checklist.md): how to check a preset on the live site

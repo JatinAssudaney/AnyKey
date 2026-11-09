@@ -1,7 +1,7 @@
 {
   "locale": "en",
   "manifest": {
-    "name": "AnyKey: Keyboard Shortcuts for Any Website",
+    "name": "AnyKey: Custom Keyboard Shortcuts for Any Website",
     "shortName": "AnyKey",
     "description": "Browse any website from the keyboard: link hints, scroll keys, custom shortcuts for any button, and site presets."
   },
