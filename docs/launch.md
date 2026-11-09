@@ -58,7 +58,7 @@ Images, all PNG, made by `pnpm store:images` into `store/images` (`store/listing
 Text, ready to paste in `store/listing.md`:
 
 - [x] Title: the manifest name, "AnyKey: Keyboard Shortcuts for Any Website" since 1.0.1, so store search finds it by what it does; `short_name` stays AnyKey.
-- [x] Summary: the manifest description, at most 132 characters (104 now).
+- [x] Summary: the manifest description, at most 132 characters (113 now).
 - [x] Description: an overview paragraph, then the features. No lists of keywords.
 - [x] Category: Accessibility.
 - [x] Privacy practices: the single purpose and the permission justifications from PERMISSIONS.md, and what AnyKey does with data, matching the privacy policy.
@@ -76,10 +76,10 @@ Text, ready to paste in `store/listing.md`:
 Registering is quick, but the email checks take a while. From [Register your developer account](https://developer.chrome.com/docs/webstore/register) and [Set up your account](https://developer.chrome.com/docs/webstore/set-up-account):
 
 - [x] Choose the Google account to publish with. Its email can't be changed once registered (moving means a new account and transferring AnyKey to it), so Google suggests an account just for publishing, one you check often: store alerts and review results go there.
-- [ ] Turn on [2-Step Verification](https://developer.chrome.com/docs/webstore/program-policies/two-step-verification) for that account (Google Account, Security). The store requires it before the first publish and before every update.
+- [x] Turn on [2-Step Verification](https://developer.chrome.com/docs/webstore/program-policies/two-step-verification) for that account (Google Account, Security). The store requires it before the first publish and before every update.
 - [x] Open the [developer dashboard](https://chrome.google.com/webstore/devconsole), accept the developer agreement and policies, and pay the one-time registration fee.
 - [ ] In the dashboard's Account page, fill in the publisher name (shown under AnyKey's title in the store) and the contact email, then click the verification link Google sends to it. No physical address: AnyKey sells nothing.
-- [ ] Declare yourself a [trader or a non-trader](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure) (EU consumer law): a trader publishes for a trade, business or profession and gives a verified legal name and contact details; a non-trader publishes outside one. It is your declaration to make.
+- [x] Declare yourself a [trader or a non-trader](https://developer.chrome.com/docs/webstore/program-policies/trader-disclosure) (EU consumer law): a trader publishes for a trade, business or profession and gives a verified legal name and contact details; a non-trader publishes outside one. It is your declaration to make. The listing shows non-trader.
 
 ### Submit (by hand)
 
@@ -105,4 +105,39 @@ Registering is quick, but the email checks take a while. From [Register your dev
 - [x] GitHub version 4: its star button is now `[data-testid="star-button"]`, and signed out its issue lists no longer select with `x`, so the live test checks that `x` reaches GitHub and the tab stays open.
 - [ ] Check Gmail and Stack Overflow by hand with `docs/preset-checklist.md`, signed in, and mark their shortcuts `verified: true` in a new `version` of each. Check GitHub's `S` signed in too (starred and not), then mark it verified again.
 - [ ] Render the demo video again: the Settings scene's headline names the new presets (`store/video/README.md`).
-- [x] Upload `dist/anykey-1.0.2-chrome.zip` and paste the new description from `store/listing.md` (by hand). Submitted on 2 November 2026. The first submission was rejected at once for excessive keywords (Yellow Argon: its description listed all seven preset sites, twice), so the description now names three as examples.
+- [x] Upload `dist/anykey-1.0.2-chrome.zip` and paste the new description from `store/listing.md` (by hand). Published by 8 November 2026 (submitted on the 2nd). The first submission was rejected at once for excessive keywords (Yellow Argon: its description listed all seven preset sites, twice), so the description now names three as examples.
+
+## Languages and search (1.0.3)
+
+Languages: Spanish, German, Hindi and Simplified Chinese, with English as the default. Preset labels wait for 1.0.4.
+
+- [x] Move the popup, options page, welcome page and manifest text to `src/locales/en.json`.
+- [x] Move the in-page UI, core, storage and background text there too.
+- [x] Add the locale check (`pnpm lint:locales`), the Translations section of `CONTRIBUTING.md`, the issue form and the "Text and languages" section of `docs/design.md`.
+- [ ] Translate into each language, and look over each one in Brave.
+- [x] Change the English title in `src/locales/en.json` and `store/listing.md` to "AnyKey: Custom Keyboard Shortcuts for Any Website". It only adds a word, so it keeps every phrase AnyKey ranks for now. Keep the summary as it is for this release.
+- [x] Choose each language's title and summary by what people there search for, not word for word from English.
+- [x] Write `store/listing.{es,de,hi,zh_CN}.md`, naming at most three sites as examples (Yellow Argon).
+- [x] Decide when to ask for a rating, then build it: at most twice, dismissible, after several successful shortcuts or hints, with nothing offered in return (the store's policy bans incentivized reviews).
+- [ ] Bump to 1.0.3, update the README's line on languages, `pnpm zip`, upload, and paste each language's description into the dashboard.
+
+Search ranks before the new title (9 November 2026, US, signed out, 19 users, 2 ratings). Run them again 14 days after 1.0.3 is public:
+
+| Search | Rank |
+|---|---|
+| anykey | 1 |
+| shortcut keys website | 5 |
+| keyboard shortcuts for any website | 6 |
+| link hints | 7 |
+| keyboard shortcuts | 57 |
+| keyboard shortcut | 65 |
+| keyboard navigation | 89 |
+| custom keyboard shortcuts | below about 430 |
+| browse without mouse | below about 430 |
+| mouse free browsing, vim keyboard, vimium | not listed |
+
+After that check, one change per release, 14 days apart, so each result can be told apart:
+
+- [ ] Start the summary with "Keyboard navigation for any website: ...", within its 132 characters.
+- [ ] Add short captions to the screenshots.
+- [ ] Check the dashboard's Store Insights for how many installs come from search, and which searches.

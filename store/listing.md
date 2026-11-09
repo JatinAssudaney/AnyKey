@@ -4,9 +4,9 @@ What to enter in the developer dashboard for AnyKey, field by field. The images 
 
 ## Store listing tab
 
-**Title:** AnyKey: Keyboard Shortcuts for Any Website (the manifest's `name`, `APP_NAME` in `src/core/app.ts`). Store search weighs the title most, so it carries the words people search for; AnyKey's own pages and the toolbar still say AnyKey.
+**Title:** AnyKey: Custom Keyboard Shortcuts for Any Website (the manifest's `name`, `manifest.name` in `src/locales/en.json`). Store search weighs the title most, so it carries the words people search for; AnyKey's own pages and the toolbar still say AnyKey.
 
-**Summary:** the manifest's `description` (`APP_DESCRIPTION` in `src/core/app.ts`, at most 132 characters):
+**Summary:** the manifest's `description` (`manifest.description` in `src/locales/en.json`, at most 132 characters):
 
 > Browse any website from the keyboard: link hints, scroll keys, custom shortcuts for any button, and site presets.
 
@@ -28,7 +28,7 @@ AnyKey collects no data and makes no network requests. Your shortcuts stay in yo
 
 **Category:** Accessibility: AnyKey's purpose is using the web without a mouse. Functionality & UI fits too, if the store's reviewers or search suggest it.
 
-**Language:** English.
+**Language:** English, with Spanish, German, Hindi and Simplified Chinese listings in `listing.es.md`, `listing.de.md`, `listing.hi.md` and `listing.zh_CN.md`.
 
 **Graphic assets** (all in `images/`):
 
