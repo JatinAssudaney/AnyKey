@@ -5,6 +5,11 @@
 - [ ] `pnpm check` passes
 - [ ] `pnpm test:e2e` passes, if extension code changed
 
+### For a translation (see CONTRIBUTING.md#translations)
+
+- [ ] `pnpm lint:locales` passes
+- [ ] I read the language in the extension itself, or say what is unchecked
+
 ### For a preset change (see CONTRIBUTING.md#presets)
 
 - [ ] `version` is higher than on `main`

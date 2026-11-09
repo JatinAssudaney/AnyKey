@@ -2,6 +2,12 @@
 
 Ideas left for later, with why each waits and what it would cost.
 
+## Preset labels in other languages
+
+AnyKey's own text is translated, but the labels in `presets/*.json` (about 300: GitHub's alone has 85) show in English everywhere, in the popup, the settings page and the cheatsheet.
+
+**Why it waits.** Planned for 1.0.4, once the language files have been through a release. Each preset would get a locale file keyed by its labels, with a check that flags a label that changed, and that is about 1,200 more strings to draft and review across four languages. A label's English is also what live tests and `scripts/check-presets.ts` find it by, so the English must stay the source.
+
 ## Link hints inside frames
 
 AnyKey's content script runs only in each page's top frame, so links and buttons inside frames (embedded players, comment widgets, some web apps' panes) get no hints, and `F` does nothing while a frame has focus.

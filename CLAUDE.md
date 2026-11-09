@@ -9,22 +9,24 @@ Chrome MV3 extension that makes any website keyboard-navigable: bind a key to an
 - `src/background/`: service-worker code: the validating message router, tab actions, and preset install.
 - `src/storage/`: storage reads, pure mutation reducers, and the background write queue.
 - `src/messaging.ts`: the sending side of runtime messages, shared by the content script and extension pages.
+- `src/i18n.ts` and `src/locales/`: AnyKey's own text, one `<lang>.json` per language, found by the `@wxt-dev/i18n` module, so a new language needs no code change. `pnpm lint:locales` (part of `pnpm check`) checks each against `en.json`.
 - `src/entrypoints/`: WXT entrypoints (background, content, popup, options, welcome). Thin: they wire modules together.
 - `src/components/`: React components shared by the popup and options page.
 - `presets/`: bundled preset JSON, one `<id>.json` per site, found by `presets/index.ts` (`import.meta.glob`), so a new preset needs no code change. `e2e/`: Playwright specs, harness and fixture pages.
 - `.github/`: CI (`pnpm check` and `pnpm test:e2e` on Linux, for every push; `presets-live.yml` runs `e2e/live/` for the presets a pull request changes, and all of them weekly), the issue forms, the pull request template, and the README's banner (the `social` layout of `store/promo.html`, made by `pnpm store:images`, also the repository's social preview) and GIF (the video's Hints scene, see `store/video/README.md`).
 - `store/`: the Chrome Web Store listing (`listing.md`), the demo page and promo art that `pnpm store:images` (`e2e/store/`) turns into `store/images`, and the stills for `store/video/`, a Remotion project with its own npm install that makes the demo video. Run it again when the UI it shows changes.
 
-Imports flow one way: entrypoints, then dom / background / components, then storage, then `messaging.ts`, then core. Core imports from no other layer.
+Imports flow one way: entrypoints, then dom / background / components, then storage, then `messaging.ts`, then `i18n.ts`, then core. Core imports from no other layer.
 
-**Before changing key handling, shortcut resolution, storage, presets, the picker or hints, read `docs/design.md`.** It holds the rules those areas must keep: when a key is consumed, the single-writer storage model, preset yield rules, and more. Update it in the same change when a rule changes.
+**Before changing key handling, shortcut resolution, storage, presets, the picker, hints or any text people see, read `docs/design.md`.** It holds the rules those areas must keep: when a key is consumed, the single-writer storage model, preset yield rules, and more. Update it in the same change when a rule changes.
 
 ## Conventions
 
 - TypeScript strict; `any` is a lint error. Validate every trust boundary with zod: stored data, imported JSON, presets, runtime messages. Schemas use `zod/mini` (`z.string().check(z.maxLength(n, message))`), which has no default messages, so any check a user can fail carries its own.
+- Text people see goes in `src/locales/en.json` and comes out through `t()` (`rich()` when a sentence holds elements). Core holds no words: it returns `Text` (a message key and arguments).
 - Explicit imports (auto-imports are off): `browser` from `wxt/browser`, WXT helpers from `wxt/utils/...`. Call extension APIs through `browser.*`, which tests fake with `fakeBrowser`.
 - In-page UI is vanilla TypeScript + plain CSS in px units, rendered in the one shared shadow root, with text set through `textContent` (the `h()` helper in `src/dom/ui/h.ts`). React and Tailwind belong to the popup and options page.
-- The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (M8: 106.0 kB, 36.6 kB gzipped; zod/mini is about 26 kB of that, the picker about 27 kB, link hints about 6 kB, preset support about 5 kB). Preset JSON belongs to the background, which installs it into storage; the content script only reads it.
+- The content script loads on every page, so keep it small: it carries only the schemas it parses stored data with, and code only extension pages need (mutation reducers, import, export) stays out of `src/dom/`'s imports. Check `content.js` in the `pnpm build` output when adding dependencies (1.0.3: 107.3 kB; zod/mini is about 26 kB of that, the picker about 27 kB, link hints about 6 kB, preset support about 5 kB). Preset JSON belongs to the background, which installs it into storage; the content script only reads it.
 - Permissions stay at `storage`, `scripting` and host access to every site (the `<all_urls>` content script, and starting it in the tabs open at an install or update), so the install warning is only the one a content script on every site brings. Adding one needs the user's approval and updates to PERMISSIONS.md, PRIVACY.md, `store/listing.md` and `e2e/extension.spec.ts` (which pins the manifest). Deferred ideas go in `BACKLOG.md`, with why they wait.
 - The popup and options page are keyboard-first: every control reachable with Tab in visual order, visible `focus-visible` rings, a label on every input, native `<dialog>` for modals, `aria-live` for status. jsx-a11y runs in strict mode.
 - Tests sit next to the code as `*.test.ts(x)`. Pure logic gets unit tests; DOM tests opt in with `// @vitest-environment happy-dom`; real-browser behavior gets a Playwright spec in `e2e/`.

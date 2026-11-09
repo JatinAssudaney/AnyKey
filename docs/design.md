@@ -165,6 +165,16 @@ Scroll keys move the nearest scrollable ancestor of the element last clicked or 
 - Trusted pointer and mouse events (`pointerdown`, `pointerup`, `pointermove`, `pointercancel`, `mousedown`, `mouseup`, `mousemove`, `click`, `dblclick`, `auxclick`, `contextmenu`) go to the top mode's `pointer` handler first, at window capture.
 - The content script sets `noScriptStartedPostMessage`, so WXT never posts messages to the page.
 
+## Text and languages
+
+- All of AnyKey's own text is in `src/locales/<lang>.json`, read through `chrome.i18n` (`t()` in `src/i18n.ts`, `rich()` in `src/components/rich.tsx` when a sentence holds elements such as keycaps). No permission is needed. Copy quoted elsewhere in this document is the English of `en.json`.
+- The browser picks the language: its UI language, then that language without its region, then English (`default_locale`). AnyKey has no language setting, since `chrome.i18n` can't be pointed at another language. A message a language lacks shows in English.
+- `src/core` holds no words: it returns `Text` (a message key, arguments and a count) and callers turn it into a string, with `textOf`, or `textOfMessage` for a zod issue, whose message has to be a string. Only the messages for preset authors in `core/presets.ts` stay English.
+- A built-in shortcut's `label` is a message key, never stored. Show it with `shortcutLabel`. Every other label is text someone wrote (a person, or a preset's author) and is never translated. The name AnyKey suggests for a new shortcut is translated once, when saved, and is the user's from then on.
+- What people type is notation and stays English in every language: `ctrl`, `plus`, match patterns.
+- Lists, dates and sizes come from `Intl` in the shown language (`locale()`, the file's own `locale` message, which can differ from the browser's UI language). Plurals have two forms, one and many.
+- Unit tests and E2E run in English (`vitest.setup.ts`, and `--lang` in the harness).
+
 ## Options page
 
 - Built-in shortcuts can be rekeyed, switched off and reset; the user's own global shortcuts can be added, edited, switched off and deleted. A change shows at once and saves in the background: the header's status says "Saving…" then "Saved.", and a failure appears in an alert. Text fields save on blur or Enter.

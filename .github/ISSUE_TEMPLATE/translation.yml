@@ -1,0 +1,21 @@
+name: Translation
+description: Ask for a language, or report text that reads wrong in one.
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: AnyKey follows your browser's language. To add or fix a language yourself, it takes one JSON file, see [CONTRIBUTING.md](https://github.com/JatinAssudaney/AnyKey/blob/main/CONTRIBUTING.md#translations).
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: French
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What reads wrong, and what it should say
+      description: Leave this empty to ask for a new language.
+      placeholder: |
+        Settings page, Sites section: "..." should be "..."

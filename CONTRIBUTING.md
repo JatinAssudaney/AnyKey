@@ -1,6 +1,6 @@
 # Contributing to AnyKey
 
-Thanks for helping. Bug reports and preset requests go in [issues](https://github.com/JatinAssudaney/AnyKey/issues/new/choose). Pull requests are welcome, and presets are the easiest place to start: a preset is one JSON file and one Playwright test, with no extension code to touch.
+Thanks for helping. Bug reports, preset requests and translation fixes go in [issues](https://github.com/JatinAssudaney/AnyKey/issues/new/choose). Pull requests are welcome, and presets and translations are the easiest places to start: a preset is one JSON file and one Playwright test, a language is one JSON file, and neither touches extension code.
 
 ## Setup
 
@@ -77,6 +77,23 @@ What a test can't reach signed out (liking, subscribing, pages for admins or mod
 Every pull request runs `pnpm check` and `pnpm test:e2e`. A pull request that changes `presets/` or `e2e/live/` also runs the live tests for the presets it touches, against the real sites (the "Presets on live sites" workflow). The same workflow runs every preset weekly, to catch sites that changed under them. A first-time contributor's workflows start once a maintainer approves them.
 
 If a live test fails in CI but passes on your machine, the site may show a GitHub Actions runner something else (a consent page, a different layout in another region). Say so in the pull request, with the trace from the workflow's `live-test-results` artifact.
+
+## Translations
+
+AnyKey's own text lives in `src/locales/<language>.json`, one file per language, and the extension finds every file there, so a new language needs no code change. The browser picks the language from its own: there is no setting in AnyKey. Shortcuts people name themselves stay as they wrote them, and preset labels are English for now.
+
+To add a language, copy `src/locales/en.json` to `src/locales/<code>.json`, using a [code Chrome supports](https://developer.chrome.com/docs/extensions/reference/api/i18n#locales) (`fr`, `pt_BR`), and translate the values. To improve one, edit its file. A message you leave out shows in English, so a partial translation is welcome; when English gains a message, the other files simply lack it until someone adds it.
+
+The rules, which `pnpm lint:locales` checks (it also prints how complete each language is):
+
+- `locale` is the file's code with a hyphen: `pt-BR`.
+- Keep every `{placeholder}` exactly as spelled, and move it wherever your language needs it. It stands for a site, a key or a number.
+- A message with `"1"` and `"n"` has a form for one and a form for many. Keep both, even if your language says the same thing in each.
+- `manifest.name` fits in 75 characters, `manifest.shortName` in 12 and `manifest.description` in 132.
+
+Two more it can't check: leave what people type as it is (`g i`, `shift+x`, `mod+k`, `plus`, `*://github.com/*`, `https://`), since AnyKey reads those as written, and use your language's own names for keys in the `keys` group (`Strg` in German), which should match what keyboards there print.
+
+To see it, run `pnpm build`, load `dist/chrome-mv3` unpacked, and switch the browser to your language: in `chrome://settings/languages` on Windows and Linux, or on macOS under System Settings, General, Language & Region, Applications. Restart the browser, then look at the popup, the settings page, the welcome page and, on a web page, `?` and `F`. Long words can overflow narrow columns, so check those.
 
 ## Style
 
