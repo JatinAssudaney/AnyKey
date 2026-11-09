@@ -21,7 +21,7 @@ import { effectiveDefaults, shortcutsOnSite } from '@/core/resolve';
 import { LIMITS, ShortcutSchema, type ElementTarget, type KeyMode, type Shortcut } from '@/core/schema';
 import { truncate } from '@/core/text';
 import { isHost, siteMatch } from '@/core/url';
-import { t } from '@/i18n';
+import { shortcutLabel, t, textOf, textOfMessage } from '@/i18n';
 import { applyMutation } from '@/storage/mutations';
 import { ACTION_GROUPS, actionOf, choiceValue, CLICK, describeAction, FOCUS, NAVIGATE } from '../actions';
 import { isValidSelector, normalizeHost } from '../fields';
@@ -144,12 +144,12 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         const [field, detail, part] = issue.path;
-        if (field === 'label') found.label ??= issue.message;
-        else if (field === 'keys') found.keys ??= issue.message;
-        else if (field === 'action' && detail === 'url') found.url ??= issue.message;
+        if (field === 'label') found.label ??= textOfMessage(issue.message);
+        else if (field === 'keys') found.keys ??= textOfMessage(issue.message);
+        else if (field === 'action' && detail === 'url') found.url ??= textOfMessage(issue.message);
         else if (field === 'action' && detail === 'target' && part === 'selector') found.selector ??= t('dialog.shorterSelector');
         else if (field === 'action' && detail === 'target' && part === 'text') found.text ??= t('dialog.shorterText');
-        else if (field === 'scope') found.pages ??= issue.message;
+        else if (field === 'scope') found.pages ??= textOfMessage(issue.message);
         else found.form ??= t('dialog.checkShortcut');
       }
     }
@@ -202,11 +202,13 @@ export function ShortcutDialog({ editing, data, presets, onSave, onClose }: Shor
   const others = (onSite?.shortcuts ?? [...effectiveDefaults(data.state), ...data.state.global.shortcuts]).filter(
     (other) => other.id !== shortcut.id,
   );
-  const conflicts = describeConflicts(findConflicts([...others, shortcut], isMac, onSite?.native).get(shortcut.id) ?? []);
+  const conflicts = describeConflicts(findConflicts([...others, shortcut], isMac, onSite?.native).get(shortcut.id) ?? []).map(
+    textOf,
+  );
 
   const title =
     original !== null
-      ? t('dialog.editTitle', { label: original.label })
+      ? t('dialog.editTitle', { label: shortcutLabel(original) })
       : originalSite === undefined || originalSite === ''
         ? t('dialog.addTitle')
         : t('dialog.addForTitle', { site: originalSite });

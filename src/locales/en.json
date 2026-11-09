@@ -24,7 +24,24 @@
     "saved": "Saved."
   },
   "keys": {
-    "then": "then"
+    "then": "then",
+    "or": "or",
+    "ctrl": "Ctrl",
+    "alt": "Alt",
+    "shift": "Shift",
+    "meta": "Meta",
+    "enter": "Enter",
+    "esc": "Esc",
+    "tab": "Tab",
+    "space": "Space",
+    "backspace": "Backspace",
+    "delete": "Delete",
+    "insert": "Insert",
+    "home": "Home",
+    "end": "End",
+    "pageUp": "Page Up",
+    "pageDown": "Page Down",
+    "numpad": "Num {n}"
   },
   "recorder": {
     "record": "Record keys",
@@ -63,7 +80,9 @@
     "goTo": "Go to {url}",
     "goToNewTab": "Go to {url} in a new tab",
     "clickTarget": "Click {target}",
-    "focusTarget": "Focus {target}"
+    "focusTarget": "Focus {target}",
+    "hintsClickDefault": "Click a link or button",
+    "hintsNewTabDefault": "Open a link in a new tab"
   },
   "popup": {
     "thisPage": "This page",
@@ -298,5 +317,150 @@
     "shorterSelector": "Use a shorter selector.",
     "shorterText": "Use shorter text.",
     "checkShortcut": "Check the shortcut and try again."
+  },
+  "errors": {
+    "enterName": "Enter a name.",
+    "maxChars": "Use at most {n} characters.",
+    "keysTooLong": "These keys are too long to save. Use fewer keys.",
+    "shorterUrl": "Use a shorter URL.",
+    "badUrl": "Use a web address starting with https://, or a path such as /notifications.",
+    "badMatch": "Use a match pattern such as *://github.com/*.",
+    "between": "Use a whole number from {min} to {max}.",
+    "hintMin": "Use at least 2 characters.",
+    "noSpaces": "Leave out spaces.",
+    "hintUnique": "Use each character once. Capital and small letters count as the same.",
+    "enterKey": "Enter a key.",
+    "maxKeys": "Use at most {n} keys in a sequence.",
+    "writePlus": "Write the + key as \"plus\".",
+    "notModifier": "\"{piece}\" is not a modifier. Use ctrl, alt, shift, meta or mod.",
+    "twice": "\"{piece}\" appears twice in \"{text}\".",
+    "addKey": "Add a key after the modifiers. Write the + key as \"plus\".",
+    "modifiersOnly": "Add a key besides the modifiers.",
+    "shiftedChar": "Shift changes the character: write the character itself (such as ? instead of shift+/), or use physical keys.",
+    "unknownKey": "Unknown key \"{key}\".",
+    "notCode": "\"{key}\" is not a physical key code such as KeyK or Digit1.",
+    "httpOnly": "Only http(s) URLs can be opened.",
+    "invalidRequest": "AnyKey received an invalid request.",
+    "onlyPagesSettings": "Only AnyKey's own pages can change settings.",
+    "onlyPagesPicker": "Only AnyKey's own pages can start the picker.",
+    "restart": "To add a shortcut, start again from AnyKey's button in the toolbar.",
+    "webOnly": "AnyKey can add shortcuts only for web pages.",
+    "pagesOnly": "Only pages can send this request.",
+    "notRunning": "AnyKey isn't running in this tab. Reload the tab, then try again.",
+    "noTab": "This tab cannot be controlled.",
+    "noAnswer": "AnyKey did not answer."
+  },
+  "conflicts": {
+    "shadowed": "Doesn't run: \"{label}\" uses these keys.",
+    "shadows": "\"{label}\" doesn't run, because this shortcut uses its keys.",
+    "waits": "Runs after a short pause, because \"{label}\" starts with the same keys.",
+    "reserved": "The browser keeps these keys for itself, so this shortcut never runs.",
+    "typing": "Also runs in text fields, so you can't type these keys there.",
+    "afterNative": {
+      "1": "{site}'s own {labels} runs first, which can stop this shortcut.",
+      "n": "{site}'s own {labels} run first, which can stop this shortcut."
+    },
+    "takesNative": {
+      "1": "{site}'s own {labels} doesn't run, because this shortcut takes its keys.",
+      "n": "{site}'s own {labels} don't run, because this shortcut takes their keys."
+    }
+  },
+  "storage": {
+    "docSettings": "your settings",
+    "docGlobal": "your global shortcuts",
+    "docSite": "your shortcuts for {host}",
+    "docPreset": "your changes to the {preset} preset",
+    "newer": {
+      "settings": "Your settings were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
+      "global": "Your global shortcuts were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
+      "site": "Your shortcuts for {host} were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
+      "preset": "Your changes to the {preset} preset were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
+      "other": "\"{key}\" were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\"."
+    },
+    "damaged": {
+      "settings": "Your settings are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
+      "global": "Your global shortcuts are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
+      "site": "Your shortcuts for {host} are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
+      "preset": "Your changes to the {preset} preset are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
+      "other": "\"{key}\" are partly damaged, so AnyKey won't change them until you repair them under \"Your data\"."
+    },
+    "itemQuota": {
+      "settings": "Your settings can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.",
+      "global": "Your global shortcuts can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.",
+      "site": "Your shortcuts for {host} can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.",
+      "preset": "Your changes to the {preset} preset can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.",
+      "other": "\"{key}\" can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first."
+    },
+    "totalQuota": "AnyKey can use at most 100 KB of synced storage, and this change would pass that. Delete some shortcuts first.",
+    "siteLimit": "AnyKey can keep settings for at most 500 sites. Remove some sites first.",
+    "damage": "This change would damage {name}, so AnyKey didn't save it.",
+    "noRepair": "That part of your settings needs no repair.",
+    "backgroundOnly": "Only the background can restore the backup.",
+    "onlyYours": "Only your own shortcuts can be saved this way.",
+    "chooseSite": "Choose the site this shortcut is for.",
+    "notGlobal": "A shortcut for every site can't be saved with one site's settings.",
+    "noPresetShortcut": "The {preset} preset has no shortcut \"{id}\".",
+    "noDefault": "AnyKey has no built-in shortcut \"{id}\".",
+    "noBackup": "There is no backup to restore.",
+    "writeRate": "The browser limits how often synced settings can change. Wait a minute, then try again.",
+    "outOfStorage": "AnyKey has run out of synced storage. Delete some shortcuts, then try again.",
+    "saveFailed": "AnyKey couldn't save the change: {message}"
+  },
+  "page": {
+    "hintMode": "Hint mode:",
+    "hintsClick": "type a label to click it, or press Esc to go back to your shortcuts.",
+    "hintsNewTab": "type a label to open it in a new tab, or press Esc to go back to your shortcuts.",
+    "noHints": "No links or buttons in view.",
+    "onlyHttp": "AnyKey only opens http and https links.",
+    "gone": "That element is gone from the page.",
+    "notFound": "Couldn't find the element for \"{label}\" on this page.",
+    "noFocus": "\"{label}\" found an element that can't take focus.",
+    "savedMany": "Saved {count} shortcuts for this site.",
+    "savedOne": "Saved \"{label}\". Press {keys} to use it.",
+    "cheatsheet": {
+      "title": "Keyboard shortcuts",
+      "close": "Close",
+      "footer": "AnyKey. Press Esc to close.",
+      "elements": "Page elements",
+      "scrolling": "Scrolling",
+      "pages": "Pages and links",
+      "tabs": "Tabs",
+      "help": "Help"
+    },
+    "picker": {
+      "label": "AnyKey picker",
+      "pick": "Pick an element for a shortcut.",
+      "instructions": "Click it, or press Tab to move and Enter to pick. ↑ selects the parent and ↓ the child. Esc closes the picker.",
+      "done": "Done",
+      "pointAt": "Point at an element, or press Tab to move to one.",
+      "saved": "Saved \"{label}\" ({keys}). Pick another element, or press Esc when you're done.",
+      "described": "{kind} \"{text}\"",
+      "link": "Link",
+      "button": "Button",
+      "checkbox": "Checkbox",
+      "radio": "Radio button",
+      "list": "List",
+      "textField": "Text field",
+      "tab": "Tab",
+      "menuItem": "Menu item",
+      "image": "Image",
+      "element": "{name} element"
+    },
+    "panel": {
+      "recordingHint": "Press the keys, such as g then s, and Enter to save. Works on every page of this site.",
+      "typingHint": "Type keys such as g s or shift+s, or record them. Works on every page of this site.",
+      "newTab": "Open the link in a new tab",
+      "when": "When you press the keys",
+      "click": "Click it",
+      "focus": "Focus it, to type in it",
+      "title": "New shortcut for {host}",
+      "cleared": "Cleared. Press the keys again.",
+      "pressFirst": "Press the keys for this shortcut first.",
+      "checkWarnings": {
+        "1": "Recorded {keys}. Check the warning, then press Enter to save.",
+        "n": "Recorded {keys}. Check the warnings, then press Enter to save."
+      },
+      "enterKeys": "Enter the keys for this shortcut, or record them."
+    }
   }
 }

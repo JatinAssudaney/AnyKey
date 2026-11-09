@@ -9,8 +9,16 @@ import type { GeneratedI18nStructure } from '../../.wxt/i18n/structure';
  */
 export interface Text {
   key: keyof GeneratedI18nStructure;
-  args?: Readonly<Record<string, string | number>>;
+  args?: Readonly<Record<string, TextArg>>;
   count?: number;
+}
+
+/** A substitution: plain text, another message, or names to quote and join as the language does ("a", "b" and "c"). */
+export type TextArg = string | number | Text | { quoted: readonly string[] };
+
+/** Text as a zod message, which has to be a string. `textOfMessage` in src/i18n.ts reads it back. */
+export function textMessage(key: Text['key'], args?: Text['args']): string {
+  return JSON.stringify({ key, ...(args === undefined ? {} : { args }) } satisfies Text);
 }
 
 /** Text as AnyKey stores and compares it: runs of whitespace become one space, and the ends are trimmed. */

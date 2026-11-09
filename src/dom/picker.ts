@@ -1,5 +1,5 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
-import { keysInWords } from '../core/keys';
+import { keysInWords, t } from '../i18n';
 import type { PickedShortcut } from '../core/messages';
 import type { PageShortcuts } from '../core/resolve';
 import { truncate } from '../core/text';
@@ -90,7 +90,7 @@ export function createPicker(options: PickerOptions): Picker {
         break;
       case 'Enter':
         if (current !== null) pick(current);
-        else overlay?.announce('Point at an element, or press Tab to move to one.');
+        else overlay?.announce(t('page.picker.pointAt'));
         break;
       case 'ArrowUp':
         walkUp();
@@ -186,7 +186,7 @@ export function createPicker(options: PickerOptions): Picker {
         const { shortcut } = result;
         saved.push(shortcut);
         const keys = keysInWords(shortcut.keys, shortcut.keyMode, options.isMac);
-        overlay?.confirm(`Saved "${shortcut.label}" (${keys}). Pick another element, or press Esc when you're done.`);
+        overlay?.confirm(t('page.picker.saved', { label: shortcut.label, keys }));
       },
     }).then(
       (opened) => {
@@ -275,21 +275,21 @@ function onScreen(element: Element): boolean {
 export function describeElement(element: Element): string {
   const text = textOf(element);
   const kind = kindOf(element);
-  return text === '' ? kind : `${kind} "${truncate(text, 40)}"`;
+  return text === '' ? kind : t('page.picker.described', { kind, text: truncate(text, 40) });
 }
 
 function kindOf(element: Element): string {
   const role = element.getAttribute('role');
-  if (element.matches('a[href]') || role === 'link') return 'Link';
+  if (element.matches('a[href]') || role === 'link') return t('page.picker.link');
   if (element.matches('button, input[type="button"], input[type="submit"], input[type="reset"]') || role === 'button') {
-    return 'Button';
+    return t('page.picker.button');
   }
-  if (element.matches('input[type="checkbox"]') || role === 'checkbox' || role === 'switch') return 'Checkbox';
-  if (element.matches('input[type="radio"]') || role === 'radio') return 'Radio button';
-  if (element.matches('select') || role === 'listbox') return 'List';
-  if (isEditable(element)) return 'Text field';
-  if (role === 'tab') return 'Tab';
-  if (role === 'menuitem') return 'Menu item';
-  if (element.matches('img, svg')) return 'Image';
-  return `${element.localName} element`;
+  if (element.matches('input[type="checkbox"]') || role === 'checkbox' || role === 'switch') return t('page.picker.checkbox');
+  if (element.matches('input[type="radio"]') || role === 'radio') return t('page.picker.radio');
+  if (element.matches('select') || role === 'listbox') return t('page.picker.list');
+  if (isEditable(element)) return t('page.picker.textField');
+  if (role === 'tab') return t('page.picker.tab');
+  if (role === 'menuitem') return t('page.picker.menuItem');
+  if (element.matches('img, svg')) return t('page.picker.image');
+  return t('page.picker.element', { name: element.localName });
 }

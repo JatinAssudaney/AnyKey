@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOfMessage } from '@/i18n';
 import { ActionSchema, LIMITS, SettingsSchema, ShortcutSchema, storedKeys } from './schema';
 
 const base = {
@@ -36,7 +37,7 @@ describe('storedKeys', () => {
   it('checks the length of the stored form, which can be longer than what was typed', () => {
     const keys = Array.from({ length: 4 }, () => 'cmd+shift+pgdn').join(' ');
     expect(keys.length).toBeLessThanOrEqual(LIMITS.keys);
-    expect(storedKeys(keys, 'key')).toEqual({ ok: false, error: 'These keys are too long to save. Use fewer keys.' });
+    expect(storedKeys(keys, 'key')).toEqual({ ok: false, error: { key: 'errors.keysTooLong' } });
   });
 });
 
@@ -53,7 +54,10 @@ describe('ActionSchema', () => {
 
 describe('SettingsSchema', () => {
   const hintChars = SettingsSchema.shape.hintChars;
-  const message = (chars: string): string | undefined => hintChars.safeParse(chars).error?.issues[0]?.message;
+  const message = (chars: string): string | undefined => {
+    const text = hintChars.safeParse(chars).error?.issues[0]?.message;
+    return text === undefined ? undefined : textOfMessage(text);
+  };
 
   it('takes hint characters that make at least two different labels', () => {
     expect(hintChars.safeParse('sadfjklewcmpgh').success).toBe(true);

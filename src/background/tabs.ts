@@ -1,5 +1,6 @@
 import { browser, type Browser } from 'wxt/browser';
 import type { TabOp } from '../core/schema';
+import { t } from '../i18n';
 
 // None of these calls needs the "tabs" permission: AnyKey never reads tab URLs or titles.
 
@@ -37,6 +38,6 @@ export async function openTab(url: string, background: boolean, opener: Browser.
 }
 
 function requireId(tab: Browser.tabs.Tab): number {
-  if (tab.id === undefined) throw new Error('This tab cannot be controlled.');
+  if (tab.id === undefined) throw new Error(t('errors.noTab'));
   return tab.id;
 }

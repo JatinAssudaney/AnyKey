@@ -9,7 +9,7 @@ import type { Mutation } from '@/core/messages';
 import { presetOverride, type Preset } from '@/core/presets';
 import { presetYields, type NativeKey, type SiteShortcuts } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
-import { listText, t } from '@/i18n';
+import { quotedList, shortcutLabel, t } from '@/i18n';
 import type { Editing } from './ShortcutDialog';
 import { editButtonId, ShortcutTable } from './ShortcutTable';
 
@@ -110,7 +110,7 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
               const kept = siteState?.globals.get(shortcut.id) === true;
               const noteId = `${ids}-${shortcut.id}-note`;
               const labels = [...new Set(natives.map(({ label }) => label))];
-              const note = { name: preset.name, labels: quoted(labels), host };
+              const note = { name: preset.name, labels: quotedList(labels), host };
               return (
                 <li key={shortcut.id}>
                   <label className="flex flex-wrap items-center gap-2 text-sm">
@@ -129,7 +129,7 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
                       }}
                       className={checkbox}
                     />
-                    {t('preset.keep', { label: shortcut.label })}
+                    {t('preset.keep', { label: shortcutLabel(shortcut) })}
                     <KeyCaps keys={shortcut.keys} mode={shortcut.keyMode} />
                   </label>
                   <p id={noteId} className={`${hintText} ml-6`}>
@@ -176,7 +176,7 @@ export function PresetPanel({ preset, host, data, site, conflicts, send, onEdit,
                   {key.label}
                   {(takers.get(key) ?? []).map((shortcut) => (
                     <span key={shortcut.id} className="block text-xs text-amber-800 dark:text-amber-300">
-                      {t('preset.takenBy', { label: shortcut.label })}
+                      {t('preset.takenBy', { label: shortcutLabel(shortcut) })}
                     </span>
                   ))}
                 </th>
@@ -205,11 +205,6 @@ function Count({ n }: { n: number }) {
       {n}
     </span>
   );
-}
-
-/** Names in a sentence, each in quotes: "a", "a" and "b", "a", "b" and "c". */
-function quoted(names: readonly string[]): string {
-  return listText(names.map((text) => t('common.quoted', { text })));
 }
 
 /** Where a site key works: every page, or the path part of each of its match patterns (what follows the host). */

@@ -7,6 +7,7 @@ import {
 } from '../core/messages';
 import type { Shortcut } from '../core/schema';
 import { isHost, siteMatch } from '../core/url';
+import { t } from '../i18n';
 import { errorMessage } from '../messaging';
 import type { Writer } from '../storage/writer';
 import { endSession, hasSession, startPicker } from './picker';
@@ -21,7 +22,7 @@ export function listenForMessages(writer: Writer): void {
     if (sender.id !== browser.runtime.id) return false;
     const parsed = BackgroundMessageSchema.safeParse(raw);
     if (!parsed.success) {
-      sendResponse({ ok: false, error: 'AnyKey received an invalid request.' } satisfies BackgroundResponse);
+      sendResponse({ ok: false, error: t('errors.invalidRequest') } satisfies BackgroundResponse);
       return false;
     }
     handle(parsed.data, sender, writer).then(
@@ -47,18 +48,18 @@ async function handle(message: BackgroundMessage, sender: Browser.runtime.Messag
       return;
     case 'mutate':
       // Pages can't change settings: a hostile page could otherwise drive its content script to rewrite them.
-      if (!isExtensionPage(sender)) throw new Error("Only AnyKey's own pages can change settings.");
+      if (!isExtensionPage(sender)) throw new Error(t('errors.onlyPagesSettings'));
       await writer.submit(message.mutation);
       return;
     case 'startPicker':
-      if (!isExtensionPage(sender)) throw new Error("Only AnyKey's own pages can start the picker.");
+      if (!isExtensionPage(sender)) throw new Error(t('errors.onlyPagesPicker'));
       await startPicker(message.tabId, message.host);
       return;
     case 'addSiteShortcut': {
       const { tabId, host } = pickerPage(sender);
       // The session stays open after a save: the picker saves a shortcut for each element the user picks.
       if (!(await hasSession(tabId, host))) {
-        throw new Error("To add a shortcut, start again from AnyKey's button in the toolbar.");
+        throw new Error(t('errors.restart'));
       }
       await writer.submit({ op: 'saveShortcut', shortcut: siteShortcut(message.shortcut, host), site: host });
       return;
@@ -81,7 +82,7 @@ function siteShortcut(picked: PickedShortcut, host: string): Shortcut {
 }
 
 function senderTab(sender: Browser.runtime.MessageSender): Browser.tabs.Tab {
-  if (sender.tab === undefined) throw new Error('Only pages can send this request.');
+  if (sender.tab === undefined) throw new Error(t('errors.pagesOnly'));
   return sender.tab;
 }
 
@@ -93,9 +94,9 @@ function pickerPage(sender: Browser.runtime.MessageSender): { tabId: number; hos
   const tabId = senderTab(sender).id;
   const url = sender.url !== undefined && URL.canParse(sender.url) ? new URL(sender.url) : null;
   if (tabId === undefined || sender.frameId !== 0 || url === null || !/^https?:$/.test(url.protocol)) {
-    throw new Error('AnyKey can add shortcuts only for web pages.');
+    throw new Error(t('errors.webOnly'));
   }
-  if (!isHost(url.hostname)) throw new Error('AnyKey can add shortcuts only for web pages.');
+  if (!isHost(url.hostname)) throw new Error(t('errors.webOnly'));
   return { tabId, host: url.hostname };
 }
 

@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { z } from 'zod/mini';
 import type { PageRequest } from '../core/messages';
+import { t } from '../i18n';
 
 // Picker sessions (rules in docs/design.md, "Picker"). A content script may save shortcuts only while the user has a
 // picker open in its tab: the popup starts a session, and closing the picker ends it. Sessions live in
@@ -22,7 +23,7 @@ export async function startPicker(tabId: number, host: string): Promise<void> {
     await browser.tabs.sendMessage<PageRequest, unknown>(tabId, { type: 'startPicker' }, { frameId: 0 });
   } catch {
     await endSession(tabId);
-    throw new Error("AnyKey isn't running in this tab. Reload the tab, then try again.");
+    throw new Error(t('errors.notRunning'));
   }
 }
 

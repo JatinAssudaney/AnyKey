@@ -1,12 +1,12 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { describeConflicts, findConflicts } from '../../core/conflicts';
-import { keysInWords } from '../../core/keys';
 import type { PickedShortcut } from '../../core/messages';
 import { createRecorder, type Recorder, type RecorderStep } from '../../core/recorder';
 import type { PageShortcuts } from '../../core/resolve';
 import { LIMITS, storedKeys, type ElementAction, type ElementTarget, type Shortcut } from '../../core/schema';
 import { truncate } from '../../core/text';
 import { siteMatch } from '../../core/url';
+import { keysInWords, t, textOf } from '../../i18n';
 import { keyInput } from '../engine';
 import type { Disposition } from '../modes';
 import { h } from './h';
@@ -48,9 +48,6 @@ export interface PickerPanel {
 /** The id conflicts are reported under while the shortcut has none of its own. */
 const NEW_ID = 'user:new';
 
-const RECORDING_HINT = 'Press the keys, such as g then s, and Enter to save. Works on every page of this site.';
-const TYPING_HINT = 'Type keys such as g s or shift+s, or record them. Works on every page of this site.';
-
 /**
  * The form that turns a picked element into a shortcut: click or focus, a name, and keys, recorded from the moment
  * it opens or typed, with conflicts shown as the keys change. A modal dialog in AnyKey's shadow root, in the corner
@@ -64,7 +61,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   const clickRadio = radio('click');
   const focusRadio = radio('focus');
   const newTab = h('input', { type: 'checkbox' });
-  const newTabRow = h('label', { class: 'ak-check' }, newTab, 'Open the link in a new tab');
+  const newTabRow = h('label', { class: 'ak-check' }, newTab, t('page.panel.newTab'));
   const labelInput = h('input', {
     id: 'ak-picker-label',
     type: 'text',
@@ -82,13 +79,13 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     autofocus: true,
     'aria-describedby': 'ak-picker-keys-hint ak-picker-notes',
   });
-  const recordButton = h('button', { type: 'button', class: 'ak-button', 'aria-pressed': 'false' }, 'Record keys');
+  const recordButton = h('button', { type: 'button', class: 'ak-button', 'aria-pressed': 'false' }, t('recorder.record'));
   const recordStatus = h('span', { class: 'ak-sr-only', role: 'status' });
-  const hint = h('p', { id: 'ak-picker-keys-hint', class: 'ak-hint' }, RECORDING_HINT);
+  const hint = h('p', { id: 'ak-picker-keys-hint', class: 'ak-hint' }, t('page.panel.recordingHint'));
   const notes = h('ul', { id: 'ak-picker-notes', class: 'ak-notes' });
   const error = h('p', { class: 'ak-error', role: 'alert' });
-  const saveButton = h('button', { type: 'submit', class: 'ak-button ak-primary' }, 'Save');
-  const cancelButton = h('button', { type: 'button', class: 'ak-button' }, 'Cancel');
+  const saveButton = h('button', { type: 'submit', class: 'ak-button ak-primary' }, t('common.save'));
+  const cancelButton = h('button', { type: 'button', class: 'ak-button' }, t('common.cancel'));
 
   const form = h(
     'form',
@@ -96,16 +93,16 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     h(
       'fieldset',
       { class: 'ak-field' },
-      h('legend', {}, 'When you press the keys'),
-      h('label', { class: 'ak-check' }, clickRadio, 'Click it'),
-      h('label', { class: 'ak-check' }, focusRadio, 'Focus it, to type in it'),
+      h('legend', {}, t('page.panel.when')),
+      h('label', { class: 'ak-check' }, clickRadio, t('page.panel.click')),
+      h('label', { class: 'ak-check' }, focusRadio, t('page.panel.focus')),
     ),
     newTabRow,
-    h('div', { class: 'ak-field' }, h('label', { for: labelInput.id }, 'Name'), labelInput),
+    h('div', { class: 'ak-field' }, h('label', { for: labelInput.id }, t('dialog.name')), labelInput),
     h(
       'div',
       { class: 'ak-field' },
-      h('label', { for: keysInput.id }, 'Keys'),
+      h('label', { for: keysInput.id }, t('dialog.keys')),
       h('div', { class: 'ak-row' }, keysInput, recordButton, recordStatus),
       hint,
       notes,
@@ -116,7 +113,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   const dialog = h(
     'dialog',
     { class: 'ak-surface ak-panel', 'aria-labelledby': 'ak-picker-title' },
-    h('h2', { id: 'ak-picker-title' }, `New shortcut for ${options.host}`),
+    h('h2', { id: 'ak-picker-title' }, t('page.panel.title', { host: options.host })),
     h('p', { class: 'ak-panel-target' }, options.description),
     form,
   );
@@ -145,7 +142,10 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   function update(): void {
     const kind = focusRadio.checked ? 'focus' : 'click';
     newTabRow.hidden = !options.isLink || kind !== 'click';
-    const label = truncate(`${kind === 'click' ? 'Click' : 'Focus'} ${options.name}`, LIMITS.label);
+    const label = truncate(
+      t(kind === 'click' ? 'action.clickTarget' : 'action.focusTarget', { target: options.name }),
+      LIMITS.label,
+    );
     if (labelInput.value === defaultLabel) labelInput.value = label;
     defaultLabel = label;
     labelInput.placeholder = label;
@@ -169,7 +169,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
         ? []
         : (findConflicts([...options.page.shortcuts, shortcut], options.isMac, options.page.native).get(NEW_ID) ?? []);
     conflicts = found.length;
-    notes.replaceChildren(...describeConflicts(found).map((line) => h('li', {}, line)));
+    notes.replaceChildren(...describeConflicts(found).map((line) => h('li', {}, textOf(line))));
   }
 
   function showError(message: string): void {
@@ -186,9 +186,9 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     opening = fromOpening;
     beforeRecording = keysInput.value;
     keysInput.value = '';
-    keysInput.placeholder = 'Press keys…';
+    keysInput.placeholder = t('recorder.pressKeys');
     recordButton.setAttribute('aria-pressed', 'true');
-    hint.textContent = RECORDING_HINT;
+    hint.textContent = t('page.panel.recordingHint');
     update();
   }
 
@@ -210,13 +210,13 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     opening = false;
     recordButton.setAttribute('aria-pressed', 'false');
     keysInput.placeholder = '';
-    hint.textContent = TYPING_HINT;
+    hint.textContent = t('page.panel.typingHint');
     if (state.status === 'cancelled' || state.keys === '') {
       keysInput.value = beforeRecording;
-      say(state.status === 'cancelled' ? 'Recording cancelled.' : 'Nothing recorded.');
+      say(t(state.status === 'cancelled' ? 'recorder.cancelled' : 'recorder.nothing'));
     } else {
       keysInput.value = state.keys;
-      say(`Recorded ${inWords(state.keys)}.`);
+      say(t('recorder.recorded', { keys: inWords(state.keys) }));
     }
     update();
   }
@@ -229,7 +229,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     }
     keysInput.value = beforeRecording;
     startRecording(true);
-    say('Cleared. Press the keys again.');
+    say(t('page.panel.cleared'));
   }
 
   /** Enter finished a recording: save, unless the keys need a look first. */
@@ -237,9 +237,9 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     const keys = keysInput.value.trim();
     if (keys === '') {
       startRecording(fromOpening);
-      showError('Press the keys for this shortcut first.');
+      showError(t('page.panel.pressFirst'));
     } else if (conflicts > 0) {
-      say(`Recorded ${inWords(keys)}. Check the ${conflicts === 1 ? 'warning' : 'warnings'}, then press Enter to save.`);
+      say(t('page.panel.checkWarnings', conflicts, { keys: inWords(keys) }));
     } else {
       void submit();
     }
@@ -263,7 +263,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
     const typed = keysInput.value.trim();
     const keys = typed === '' ? null : storedKeys(typed, 'key');
     if (keys?.ok !== true) {
-      showError(keys === null ? 'Enter the keys for this shortcut, or record them.' : keys.error);
+      showError(keys === null ? t('page.panel.enterKeys') : textOf(keys.error));
       keysInput.setAttribute('aria-invalid', 'true');
       keysInput.focus();
       return;
@@ -289,7 +289,7 @@ export async function openPickerPanel(options: PanelOptions): Promise<PickerPane
   recordButton.addEventListener('click', (event) => {
     if (recorder === null) {
       startRecording(false);
-      say('Recording. Press the keys, then pause. Esc cancels.');
+      say(t('recorder.recording'));
     } else if (event.detail > 0) {
       // A mouse click stops recording. Keyboard clicks can't: Space and Enter are keys to record or finish with.
       record(recorder.timeout());

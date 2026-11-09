@@ -1,27 +1,28 @@
 import { z } from 'zod/mini';
 import { chordText, parseKeys } from './keys';
 import { parseMatchPattern } from './matchPattern';
+import { textMessage, type Text } from './text';
 import { isSafeUrl, MAX_URL_LENGTH } from './url';
 
 // Schemas for every trust boundary: stored data, imported JSON, presets and runtime messages. Types are inferred
 // from them. They use zod/mini, whose functions tree-shake: the content script validates stored shortcuts on every
-// page, and classic zod would add about 85 kB to it. zod/mini ships no English messages, so every check a user can
-// fail in the options page carries its own.
+// page, and classic zod would add about 85 kB to it. zod/mini ships no messages, so every check a user can fail in
+// the options page carries its own, as `textMessage` (core holds no words of its own; see src/locales).
 
 export const LIMITS = { id: 100, label: 100, selector: 500, keys: 64 } as const;
 
 /** A non-empty string of at most `max` characters. */
 function bounded(max: number, emptyMessage?: string) {
-  return z.string().check(z.minLength(1, emptyMessage), z.maxLength(max));
+  return z.string().check(z.minLength(1, emptyMessage), z.maxLength(max, textMessage('errors.maxChars', { n: max })));
 }
 
 export const IdSchema = bounded(LIMITS.id);
 
 /** A shortcut's name, shown in the cheatsheet and settings. */
-export const LabelSchema = bounded(LIMITS.label, 'Enter a name.');
+export const LabelSchema = bounded(LIMITS.label, textMessage('errors.enterName'));
 
 /** Shortcut notation. `parseKeys` checks the content, so an empty string gets its message ("Enter a key."). */
-export const KeysSchema = z.string().check(z.maxLength(LIMITS.keys, `Use at most ${LIMITS.keys} characters.`));
+export const KeysSchema = z.string().check(z.maxLength(LIMITS.keys, textMessage('errors.maxChars', { n: LIMITS.keys })));
 
 export const KeyModeSchema = z.enum(['key', 'code']);
 export type KeyMode = z.infer<typeof KeyModeSchema>;
@@ -30,11 +31,11 @@ export type KeyMode = z.infer<typeof KeyModeSchema>;
  * Keys as AnyKey stores them: in canonical notation (`meta+pagedown` for `cmd+pgdn`), which must fit the length limit
  * too. Writers store this form and the reader checks it, so a saved shortcut always reads back.
  */
-export function storedKeys(keys: string, keyMode: KeyMode): { ok: true; keys: string } | { ok: false; error: string } {
+export function storedKeys(keys: string, keyMode: KeyMode): { ok: true; keys: string } | { ok: false; error: Text } {
   const parsed = parseKeys(keys, keyMode);
   if (!parsed.ok) return parsed;
   const text = parsed.chords.map(chordText).join(' ');
-  if (text.length > LIMITS.keys) return { ok: false, error: 'These keys are too long to save. Use fewer keys.' };
+  if (text.length > LIMITS.keys) return { ok: false, error: { key: 'errors.keysTooLong' } };
   return { ok: true, keys: text };
 }
 
@@ -79,8 +80,8 @@ export const ActionSchema = z.discriminatedUnion('type', [
     url: z
       .string()
       .check(
-        z.maxLength(MAX_URL_LENGTH, 'Use a shorter URL.'),
-        z.refine(isSafeUrl, 'Use a web address starting with https://, or a path such as /notifications.'),
+        z.maxLength(MAX_URL_LENGTH, textMessage('errors.shorterUrl')),
+        z.refine(isSafeUrl, textMessage('errors.badUrl')),
       ),
     newTab: z.optional(z.boolean()),
   }),
@@ -95,7 +96,7 @@ export const MatchPatternSchema = z
   .string()
   .check(
     z.maxLength(MAX_URL_LENGTH),
-    z.refine((pattern) => parseMatchPattern(pattern) !== null, 'Use a match pattern such as *://github.com/*.'),
+    z.refine((pattern) => parseMatchPattern(pattern) !== null, textMessage('errors.badMatch')),
   );
 
 export const ScopeSchema = z.discriminatedUnion('type', [
@@ -123,14 +124,14 @@ export const ShortcutSchema = z
   .check(
     z.superRefine((shortcut, ctx) => {
       const stored = storedKeys(shortcut.keys, shortcut.keyMode);
-      if (!stored.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: stored.error });
+      if (!stored.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: JSON.stringify(stored.error) });
     }),
   );
 export type Shortcut = z.infer<typeof ShortcutSchema>;
 
 /** A whole number from `min` to `max`. */
 function between(min: number, max: number) {
-  const message = `Use a whole number from ${min} to ${max}.`;
+  const message = textMessage('errors.between', { min, max });
   return z.int(message).check(z.gte(min, message), z.lte(max, message));
 }
 
@@ -144,13 +145,13 @@ export const SettingsSchema = z.object({
   hintChars: z
     .string()
     .check(
-      z.refine((chars) => Array.from(chars).length >= 2, 'Use at least 2 characters.'),
-      z.maxLength(40, 'Use at most 40 characters.'),
-      z.refine((chars) => !/\s/u.test(chars), 'Leave out spaces.'),
+      z.refine((chars) => Array.from(chars).length >= 2, textMessage('errors.hintMin')),
+      z.maxLength(40, textMessage('errors.maxChars', { n: 40 })),
+      z.refine((chars) => !/\s/u.test(chars), textMessage('errors.noSpaces')),
       z.refine((chars) => {
         const list = Array.from(chars.toLowerCase());
         return new Set(list).size === list.length;
-      }, 'Use each character once. Capital and small letters count as the same.'),
+      }, textMessage('errors.hintUnique')),
     ),
   /** Links opened in a new tab (F hints, new-tab shortcuts) open behind the current tab. */
   newTabInBackground: z.boolean(),

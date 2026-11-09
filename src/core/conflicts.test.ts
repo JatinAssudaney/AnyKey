@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOf } from '@/i18n';
 import { describeConflicts, findConflicts, nativeKeysLeft } from './conflicts';
 import type { NativeKey } from './resolve';
 import type { Shortcut } from './schema';
@@ -85,7 +86,7 @@ describe('findConflicts', () => {
       expect(kinds(conflicts, 'ctrl-k')).toEqual(['takesNative']);
       // mod+k is Cmd+K on a Mac, which Ctrl+K doesn't take.
       expect(kinds(findConflicts(list, true, [palette]), 'ctrl-k')).toEqual([]);
-      expect(describeConflicts([{ kind: 'takesNative', native: search }])).toEqual([
+      expect(describeConflicts([{ kind: 'takesNative', native: search }]).map(textOf)).toEqual([
         'GitHub\'s own "Focus the search bar" doesn\'t run, because this shortcut takes its keys.',
       ]);
     });
@@ -122,9 +123,9 @@ describe('findConflicts', () => {
         { kind: 'takesNative', native: files },
         { kind: 'afterNative', native: search },
         { kind: 'takesNative', native: logs },
-      ]);
+      ]).map(textOf);
       expect(lines).toEqual([
-        'GitHub\'s own "Open the file finder", "Filter the changed files" and "Show or hide timestamps in logs" don\'t run, because this shortcut takes their keys.',
+        'GitHub\'s own "Open the file finder", "Filter the changed files", and "Show or hide timestamps in logs" don\'t run, because this shortcut takes their keys.',
         'The browser keeps these keys for itself, so this shortcut never runs.',
         'GitHub\'s own "Focus the search bar" runs first, which can stop this shortcut.',
       ]);

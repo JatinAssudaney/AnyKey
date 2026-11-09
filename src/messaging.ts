@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser';
 import type { BackgroundMessage, BackgroundResponse } from './core/messages';
+import { t } from './i18n';
 
 // The sending side only. The background's validating listener lives in src/background/router.ts, which keeps zod
 // out of the content script bundle.
@@ -7,7 +8,7 @@ import type { BackgroundMessage, BackgroundResponse } from './core/messages';
 export async function sendToBackground(message: BackgroundMessage): Promise<BackgroundResponse> {
   try {
     const response = await browser.runtime.sendMessage<BackgroundMessage, unknown>(message);
-    return isResponse(response) ? response : { ok: false, error: 'AnyKey did not answer.' };
+    return isResponse(response) ? response : { ok: false, error: t('errors.noAnswer') };
   } catch (error) {
     return { ok: false, error: errorMessage(error) };
   }

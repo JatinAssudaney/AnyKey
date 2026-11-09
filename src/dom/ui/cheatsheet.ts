@@ -1,6 +1,6 @@
-import { keycapLabels } from '../../core/keys';
 import type { NativeKey } from '../../core/resolve';
 import type { Action, KeyMode, Shortcut } from '../../core/schema';
+import { keycaps as keycapText, shortcutLabel, t, type MessageKey } from '../../i18n';
 import type { Mode } from '../modes';
 import { deepActiveElement } from '../shadow';
 import { h } from './h';
@@ -8,12 +8,12 @@ import { anyKeyIcon } from './icon';
 import type { UiRoot } from './root';
 
 // Page elements come first: most are shortcuts for the site's own pages, a preset's or ones picked there.
-const GROUPS: readonly { title: string; types: readonly Action['type'][] }[] = [
-  { title: 'Page elements', types: ['click', 'focus'] },
-  { title: 'Scrolling', types: ['scroll'] },
-  { title: 'Pages and links', types: ['history', 'navigate', 'hints'] },
-  { title: 'Tabs', types: ['tab'] },
-  { title: 'Help', types: ['cheatsheet'] },
+const GROUPS: readonly { title: MessageKey; types: readonly Action['type'][] }[] = [
+  { title: 'page.cheatsheet.elements', types: ['click', 'focus'] },
+  { title: 'page.cheatsheet.scrolling', types: ['scroll'] },
+  { title: 'page.cheatsheet.pages', types: ['history', 'navigate', 'hints'] },
+  { title: 'page.cheatsheet.tabs', types: ['tab'] },
+  { title: 'page.cheatsheet.help', types: ['cheatsheet'] },
 ];
 
 /** Past this many rows, the cheatsheet widens to fit more columns. */
@@ -55,7 +55,7 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
 
   const { sites, own } = sections(options);
   const rows = [...sites, ...own].reduce((count, section) => count + section.rows.length, 0);
-  const closeButton = h('button', { type: 'button', class: 'ak-close', 'aria-label': 'Close' }, '×');
+  const closeButton = h('button', { type: 'button', class: 'ak-close', 'aria-label': t('page.cheatsheet.close') }, '×');
   // Focused on open, so arrow keys, Page Down and Space scroll the list.
   const body = h(
     'div',
@@ -79,11 +79,11 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
     h(
       'header',
       { class: 'ak-cheatsheet-header' },
-      h('h2', { id: 'ak-cheatsheet-title' }, 'Keyboard shortcuts'),
+      h('h2', { id: 'ak-cheatsheet-title' }, t('page.cheatsheet.title')),
       closeButton,
     ),
     body,
-    h('footer', { class: 'ak-cheatsheet-footer' }, anyKeyIcon(), 'AnyKey. Press Esc to close.'),
+    h('footer', { class: 'ak-cheatsheet-footer' }, anyKeyIcon(), t('page.cheatsheet.footer')),
   );
 
   let closed = false;
@@ -135,12 +135,16 @@ export async function openCheatsheet(options: CheatsheetOptions): Promise<void> 
 /** The site's own keys, by site ("YouTube's own keys"), and AnyKey's shortcuts in their groups. */
 function sections({ shortcuts, native }: CheatsheetOptions): { sites: Section[]; own: Section[] } {
   const sites = [...new Set(native.map(({ site }) => site))].map((site) => ({
-    title: `${site}'s own keys`,
+    title: t('preset.ownKeys', { name: site }),
     rows: rowsOf(native.filter((key) => key.site === site).map((key) => ({ ...key, keyMode: 'key' as const }))),
   }));
   const own = GROUPS.map(({ title, types }) => ({
-    title,
-    rows: rowsOf(shortcuts.filter((shortcut) => types.includes(shortcut.action.type))),
+    title: t(title),
+    rows: rowsOf(
+      shortcuts
+        .filter((shortcut) => types.includes(shortcut.action.type))
+        .map((shortcut) => ({ ...shortcut, label: shortcutLabel(shortcut) })),
+    ),
   }));
   return { sites, own: own.filter(({ rows }) => rows.length > 0) };
 }
@@ -168,7 +172,7 @@ function sectionContent({ title, rows }: Section, { isMac }: CheatsheetOptions):
         ...keys.flatMap((one, i) =>
           i === 0
             ? [h('span', { class: 'ak-alt' }, ...keycaps(one, isMac))]
-            : [' ', h('span', { class: 'ak-alt' }, h('span', { class: 'ak-or' }, 'or'), ' ', ...keycaps(one, isMac))],
+            : [' ', h('span', { class: 'ak-alt' }, h('span', { class: 'ak-or' }, t('keys.or')), ' ', ...keycaps(one, isMac))],
         ),
       ),
       h('td', {}, label),
@@ -178,9 +182,9 @@ function sectionContent({ title, rows }: Section, { isMac }: CheatsheetOptions):
 }
 
 function keycaps(shortcut: Keys, isMac: boolean): HTMLElement[] {
-  const chords = keycapLabels(shortcut.keys, shortcut.keyMode, isMac) ?? [];
+  const chords = keycapText(shortcut.keys, shortcut.keyMode, isMac) ?? [];
   return chords.flatMap((labels, i) => [
-    ...(i > 0 ? [h('span', { class: 'ak-then' }, 'then')] : []),
+    ...(i > 0 ? [h('span', { class: 'ak-then' }, t('keys.then'))] : []),
     ...labels.flatMap((label, j) => [
       ...(j > 0 && !isMac ? [h('span', { class: 'ak-plus', 'aria-hidden': 'true' }, '+')] : []),
       h('kbd', {}, label),

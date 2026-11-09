@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS } from '@/core/defaults';
 import { effectiveSettings, type SyncData } from '@/core/docs';
 import type { Mutation } from '@/core/messages';
 import { SettingsSchema, type Settings } from '@/core/schema';
-import { t } from '@/i18n';
+import { t, textOfMessage } from '@/i18n';
 
 /** What was typed into a setting's field: the value to save, or why it can't be saved. */
 type Checked<T> = { value: T } | { error: string };
@@ -167,5 +167,6 @@ function checkSetting<K extends 'sequenceTimeoutMs' | 'scrollStep' | 'hintChars'
 ): Checked<Settings[K]> {
   const result = SettingsSchema.shape[name].safeParse(value);
   if (result.success) return { value: result.data as Settings[K] };
-  return { error: result.error.issues[0]?.message ?? t('settings.checkValue') };
+  const message = result.error.issues[0]?.message;
+  return { error: message === undefined ? t('settings.checkValue') : textOfMessage(message) };
 }

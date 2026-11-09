@@ -10,10 +10,11 @@ import {
   ShortcutSchema,
   TabOpSchema,
 } from './schema';
+import { textMessage } from './text';
 import { isHost, isHttpUrl, MAX_URL_LENGTH } from './url';
 
 /** A site, as `URL.hostname` gives it: the host a site doc belongs to. */
-export const HostSchema = z.string().check(z.refine(isHost, 'Enter a site such as github.com.'));
+export const HostSchema = z.string().check(z.refine(isHost, textMessage('dialog.enterSite')));
 
 /**
  * Changes to stored settings. Extension pages send them to the background, which is the only writer (rules in
@@ -79,7 +80,7 @@ export const BackgroundMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('openUrl'),
     /** Absolute: the content script resolves relative URLs against the page first. */
-    url: z.string().check(z.maxLength(MAX_URL_LENGTH), z.refine(isHttpUrl, 'Only http(s) URLs can be opened.')),
+    url: z.string().check(z.maxLength(MAX_URL_LENGTH), z.refine(isHttpUrl, textMessage('errors.httpOnly'))),
     background: z.boolean(),
   }),
   /** From AnyKey's own pages only. */

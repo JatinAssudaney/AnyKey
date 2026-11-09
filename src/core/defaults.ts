@@ -1,4 +1,5 @@
 import type { Action, Settings, Shortcut } from './schema';
+import type { Text } from './text';
 
 export const DEFAULT_SETTINGS: Settings = {
   sequenceTimeoutMs: 800,
@@ -8,7 +9,8 @@ export const DEFAULT_SETTINGS: Settings = {
   newTabInBackground: true,
 };
 
-function defaultShortcut(name: string, keys: string, label: string, action: Action): Shortcut {
+/** `label` names a message: a built-in shortcut's label is translated where it shows (`shortcutLabel` in src/i18n.ts). */
+function defaultShortcut(name: string, keys: string, label: Text['key'], action: Action): Shortcut {
   return {
     id: `default:${name}`,
     keys,
@@ -23,19 +25,19 @@ function defaultShortcut(name: string, keys: string, label: string, action: Acti
 
 /** Global shortcuts that work on every site. Users can rekey or disable each one. */
 export const DEFAULT_SHORTCUTS: readonly Shortcut[] = [
-  defaultShortcut('scroll-down', 'j', 'Scroll down', { type: 'scroll', direction: 'down' }),
-  defaultShortcut('scroll-up', 'k', 'Scroll up', { type: 'scroll', direction: 'up' }),
-  defaultShortcut('scroll-half-down', 'd', 'Scroll down half a page', { type: 'scroll', direction: 'halfDown' }),
-  defaultShortcut('scroll-half-up', 'u', 'Scroll up half a page', { type: 'scroll', direction: 'halfUp' }),
-  defaultShortcut('scroll-top', 'g g', 'Scroll to the top', { type: 'scroll', direction: 'top' }),
-  defaultShortcut('scroll-bottom', 'G', 'Scroll to the bottom', { type: 'scroll', direction: 'bottom' }),
+  defaultShortcut('scroll-down', 'j', 'action.scrollDown', { type: 'scroll', direction: 'down' }),
+  defaultShortcut('scroll-up', 'k', 'action.scrollUp', { type: 'scroll', direction: 'up' }),
+  defaultShortcut('scroll-half-down', 'd', 'action.scrollHalfDown', { type: 'scroll', direction: 'halfDown' }),
+  defaultShortcut('scroll-half-up', 'u', 'action.scrollHalfUp', { type: 'scroll', direction: 'halfUp' }),
+  defaultShortcut('scroll-top', 'g g', 'action.scrollTop', { type: 'scroll', direction: 'top' }),
+  defaultShortcut('scroll-bottom', 'G', 'action.scrollBottom', { type: 'scroll', direction: 'bottom' }),
   // Not f, which YouTube and most video players use for fullscreen (docs/design.md, "Hints").
-  defaultShortcut('hints', 'F', 'Click a link or button', { type: 'hints' }),
-  defaultShortcut('hints-new-tab', 'g f', 'Open a link in a new tab', { type: 'hints', newTab: true }),
-  defaultShortcut('history-back', 'H', 'Go back', { type: 'history', op: 'back' }),
-  defaultShortcut('history-forward', 'L', 'Go forward', { type: 'history', op: 'forward' }),
-  defaultShortcut('tab-prev', 'J', 'Previous tab', { type: 'tab', op: 'prev' }),
-  defaultShortcut('tab-next', 'K', 'Next tab', { type: 'tab', op: 'next' }),
-  defaultShortcut('tab-close', 'x', 'Close tab', { type: 'tab', op: 'close' }),
-  defaultShortcut('cheatsheet', '?', 'Show keyboard shortcuts', { type: 'cheatsheet' }),
+  defaultShortcut('hints', 'F', 'action.hintsClickDefault', { type: 'hints' }),
+  defaultShortcut('hints-new-tab', 'g f', 'action.hintsNewTabDefault', { type: 'hints', newTab: true }),
+  defaultShortcut('history-back', 'H', 'action.back', { type: 'history', op: 'back' }),
+  defaultShortcut('history-forward', 'L', 'action.forward', { type: 'history', op: 'forward' }),
+  defaultShortcut('tab-prev', 'J', 'action.prevTab', { type: 'tab', op: 'prev' }),
+  defaultShortcut('tab-next', 'K', 'action.nextTab', { type: 'tab', op: 'next' }),
+  defaultShortcut('tab-close', 'x', 'action.closeTab', { type: 'tab', op: 'close' }),
+  defaultShortcut('cheatsheet', '?', 'action.cheatsheet', { type: 'cheatsheet' }),
 ];

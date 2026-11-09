@@ -1,6 +1,7 @@
 import type { BackgroundMessage } from '../core/messages';
 import type { Settings, Shortcut } from '../core/schema';
 import { isSafeUrl } from '../core/url';
+import { t } from '../i18n';
 import { sendToBackground } from '../messaging';
 import { clickElement, focusElement, linkOf } from './click';
 import { isEditable } from './editable';
@@ -36,7 +37,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
     }
     // A relative URL on a file:// page would resolve to another file:// URL.
     if (resolved === null || (resolved.protocol !== 'http:' && resolved.protocol !== 'https:')) {
-      toast('AnyKey only opens http and https links.');
+      toast(t('page.onlyHttp'));
       return;
     }
     if (newTab) void request({ type: 'openUrl', url: resolved.href, background: settings.newTabInBackground });
@@ -56,7 +57,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
   /** What typing a hint does: a text field or list takes focus (a list opens too), and anything else is clicked. */
   function activate(element: Element, newTab: boolean): void {
     if (!element.isConnected) {
-      toast('That element is gone from the page.');
+      toast(t('page.gone'));
       return;
     }
     if (isEditable(element) && focusElement(element)) {
@@ -100,7 +101,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
       case 'focus': {
         const element = findTarget(action.target);
         if (element === null) toast(notFound(label));
-        else if (!focusElement(element)) toast(`"${label}" found an element that can't take focus.`);
+        else if (!focusElement(element)) toast(t('page.noFocus', { label }));
         return;
       }
       case 'hints': {
@@ -115,7 +116,7 @@ export function createExecutor(options: ExecutorOptions): RunShortcut {
 }
 
 function notFound(label: string): string {
-  return `Couldn't find the element for "${label}" on this page.`;
+  return t('page.notFound', { label });
 }
 
 /** Opens a list's options, as a click would. Only a key press or click just before allows it. */

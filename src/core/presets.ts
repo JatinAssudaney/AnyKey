@@ -138,7 +138,7 @@ export const PresetOverrideSchema = z
         return;
       }
       const stored = storedKeys(override.keys, override.keyMode);
-      if (!stored.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: stored.error });
+      if (!stored.ok) ctx.addIssue({ code: 'custom', path: ['keys'], message: JSON.stringify(stored.error) });
     }),
   );
 export type PresetOverride = z.infer<typeof PresetOverrideSchema>;

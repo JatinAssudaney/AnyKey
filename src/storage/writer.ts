@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { BACKUP_KEY, parseSync, type Backup, type SyncData } from '../core/docs';
 import type { Mutation } from '../core/messages';
+import { t } from '../i18n';
 import { errorMessage } from '../messaging';
 import { applyMutation, restoreItems, type MutationResult } from './mutations';
 import { loadBackup } from './read';
@@ -85,7 +86,7 @@ async function save(batch: readonly Entry[]): Promise<boolean> {
         continue;
       }
       if (backup === null) {
-        entry.reject(new Error('There is no backup to restore.'));
+        entry.reject(new Error(t('storage.noBackup')));
         continue;
       }
       result = restoreItems(data, backup.items);
@@ -158,8 +159,8 @@ async function saveBackup(backup: Backup): Promise<() => Promise<void>> {
 function saveError(error: unknown): string {
   const message = errorMessage(error);
   if (message.includes('MAX_WRITE_OPERATIONS')) {
-    return 'The browser limits how often synced settings can change. Wait a minute, then try again.';
+    return t('storage.writeRate');
   }
-  if (/quota/i.test(message)) return 'AnyKey has run out of synced storage. Delete some shortcuts, then try again.';
-  return `AnyKey couldn't save the change: ${message}`;
+  if (/quota/i.test(message)) return t('storage.outOfStorage');
+  return t('storage.saveFailed', { message });
 }

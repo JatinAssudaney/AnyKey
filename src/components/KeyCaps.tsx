@@ -1,12 +1,12 @@
 import { Fragment } from 'react';
-import { commandKeycaps, keycapLabels } from '@/core/keys';
+import { commandKeycaps } from '@/core/keys';
 import type { KeyMode } from '@/core/schema';
-import { t } from '@/i18n';
+import { keycaps, t } from '@/i18n';
 import { isMac } from './platform';
 
 /** A shortcut's keys as keycaps: "g g" shows as [g] then [g], "mod+k" as [⌘][K] on macOS and [Ctrl]+[K] elsewhere. */
 export function KeyCaps({ keys, mode }: { keys: string; mode: KeyMode }) {
-  const chords = keycapLabels(keys, mode, isMac);
+  const chords = keycaps(keys, mode, isMac);
   if (chords === null) return <span className="text-sm text-stone-600 dark:text-stone-400">{keys}</span>;
   return <Caps chords={chords} />;
 }

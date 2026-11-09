@@ -3,7 +3,8 @@ import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { nativeKeysLeft } from '../core/conflicts';
 import { DEFAULT_SETTINGS } from '../core/defaults';
 import { effectiveSettings, EMPTY_STATE, type SyncState } from '../core/docs';
-import { keysInWords, sequenceTokens } from '../core/keys';
+import { sequenceTokens } from '../core/keys';
+import { keysInWords, t } from '../i18n';
 import type { BackgroundResponse, PageInfo, PageRequest } from '../core/messages';
 import type { Preset } from '../core/presets';
 import { pageShortcuts, resolve, type PageShortcuts } from '../core/resolve';
@@ -131,9 +132,9 @@ export function startAnyKey(ctx: ContentScriptContext, options: StartOptions): v
     closed: (saved) => {
       void sendToBackground({ type: 'pickerDone' });
       const [only] = saved;
-      if (saved.length > 1) toast(`Saved ${saved.length} shortcuts for this site.`);
+      if (saved.length > 1) toast(t('page.savedMany', { count: saved.length }));
       else if (only !== undefined) {
-        toast(`Saved "${only.label}". Press ${keysInWords(only.keys, only.keyMode, isMac)} to use it.`);
+        toast(t('page.savedOne', { label: only.label, keys: keysInWords(only.keys, only.keyMode, isMac) }));
       }
     },
   });

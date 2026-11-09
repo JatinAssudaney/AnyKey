@@ -12,7 +12,7 @@ import type { Mutation } from '@/core/messages';
 import type { Preset } from '@/core/presets';
 import { effectiveDefaults } from '@/core/resolve';
 import type { Shortcut } from '@/core/schema';
-import { t } from '@/i18n';
+import { shortcutLabel, t } from '@/i18n';
 import { ShortcutDialog, type Editing } from './ShortcutDialog';
 import { editButtonId, ShortcutTable } from './ShortcutTable';
 
@@ -68,7 +68,7 @@ export function ShortcutsSection({ data, presets, mutate, onShowSite }: Shortcut
               className={linkButton}
             >
               {t('common.reset')}
-              <span className="sr-only"> {shortcut.label}</span>
+              <span className="sr-only"> {shortcutLabel(shortcut)}</span>
             </button>
           ) : null
         }

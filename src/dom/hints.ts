@@ -1,5 +1,6 @@
 import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 import { hintLabels } from '../core/hintLabels';
+import { t } from '../i18n';
 import type { Mode } from './modes';
 import { deepElementFromPoint, deepElements, flatParent } from './shadow';
 import { CONTROLS, INTERACTIVE, isVisible } from './targets';
@@ -37,7 +38,7 @@ export function openHints(options: HintsOptions): void {
   const { ctx } = options;
   const targets = hintTargets();
   if (targets.length === 0) {
-    options.toast('No links or buttons in view.');
+    options.toast(t('page.noHints'));
     return;
   }
   // Labels ignore case, so Shift and Caps Lock don't matter when typing them.
@@ -48,12 +49,12 @@ export function openHints(options: HintsOptions): void {
   });
   if (hints.length === 0) return;
   // Keys pick labels instead of running shortcuts until the hints close, so the mode says so while it lasts.
-  const action = options.newTab ? 'open it in a new tab' : 'click it';
   const bar = h(
     'div',
     { class: 'ak-surface ak-link-hints-bar' },
-    h('strong', {}, 'Hint mode: '),
-    `type a label to ${action}, or press Esc to go back to your shortcuts.`,
+    h('strong', {}, t('page.hintMode')),
+    ' ',
+    t(options.newTab ? 'page.hintsNewTab' : 'page.hintsClick'),
   );
 
   let typed = '';

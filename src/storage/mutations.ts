@@ -21,6 +21,7 @@ import type { Mutation } from '../core/messages';
 import type { PresetOverride } from '../core/presets';
 import { storedKeys, type KeyMode, type Settings, type Shortcut } from '../core/schema';
 import { isHost } from '../core/url';
+import { t, textOf } from '../i18n';
 
 export type MutationResult =
   | { ok: true; data: SyncData; touched: readonly string[] }
@@ -51,13 +52,13 @@ export function applyMutation(data: SyncData, mutation: Mutation): MutationResul
     case 'deleteShortcut':
       return deleteShortcut(data, mutation.id);
     case 'setSiteDisabled': {
-      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      if (!isHost(mutation.site)) return fail(t('dialog.enterSite'));
       const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
       const sites = withSite(state.sites, mutation.site, { ...site, disabled: mutation.disabled });
       return commit(data, { ...state, sites }, [siteKey(mutation.site)]);
     }
     case 'setSiteDefault': {
-      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      if (!isHost(mutation.site)) return fail(t('dialog.enterSite'));
       if (!DEFAULTS_BY_ID.has(mutation.id)) return fail(unknownDefault(mutation.id));
       const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
       const globals = withEntry(site.globals, mutation.id, mutation.enabled);
@@ -67,7 +68,7 @@ export function applyMutation(data: SyncData, mutation: Mutation): MutationResul
     case 'setPresetOverride':
       return setPresetOverride(data, mutation);
     case 'resetToPreset': {
-      if (!isHost(mutation.site)) return fail(NOT_A_SITE);
+      if (!isHost(mutation.site)) return fail(t('dialog.enterSite'));
       const site = state.sites.get(mutation.site) ?? EMPTY_SITE;
       const shortcuts = mutation.deleteShortcuts ? [] : site.shortcuts;
       const sites = withSite(state.sites, mutation.site, { ...site, shortcuts, globals: new Map() });
@@ -79,9 +80,9 @@ export function applyMutation(data: SyncData, mutation: Mutation): MutationResul
       return replaceAll(data, mutation.items);
     case 'restoreBackup':
       // The writer restores with `restoreItems`, since the backup lives in storage.local.
-      return fail('Only the background can restore the backup.');
+      return fail(t('storage.backgroundOnly'));
     case 'repairDoc':
-      if (!data.problems.has(mutation.key)) return fail('That part of your settings needs no repair.');
+      if (!data.problems.has(mutation.key)) return fail(t('storage.noRepair'));
       // The state holds only what this version could read, so writing it back drops the rest.
       return commit(data, state, [mutation.key], { force: true });
   }
@@ -93,7 +94,7 @@ function setDefault(data: SyncData, change: Extract<Mutation, { op: 'setDefault'
   const current = data.state.global.overrides.get(change.id) ?? {};
   const keyMode: KeyMode = change.keyMode ?? current.keyMode ?? base.keyMode;
   const stored = storedKeys(change.keys ?? current.keys ?? base.keys, keyMode);
-  if (!stored.ok) return fail(stored.error);
+  if (!stored.ok) return fail(textOf(stored.error));
   const { keys } = stored;
   const enabled = change.enabled ?? current.enabled ?? base.enabled;
 
@@ -108,11 +109,11 @@ function setDefault(data: SyncData, change: Extract<Mutation, { op: 'setDefault'
 
 /** Stores the user's change to a preset shortcut, with its keys in canonical notation. An empty change is removed. */
 function setPresetOverride(data: SyncData, change: Extract<Mutation, { op: 'setPresetOverride' }>): MutationResult {
-  if (!change.id.startsWith(`preset:${change.preset}:`)) return fail(`The ${change.preset} preset has no shortcut "${change.id}".`);
+  if (!change.id.startsWith(`preset:${change.preset}:`)) return fail(t('storage.noPresetShortcut', { preset: change.preset, id: change.id }));
   const override: PresetOverride = {};
   if (change.override.keys !== undefined && change.override.keyMode !== undefined) {
     const stored = storedKeys(change.override.keys, change.override.keyMode);
-    if (!stored.ok) return fail(stored.error);
+    if (!stored.ok) return fail(textOf(stored.error));
     override.keys = stored.keys;
     override.keyMode = change.override.keyMode;
   }
@@ -135,15 +136,15 @@ function setPresetOverride(data: SyncData, change: Extract<Mutation, { op: 'setP
  */
 function saveShortcut(data: SyncData, shortcut: Shortcut, site: string | undefined): MutationResult {
   if (shortcut.source !== 'user' || !shortcut.id.startsWith('user:')) {
-    return fail('Only your own shortcuts can be saved this way.');
+    return fail(t('storage.onlyYours'));
   }
-  if (site === undefined && shortcut.scope.type === 'site') return fail('Choose the site this shortcut is for.');
-  if (site !== undefined && shortcut.scope.type === 'global') return fail("A shortcut for every site can't be saved with one site's settings.");
-  if (site !== undefined && !isHost(site)) return fail(NOT_A_SITE);
+  if (site === undefined && shortcut.scope.type === 'site') return fail(t('storage.chooseSite'));
+  if (site !== undefined && shortcut.scope.type === 'global') return fail(t('storage.notGlobal'));
+  if (site !== undefined && !isHost(site)) return fail(t('dialog.enterSite'));
   const stored = storedKeys(shortcut.keys, shortcut.keyMode);
-  if (!stored.ok) return fail(stored.error);
+  if (!stored.ok) return fail(textOf(stored.error));
   const label = shortcut.label.trim();
-  if (label === '') return fail('Enter a name.');
+  if (label === '') return fail(t('errors.enterName'));
 
   const saved: Shortcut = { ...shortcut, keys: stored.keys, label };
   const removed = withoutShortcut(data.state, saved.id, site === undefined ? GLOBAL_KEY : siteKey(site));
@@ -190,7 +191,6 @@ function upsert(list: readonly Shortcut[], shortcut: Shortcut): Shortcut[] {
 
 const EMPTY_SITE: SiteState = { disabled: false, shortcuts: [], globals: new Map() };
 
-const NOT_A_SITE = 'Enter a site such as github.com.';
 
 /** The sites with `host` set to `site`. A site left with nothing in it goes, as its doc does. */
 function withSite(
@@ -243,7 +243,7 @@ function commit(
   // A doc the reader can't take back whole would be locked as damaged, so nothing is written that way.
   const written = Object.fromEntries(touched.filter((key) => Object.hasOwn(items, key)).map((key) => [key, items[key]]));
   const [damaged] = parseSync(written).problems.keys();
-  if (damaged !== undefined) return fail(`This change would damage ${docName(damaged)}, so AnyKey didn't save it.`);
+  if (damaged !== undefined) return fail(t('storage.damage', { name: docName(damaged) }));
   const problems = new Map([...data.problems].filter(([key]) => !touched.includes(key)));
   return { ok: true, data: { state, problems, items }, touched };
 }
@@ -267,15 +267,15 @@ export function restoreItems(data: SyncData, items: Readonly<Record<string, unkn
 function checkQuota(items: Readonly<Record<string, unknown>>, touched: readonly string[]): string | null {
   for (const key of touched) {
     if (Object.hasOwn(items, key) && itemBytes(key, items[key]) > SYNC_QUOTA.itemBytes) {
-      return `${capitalized(docName(key))} can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.`;
+      return docSentence('itemQuota', key);
     }
   }
   const total = Object.entries(items).reduce((sum, [key, value]) => sum + itemBytes(key, value), 0);
   if (total > SYNC_QUOTA.totalBytes) {
-    return 'AnyKey can use at most 100 KB of synced storage, and this change would pass that. Delete some shortcuts first.';
+    return t('storage.totalQuota');
   }
   if (Object.keys(items).length > SYNC_QUOTA.items) {
-    return 'AnyKey can keep settings for at most 500 sites. Remove some sites first.';
+    return t('storage.siteLimit');
   }
   return null;
 }
@@ -299,27 +299,31 @@ function withEntry<T>(map: ReadonlyMap<string, T>, key: string, value: T | undef
 
 /** How the options page names a stored doc, mid-sentence: "your global shortcuts". */
 export function docName(key: string): string {
-  if (key === SETTINGS_KEY) return 'your settings';
-  if (key === GLOBAL_KEY) return 'your global shortcuts';
+  if (key === SETTINGS_KEY) return t('storage.docSettings');
+  if (key === GLOBAL_KEY) return t('storage.docGlobal');
   const host = hostOfKey(key);
-  if (host !== null) return `your shortcuts for ${host}`;
+  if (host !== null) return t('storage.docSite', { host });
   const preset = presetOfKey(key);
-  return preset === null ? `"${key}"` : `your changes to the ${preset} preset`;
+  return preset === null ? t('common.quoted', { text: key }) : t('storage.docPreset', { preset });
 }
 
-export function capitalized(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+/** A whole sentence about a stored doc, one per kind of doc, so each language can agree with what it names. */
+function docSentence(sentence: 'newer' | 'damaged' | 'itemQuota', key: string): string {
+  const host = hostOfKey(key);
+  const preset = presetOfKey(key);
+  if (key === SETTINGS_KEY) return textOf({ key: `storage.${sentence}.settings` });
+  if (key === GLOBAL_KEY) return textOf({ key: `storage.${sentence}.global` });
+  if (host !== null) return textOf({ key: `storage.${sentence}.site`, args: { host } });
+  if (preset !== null) return textOf({ key: `storage.${sentence}.preset`, args: { preset } });
+  return textOf({ key: `storage.${sentence}.other`, args: { key } });
 }
 
 export function problemMessage(key: string, problem: Problem): string {
-  const name = capitalized(docName(key));
-  return problem === 'newer'
-    ? `${name} were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under "Your data".`
-    : `${name} are partly damaged, so AnyKey won't change them until you repair them under "Your data".`;
+  return docSentence(problem === 'newer' ? 'newer' : 'damaged', key);
 }
 
 function unknownDefault(id: string): string {
-  return `AnyKey has no built-in shortcut "${id}".`;
+  return t('storage.noDefault', { id });
 }
 
 function fail(error: string): MutationResult {

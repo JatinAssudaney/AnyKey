@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalKeys, commandKeycaps, keycapLabels, keysInWords, parseKeys, sequenceTokens } from './keys';
+import { keycaps as keycapLabels, keysInWords, textOf } from '@/i18n';
+import { canonicalKeys, commandKeycaps, keycapLabels as coreKeycaps, parseKeys, sequenceTokens } from './keys';
 
 describe('parseKeys', () => {
   it.each([
@@ -41,7 +42,7 @@ describe('parseKeys', () => {
   ])('rejects %j', (input, message) => {
     const parsed = parseKeys(input, 'key');
     expect(parsed.ok).toBe(false);
-    if (!parsed.ok) expect(parsed.error).toContain(message);
+    if (!parsed.ok) expect(textOf(parsed.error)).toContain(message);
   });
 
   it('takes physical key codes in code mode', () => {
@@ -65,6 +66,11 @@ describe('sequenceTokens', () => {
 });
 
 describe('keycapLabels', () => {
+  it('leaves the words to the caller: core names messages', () => {
+    expect(coreKeycaps('ctrl+enter', 'key', false)).toEqual([[{ key: 'keys.ctrl' }, { key: 'keys.enter' }]]);
+    expect(parseKeys('', 'key')).toEqual({ ok: false, error: { key: 'errors.enterKey' } });
+  });
+
   it('uses symbols in Apple order on macOS', () => {
     expect(keycapLabels('ctrl+alt+shift+meta+k', 'key', true)).toEqual([['⌃', '⌥', '⇧', '⌘', 'K']]);
     expect(keycapLabels('mod+k', 'key', true)).toEqual([['⌘', 'K']]);

@@ -1,6 +1,7 @@
 import { parseKeys, resolveMod, sequenceTokens, tokenOf, type Chord } from './keys';
 import { resolve, type NativeKey } from './resolve';
 import type { Shortcut } from './schema';
+import type { Text, TextArg } from './text';
 
 /** Why a shortcut may not run the way its owner expects. The options page words each one. */
 export type Conflict =
@@ -168,8 +169,8 @@ interface SiteLine {
  * A shortcut's conflicts in words, for the options page and the picker: a line for each, except that the site keys
  * it clashes with in the same way share one line per site.
  */
-export function describeConflicts(conflicts: readonly Conflict[]): string[] {
-  const lines: (string | SiteLine)[] = [];
+export function describeConflicts(conflicts: readonly Conflict[]): Text[] {
+  const lines: (Text | SiteLine)[] = [];
   for (const conflict of conflicts) {
     if (conflict.kind !== 'takesNative' && conflict.kind !== 'afterNative') {
       lines.push(describeConflict(conflict));
@@ -177,34 +178,38 @@ export function describeConflicts(conflicts: readonly Conflict[]): string[] {
     }
     const { site, label } = conflict.native;
     const line = lines.find(
-      (entry): entry is SiteLine => typeof entry !== 'string' && entry.kind === conflict.kind && entry.site === site,
+      (entry): entry is SiteLine => 'site' in entry && entry.kind === conflict.kind && entry.site === site,
     );
     if (line === undefined) lines.push({ kind: conflict.kind, site, labels: [label] });
     else if (!line.labels.includes(label)) line.labels.push(label);
   }
-  return lines.map((line) => (typeof line === 'string' ? line : describeSiteLine(line)));
+  return lines.map((line) => ('site' in line ? describeSiteLine(line) : line));
 }
 
-function describeConflict(conflict: Exclude<Conflict, { kind: SiteLine['kind'] }>): string {
+/** A shortcut's name as a substitution: a built-in shortcut's label is a message. */
+function labelOf(shortcut: Shortcut): TextArg {
+  return shortcut.source === 'default' ? { key: shortcut.label as Text['key'] } : shortcut.label;
+}
+
+function describeConflict(conflict: Exclude<Conflict, { kind: SiteLine['kind'] }>): Text {
   switch (conflict.kind) {
     case 'shadowed':
-      return `Doesn't run: "${conflict.by.label}" uses these keys.`;
+      return { key: 'conflicts.shadowed', args: { label: labelOf(conflict.by) } };
     case 'shadows':
-      return `"${conflict.other.label}" doesn't run, because this shortcut uses its keys.`;
+      return { key: 'conflicts.shadows', args: { label: labelOf(conflict.other) } };
     case 'waits':
-      return `Runs after a short pause, because "${conflict.longer.label}" starts with the same keys.`;
+      return { key: 'conflicts.waits', args: { label: labelOf(conflict.longer) } };
     case 'reserved':
-      return 'The browser keeps these keys for itself, so this shortcut never runs.';
+      return { key: 'conflicts.reserved' };
     case 'typing':
-      return "Also runs in text fields, so you can't type these keys there.";
+      return { key: 'conflicts.typing' };
   }
 }
 
-function describeSiteLine({ kind, site, labels }: SiteLine): string {
-  const quoted = labels.map((label) => `"${label}"`);
-  const last = quoted.pop() ?? '';
-  const names = quoted.length > 0 ? `${quoted.join(', ')} and ${last}` : last;
-  const one = labels.length === 1;
-  if (kind === 'afterNative') return `${site}'s own ${names} ${one ? 'runs' : 'run'} first, which can stop this shortcut.`;
-  return `${site}'s own ${names} ${one ? "doesn't" : "don't"} run, because this shortcut takes ${one ? 'its' : 'their'} keys.`;
+function describeSiteLine({ kind, site, labels }: SiteLine): Text {
+  return {
+    key: kind === 'afterNative' ? 'conflicts.afterNative' : 'conflicts.takesNative',
+    args: { site, labels: { quoted: labels } },
+    count: labels.length,
+  };
 }
