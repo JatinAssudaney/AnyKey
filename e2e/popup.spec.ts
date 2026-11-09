@@ -9,35 +9,55 @@ test("the popup says when AnyKey isn't running in a tab", async ({ page, extensi
   await expect(page.getByRole('button', { name: 'Open settings' })).toBeVisible();
 });
 
-test('the popup asks for a rating once, after real use', async ({ page, extensionContext, extensionId }) => {
+test('AnyKey asks for a rating after real use, and once more after Not now', async ({
+  page,
+  extensionContext,
+  extensionId,
+}) => {
   const popup = await extensionContext.newPage();
   const url = `chrome-extension://${extensionId}/popup.html?tab=999999`;
+  const notNow = popup.getByRole('button', { name: 'Not now' });
+  const settings = popup.getByRole('button', { name: 'Open settings' });
   await popup.goto(url);
-  const seed = (uses: number) =>
-    popup.evaluate((count) => chrome.storage.local.set({ rating: { uses: count, since: 0 } }), uses);
-  const rating = () => popup.evaluate(async () => (await chrome.storage.local.get('rating')).rating as { uses: number; done?: boolean });
+  const seed = (rating: object) => popup.evaluate((value) => chrome.storage.local.set({ rating: value }), rating);
+  const rating = () =>
+    popup.evaluate(
+      async () => (await chrome.storage.local.get('rating')).rating as { uses: number; snoozed?: boolean; done?: boolean },
+    );
   try {
     // One short of the threshold: no question yet, and using a shortcut counts.
-    await seed(24);
+    await seed({ uses: 9, since: 0 });
     await popup.reload();
-    await expect(popup.getByRole('button', { name: 'Open settings' })).toBeVisible();
-    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+    await expect(settings).toBeVisible();
+    await expect(notNow).toHaveCount(0);
     await page.goto(`${FIXTURE_ORIGIN}/picker.html#one`);
     await page.goto(PICKER);
     await page.bringToFront();
-    await pressUntil(page, ['Shift+H'], async () => (await rating()).uses === 25);
+    await pressUntil(page, ['Shift+H'], async () => (await rating()).uses === 10);
 
     await popup.reload();
     await expect(popup.getByText('A rating helps other people find it.')).toBeVisible();
     await expect(popup.getByRole('link', { name: 'Rate AnyKey' })).toHaveAttribute('href', /\/reviews$/);
-    await popup.getByRole('button', { name: 'Not now' }).click();
-    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+    await notNow.click();
+    await expect(notNow).toHaveCount(0);
+    await expect.poll(async () => (await rating()).snoozed).toBe(true);
+    expect((await rating()).uses).toBe(0);
+    await popup.reload();
+    await expect(settings).toBeVisible();
+    await expect(notNow).toHaveCount(0);
+
+    // The second ask is the last, and shows on the settings page too.
+    await seed({ uses: 10, since: 0, snoozed: true });
+    await popup.goto(`chrome-extension://${extensionId}/options.html`);
+    await notNow.click();
     await expect.poll(async () => (await rating()).done).toBe(true);
     await popup.reload();
-    await expect(popup.getByRole('button', { name: 'Open settings' })).toBeVisible();
-    await expect(popup.getByRole('button', { name: 'Not now' })).toHaveCount(0);
+    await expect(popup.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(notNow).toHaveCount(0);
   } finally {
     await popup.evaluate(() => chrome.storage.local.remove('rating'));
+    // An open settings tab would be reused by the next test that opens the settings.
+    await popup.close();
   }
 });
 

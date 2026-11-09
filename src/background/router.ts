@@ -71,9 +71,9 @@ async function handle(message: BackgroundMessage, sender: Browser.runtime.Messag
     case 'used':
       await recordUse();
       return;
-    case 'ratingDone':
+    case 'ratingAnswer':
       if (!isExtensionPage(sender)) throw new Error(t('errors.onlyPagesSettings'));
-      await recordRatingAnswer();
+      await recordRatingAnswer(message.rated);
       return;
   }
 }

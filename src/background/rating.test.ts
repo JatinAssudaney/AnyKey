@@ -31,9 +31,9 @@ describe('rating messages', () => {
   });
 
   it('takes the answer only from AnyKey\'s own pages', async () => {
-    expect((await deliver({ type: 'ratingDone' }, webPage())).ok).toBe(false);
+    expect((await deliver({ type: 'ratingAnswer', rated: true }, webPage())).ok).toBe(false);
     expect(await stored()).toBeUndefined();
-    expect(await deliver({ type: 'ratingDone' }, popup())).toEqual({ ok: true });
+    expect(await deliver({ type: 'ratingAnswer', rated: true }, popup())).toEqual({ ok: true });
     expect(await stored()).toMatchObject({ done: true });
   });
 });

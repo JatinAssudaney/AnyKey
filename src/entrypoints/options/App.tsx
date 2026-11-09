@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import iconUrl from '@/assets/icon.svg';
 import { STORE_URL } from '@/core/app';
+import { RatingPrompt } from '@/components/RatingPrompt';
 import { rich } from '@/components/rich';
 import { focusRing, headerLink } from '@/components/styles';
 import { t } from '@/i18n';
@@ -36,13 +37,14 @@ export function App() {
           <a href="/welcome.html" className={headerLink}>
             {t('options.gettingStarted')}
           </a>
-          {/* Ratings are how the Chrome Web Store ranks AnyKey, and asked for only here, where people already use it. */}
+          {/* Ratings are how the Chrome Web Store ranks AnyKey. */}
           <a href={`${STORE_URL}/reviews`} target="_blank" rel="noreferrer" className={headerLink}>
             {t('options.rate')}
           </a>
         </div>
       </header>
       <main id="main" tabIndex={-1} className="mx-auto max-w-4xl px-6 py-8 focus:outline-none">
+        <RatingPrompt className="mb-6" wide />
         {/* Always in the page, so screen readers announce what appears in it. */}
         <div role="alert">
           {status.error !== '' && (

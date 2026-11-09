@@ -93,8 +93,8 @@ export const BackgroundMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('pickerDone') }),
   /** From a page: a shortcut or hint just did its job. Counted for the one time AnyKey asks for a rating. */
   z.object({ type: z.literal('used') }),
-  /** From the popup: the person answered the request for a rating. */
-  z.object({ type: z.literal('ratingDone') }),
+  /** From AnyKey's own pages: the person chose "Rate AnyKey" (`rated`) or "Not now". */
+  z.object({ type: z.literal('ratingAnswer'), rated: z.boolean() }),
 ]);
 export type BackgroundMessage = z.infer<typeof BackgroundMessageSchema>;
 
