@@ -178,7 +178,7 @@
     },
     "none": "No sites yet.",
     "use": "Use AnyKey",
-    "onHost": "on {host}",
+    "useOnHost": "Use AnyKey on {host}",
     "offHere": "AnyKey is off on this site, so every key goes to the site.",
     "noShortcuts": "No shortcuts for this site.",
     "caption": "Shortcuts for {host}",
@@ -377,14 +377,14 @@
       "global": "Your global shortcuts were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
       "site": "Your shortcuts for {host} were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
       "preset": "Your changes to the {preset} preset were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\".",
-      "other": "\"{key}\" were saved by a newer version of AnyKey, so this version won't change them. Update AnyKey, or repair them under \"Your data\"."
+      "other": "\"{key}\" was saved by a newer version of AnyKey, so this version won't change it. Update AnyKey, or repair it under \"Your data\"."
     },
     "damaged": {
       "settings": "Your settings are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
       "global": "Your global shortcuts are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
       "site": "Your shortcuts for {host} are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
       "preset": "Your changes to the {preset} preset are partly damaged, so AnyKey won't change them until you repair them under \"Your data\".",
-      "other": "\"{key}\" are partly damaged, so AnyKey won't change them until you repair them under \"Your data\"."
+      "other": "\"{key}\" is partly damaged, so AnyKey won't change it until you repair it under \"Your data\"."
     },
     "itemQuota": {
       "settings": "Your settings can use at most 8 KB of synced storage, and this change would pass that. Delete a shortcut first.",

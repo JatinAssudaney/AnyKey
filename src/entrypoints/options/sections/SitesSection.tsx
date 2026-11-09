@@ -208,10 +208,10 @@ export function SitesSection({ data, presets, mutate, openSite, onOpenSite }: Si
                         keep(host);
                         send({ op: 'setSiteDisabled', site: host, disabled: !event.target.checked });
                       }}
+                      aria-label={t('sites.useOnHost', { host })}
                       className={checkbox}
                     />
                     {t('sites.use')}
-                    <span className="sr-only"> {t('sites.onHost', { host })}</span>
                   </label>
                 </div>
 

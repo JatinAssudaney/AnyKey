@@ -3,7 +3,7 @@
   "manifest": {
     "name": "AnyKey: atajos de teclado personalizados para cualquier web",
     "shortName": "AnyKey",
-    "description": "Navega por cualquier web con el teclado: etiquetas en enlaces, desplazamiento, atajos para cualquier botón y paquetes por sitio."
+    "description": "Navega por cualquier web con el teclado: etiquetas en enlaces, desplazamiento, atajos para cualquier botón y preajustes por sitio."
   },
   "common": {
     "tagline": "Atajos de teclado para cualquier sitio web",
@@ -17,8 +17,8 @@
     "reset": "Restablecer",
     "delete": "Eliminar",
     "deleteTitle": "¿Eliminar \"{label}\"?",
-    "deleteBody": "Esto quita el atajo de todos los equipos que sincronizas.",
-    "presetName": "Paquete de {name}",
+    "deleteBody": "Esto quita el atajo de todos los equipos con los que sincronizas.",
+    "presetName": "Preajuste de {name}",
     "quoted": "\"{text}\"",
     "saving": "Guardando…",
     "saved": "Guardado."
@@ -87,7 +87,7 @@
   "popup": {
     "thisPage": "Esta página",
     "unavailable": "AnyKey no se está ejecutando en esta pestaña.",
-    "unavailableHint": "Si es una página web, recárgala para iniciar AnyKey. Las páginas del navegador, como los ajustes y la tienda de extensiones, no permiten extensiones.",
+    "unavailableHint": "Si es una página web, recárgala para iniciar AnyKey. Las páginas del navegador, como la configuración y la tienda de extensiones, no permiten extensiones.",
     "reload": "Recargar esta pestaña",
     "noPanelKey": "Ninguna tecla abre este panel. {setKey}",
     "setOne": "Asigna una",
@@ -168,7 +168,7 @@
   },
   "sites": {
     "heading": "Sitios",
-    "intro": "Atajos para un solo sitio, los paquetes que AnyKey tiene para algunos sitios y los sitios donde AnyKey está desactivado. Para asignar una tecla a algo de una página, abre la página y usa el botón de AnyKey de la barra de herramientas.",
+    "intro": "Atajos para un solo sitio, los preajustes que AnyKey tiene para algunos sitios y los sitios donde AnyKey está desactivado. Para asignar una tecla a algo de una página, abre la página y usa el botón de AnyKey de la barra de herramientas.",
     "find": "Buscar un sitio",
     "add": "Añadir atajo de sitio",
     "noMatch": "Ningún sitio coincide con \"{query}\".",
@@ -178,7 +178,7 @@
     },
     "none": "Todavía no hay sitios.",
     "use": "Usar AnyKey",
-    "onHost": "en {host}",
+    "useOnHost": "Usar AnyKey en {host}",
     "offHere": "AnyKey está desactivado en este sitio, así que todas las teclas van al sitio.",
     "noShortcuts": "No hay atajos para este sitio.",
     "caption": "Atajos de {host}",
@@ -192,17 +192,17 @@
       "1": "1 advertencia",
       "n": "{count} advertencias"
     },
-    "resetTitle": "¿Restablecer {site} al paquete de {name}?",
-    "resetBody": "Los atajos del paquete de {name} recuperan sus teclas y vuelven a estar activos, y los atajos integrados vuelven a ceder ante las teclas de {name}. Esto se aplica en todos los equipos que sincronizas.",
+    "resetTitle": "¿Restablecer {site} al preajuste de {name}?",
+    "resetBody": "Los atajos del preajuste de {name} recuperan sus teclas y vuelven a estar activos, y los atajos integrados vuelven a ceder ante las teclas de {name}. Esto se aplica en todos los equipos con los que sincronizas.",
     "alsoDelete": {
       "1": "Eliminar también tu atajo para {site}",
       "n": "Eliminar también tus {count} atajos para {site}"
     }
   },
   "preset": {
-    "intro": "Atajos que AnyKey añade en {name}. Tus cambios se conservan cuando AnyKey actualiza el paquete.",
+    "intro": "Atajos que AnyKey añade en {name}. Tus cambios se conservan cuando AnyKey actualiza el preajuste.",
     "unverified": "Los marcados como Sin verificar aún no se han probado en el sitio real: si alguno no encuentra su elemento, AnyKey te lo indica en la página.",
-    "tableCaption": "Atajos del paquete de {name}",
+    "tableCaption": "Atajos del preajuste de {name}",
     "yieldsHeading": "Atajos integrados que ceden ante {name}",
     "yieldsHelp": "Cuando {name} usa una de estas teclas, AnyKey se la deja a {name}. Conserva un atajo para que allí se ejecute el de AnyKey.",
     "keep": "Conservar \"{label}\"",
@@ -220,7 +220,7 @@
     "pages": "Páginas",
     "everyPage": "Todas las páginas",
     "takenBy": "No se ejecuta: \"{label}\" usa sus teclas.",
-    "reset": "Restablecer al paquete de {name}"
+    "reset": "Restablecer al preajuste de {name}"
   },
   "settings": {
     "sequenceTimeout": "Tiempo para terminar una secuencia de teclas (milisegundos)",
@@ -265,8 +265,8 @@
       "n": "{count} atajos integrados modificados"
     },
     "presetCount": {
-      "1": "1 atajo de paquete modificado",
-      "n": "{count} atajos de paquete modificados"
+      "1": "1 atajo de preajuste modificado",
+      "n": "{count} atajos de preajuste modificados"
     },
     "ownCount": {
       "1": "1 atajo propio",
@@ -307,7 +307,7 @@
     "name": "Nombre",
     "nameHint": "Aparece en la lista de atajos que abre la tecla ?. Si lo dejas vacío, se describe la acción.",
     "keys": "Teclas",
-    "keysHint": "Escribe teclas como {a}, {b} o {c} (mod es ⌘ en Mac y Ctrl en los demás), o grábalas.",
+    "keysHint": "Escribe teclas como {a}, {b} o {c} (mod es ⌘ en Mac y Ctrl en otros sistemas), o grábalas.",
     "matchBy": "Reconocer teclas por",
     "byKey": "El carácter escrito",
     "byCode": "La tecla física",
@@ -371,26 +371,26 @@
     "docSettings": "tus ajustes",
     "docGlobal": "tus atajos globales",
     "docSite": "tus atajos para {host}",
-    "docPreset": "tus cambios en el paquete de {preset}",
+    "docPreset": "tus cambios en el preajuste de {preset}",
     "newer": {
       "settings": "Tus ajustes se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\".",
       "global": "Tus atajos globales se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\".",
       "site": "Tus atajos para {host} se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\".",
-      "preset": "Tus cambios en el paquete de {preset} se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\".",
+      "preset": "Tus cambios en el preajuste de {preset} se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\".",
       "other": "Los datos de \"{key}\" se guardaron con una versión más reciente de AnyKey, así que esta versión no los modificará. Actualiza AnyKey o repáralos en \"Tus datos\"."
     },
     "damaged": {
       "settings": "Tus ajustes están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\".",
       "global": "Tus atajos globales están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\".",
       "site": "Tus atajos para {host} están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\".",
-      "preset": "Tus cambios en el paquete de {preset} están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\".",
+      "preset": "Tus cambios en el preajuste de {preset} están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\".",
       "other": "Los datos de \"{key}\" están parcialmente dañados, así que AnyKey no los modificará hasta que los repares en \"Tus datos\"."
     },
     "itemQuota": {
       "settings": "Tus ajustes pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo.",
       "global": "Tus atajos globales pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo.",
       "site": "Tus atajos para {host} pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo.",
-      "preset": "Tus cambios en el paquete de {preset} pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo.",
+      "preset": "Tus cambios en el preajuste de {preset} pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo.",
       "other": "Los datos de \"{key}\" pueden usar como máximo 8 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes un atajo."
     },
     "totalQuota": "AnyKey puede usar como máximo 100 KB del almacenamiento sincronizado, y este cambio superaría ese límite. Elimina antes algunos atajos.",
@@ -401,7 +401,7 @@
     "onlyYours": "Solo tus propios atajos se pueden guardar de esta forma.",
     "chooseSite": "Elige el sitio para este atajo.",
     "notGlobal": "Un atajo para todos los sitios no se puede guardar con los ajustes de un solo sitio.",
-    "noPresetShortcut": "El paquete de {preset} no tiene el atajo \"{id}\".",
+    "noPresetShortcut": "El preajuste de {preset} no tiene el atajo \"{id}\".",
     "noDefault": "AnyKey no tiene el atajo integrado \"{id}\".",
     "noBackup": "No hay ninguna copia de seguridad que restaurar.",
     "writeRate": "El navegador limita la frecuencia con la que pueden cambiar los ajustes sincronizados. Espera un minuto y vuelve a intentarlo.",

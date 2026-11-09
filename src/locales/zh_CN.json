@@ -178,7 +178,7 @@
     },
     "none": "暂无网站。",
     "use": "使用 AnyKey",
-    "onHost": "于 {host}",
+    "useOnHost": "在 {host} 上使用 AnyKey",
     "offHere": "AnyKey 已在此网站上关闭，所有按键都交给网站处理。",
     "noShortcuts": "此网站没有快捷键。",
     "caption": "{host} 的快捷键",
@@ -230,7 +230,7 @@
     "hintChars": "提示字符",
     "hintCharsHint": "用于标记链接提示的按键，最容易按到的排在前面。它们只在显示提示时用于选择标记，其余时候仍运行你的快捷键。默认值：{default}。",
     "smoothScroll": "平滑滚动",
-    "newTabInBackground": "在当前标签页后台打开新标签页",
+    "newTabInBackground": "在后台打开新标签页",
     "checkValue": "请检查此值。"
   },
   "data": {
@@ -377,14 +377,14 @@
       "global": "你的全局快捷键由较新版本的 AnyKey 保存，因此此版本不会更改它们。请更新 AnyKey，或在“你的数据”中修复。",
       "site": "你在 {host} 上的快捷键由较新版本的 AnyKey 保存，因此此版本不会更改它们。请更新 AnyKey，或在“你的数据”中修复。",
       "preset": "你对 {preset} 预设的更改由较新版本的 AnyKey 保存，因此此版本不会更改它们。请更新 AnyKey，或在“你的数据”中修复。",
-      "other": "“{key}”由较新版本的 AnyKey 保存，因此此版本不会更改它们。请更新 AnyKey，或在“你的数据”中修复。"
+      "other": "“{key}”由较新版本的 AnyKey 保存，因此此版本不会更改它。请更新 AnyKey，或在“你的数据”中修复它。"
     },
     "damaged": {
       "settings": "你的设置已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它们。",
       "global": "你的全局快捷键已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它们。",
       "site": "你在 {host} 上的快捷键已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它们。",
       "preset": "你对 {preset} 预设的更改已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它们。",
-      "other": "“{key}”已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它们。"
+      "other": "“{key}”已部分损坏，在你到“你的数据”中修复之前，AnyKey 不会更改它。"
     },
     "itemQuota": {
       "settings": "你的设置最多可使用 8 KB 同步存储空间，此更改会超出上限。请先删除一个快捷键。",
