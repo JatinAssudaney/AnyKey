@@ -119,7 +119,7 @@ Languages: Spanish, German, Hindi and Simplified Chinese, with English as the de
 - [x] Choose each language's title and summary by what people there search for, not word for word from English.
 - [x] Write `store/listing.{es,de,hi,zh_CN}.md`, naming at most three sites as examples (Yellow Argon).
 - [x] Decide when to ask for a rating, then build it: at most twice, dismissible, after several successful shortcuts or hints, with nothing offered in return (the store's policy bans incentivized reviews).
-- [ ] Bump to 1.0.3, update the README's line on languages, `pnpm zip`, upload, and paste each language's description into the dashboard.
+- [x] Bump to 1.0.3, update the README's line on languages, `pnpm zip`, upload, and paste each language's description into the dashboard. Live by 10 November 2026.
 
 Search ranks before the new title (9 November 2026, US, signed out, 19 users, 2 ratings). Run them again 14 days after 1.0.3 is public:
 
